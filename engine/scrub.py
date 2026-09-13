@@ -21,6 +21,9 @@ def scrub_text(text, home_dir=None, username=None, hostname=None):
     if home_dir:
         for variant in {home_dir, home_dir.replace("\\", "/"), home_dir.replace("/", "\\")}:
             result = result.replace(variant, "~")
+    # Hostname must be scrubbed before username: a username is often a
+    # substring of its machine's hostname (e.g. "alice" in "alices-laptop").
+    # Replacing username first would corrupt the hostname before it can be scrubbed.
     if hostname:
         result = re.sub(re.escape(hostname), "[host]", result, flags=re.IGNORECASE)
     if username:
