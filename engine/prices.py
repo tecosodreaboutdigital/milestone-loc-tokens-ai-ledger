@@ -4,6 +4,8 @@ later effective_date, so a milestone priced in the past keeps the
 price that was actually true on the day it was recorded."""
 
 import json
+import os
+import tempfile
 
 
 def load_ledger(path):
@@ -24,7 +26,11 @@ def price_at(series, target_date):
     eligible = [e for e in series["entries"] if e["effective_date"] <= target_date]
     if not eligible:
         return None
-    return max(eligible, key=lambda e: e["effective_date"])
+    best = eligible[0]
+    for entry in eligible[1:]:
+        if entry["effective_date"] >= best["effective_date"]:
+            best = entry
+    return best
 
 
 def append_entry(ledger_path, provider, model, currency, effective_date, prices, sources):
@@ -52,6 +58,15 @@ def append_entry(ledger_path, provider, model, currency, effective_date, prices,
         series["entries"].append(entry)
         series["entries"].sort(key=lambda e: e["effective_date"])
 
-    with open(ledger_path, "w", encoding="utf-8") as fh:
-        json.dump(ledger, fh, indent=2)
-        fh.write("\n")
+    ledger_dir = os.path.dirname(ledger_path) or "."
+    fd, tmp_path = tempfile.mkstemp(
+        prefix=os.path.basename(ledger_path) + ".", suffix=".tmp", dir=ledger_dir
+    )
+    try:
+        with os.fdopen(fd, "w", encoding="utf-8") as fh:
+            json.dump(ledger, fh, indent=2)
+            fh.write("\n")
+        os.replace(tmp_path, ledger_path)
+    except BaseException:
+        os.remove(tmp_path)
+        raise

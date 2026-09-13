@@ -61,6 +61,43 @@ class TestPriceLedger(unittest.TestCase):
             self.assertEqual(series["entries"][0]["effective_date"], "2026-01-01")
             self.assertEqual(series["entries"][1]["effective_date"], "2026-09-13")
 
+    def test_append_entry_leaves_no_stray_temp_file(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            path = os.path.join(tmpdir, "prices.json")
+            with open(path, "w", encoding="utf-8") as fh:
+                json.dump([{
+                    "provider": "anthropic", "model": "claude-sonnet-5", "currency": "USD",
+                    "entries": [{"effective_date": "2026-01-01", "input_price": 5.0,
+                                 "output_price": 20.0, "cache_read_price": 0.5,
+                                 "cache_creation_price": 6.0, "sources": []}],
+                }], fh)
+
+            append_entry(
+                path, "anthropic", "claude-sonnet-5", "USD", "2026-09-13",
+                {"input_price": 3.0, "output_price": 15.0, "cache_read_price": 0.3, "cache_creation_price": 3.75},
+                [{"name": "a", "url": "u1", "checked_at": "2026-09-13"},
+                 {"name": "b", "url": "u2", "checked_at": "2026-09-13"}],
+            )
+
+            self.assertEqual(os.listdir(tmpdir), ["prices.json"])
+
+            ledger = load_ledger(path)
+            series = find_series(ledger, "anthropic", "claude-sonnet-5")
+            self.assertEqual(len(series["entries"]), 2)
+            self.assertEqual(series["entries"][1]["input_price"], 3.0)
+
+    def test_price_at_breaks_same_date_tie_in_favour_of_the_later_entry(self):
+        series = {
+            "provider": "anthropic", "model": "claude-sonnet-5", "currency": "USD",
+            "entries": [
+                {"effective_date": "2026-09-13", "input_price": 5.0, "output_price": 20.0,
+                 "cache_read_price": 0.5, "cache_creation_price": 6.0, "sources": []},
+                {"effective_date": "2026-09-13", "input_price": 3.0, "output_price": 15.0,
+                 "cache_read_price": 0.3, "cache_creation_price": 3.75, "sources": []},
+            ],
+        }
+        self.assertEqual(price_at(series, "2026-09-13")["input_price"], 3.0)
+
     def test_append_entry_requires_at_least_one_source(self):
         with tempfile.TemporaryDirectory() as tmpdir:
             path = os.path.join(tmpdir, "prices.json")
