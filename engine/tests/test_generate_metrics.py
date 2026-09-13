@@ -94,6 +94,40 @@ class TestBuildAndGenerate(unittest.TestCase):
                 second = json.load(fh)
             self.assertEqual(first["milestones"], second["milestones"])
 
+    def test_excluded_files_are_not_counted_in_words_delta(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            run(tmpdir, "init")
+            run(tmpdir, "config", "user.email", "test@example.com")
+            run(tmpdir, "config", "user.name", "Test")
+            with open(os.path.join(tmpdir, "README.md"), "w", encoding="utf-8") as fh:
+                fh.write("hello world from the first milestone")
+            os.makedirs(os.path.join(tmpdir, "logbook"))
+            with open(os.path.join(tmpdir, "logbook", "dashboard.html"), "w", encoding="utf-8") as fh:
+                fh.write("<html><body>this is a previously rendered dashboard with many words</body></html>")
+            run(tmpdir, "add", ".")
+            run(tmpdir, "commit", "-m", "First milestone")
+
+            config_path = os.path.join(tmpdir, "logbook", "config.json")
+            with open(config_path, "w", encoding="utf-8") as fh:
+                json.dump({
+                    "milestone_folder": "logbook",
+                    "content_globs": ["*.md", "*.html"],
+                    "code_globs": [],
+                    "exclude_globs": ["logbook/"],
+                    "transcript_reader": "claude_code",
+                    "price_provider": "anthropic",
+                    "price_model": "claude-sonnet-5",
+                    "currency": "USD",
+                }, fh)
+            from engine.config import load_config
+            config = load_config(config_path)
+            self.assertEqual(config["exclude_globs"], ["logbook/"])
+            milestones = build_milestones(tmpdir, config, claude_projects_dir="/no/such/dir")
+            # Only README.md's 6 words should count. logbook/dashboard.html
+            # matches content_globs' "*.html" but lives under the excluded
+            # "logbook/" prefix, so its own word count must not leak in.
+            self.assertEqual(milestones[0]["words_delta"], 6)
+
     def test_notes_json_is_merged_in_when_present(self):
         with tempfile.TemporaryDirectory() as tmpdir:
             self.make_repo(tmpdir)

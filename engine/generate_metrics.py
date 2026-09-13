@@ -15,7 +15,7 @@ from datetime import datetime, timezone
 
 from engine.config import load_config
 from engine.cost import compute_cost
-from engine.git_source import commits, line_count, list_repo_files_at, sum_metric, word_count_html
+from engine.git_source import commits, line_count, list_repo_files_at, matches_any, sum_metric, word_count_html
 from engine.prices import find_series, load_ledger, price_at
 from engine.readers.claude_code import find_session_jsonl, load_usage_events
 from engine.scrub import scrub_text
@@ -75,6 +75,13 @@ def build_milestones(repo_root, config, claude_projects_dir):
     milestones = []
     for row, tokens in zip(rows, token_buckets):
         files_at_commit = list_repo_files_at(repo_root, row["hash"])
+        # A project's own generated output (e.g. logbook/dashboard.html)
+        # must never be counted as its own content: exclude_globs keeps
+        # this from turning into a self-referential feedback loop where
+        # each regeneration folds the previous render's word count back
+        # into words_delta.
+        exclude_globs = config["exclude_globs"]
+        files_at_commit = {path for path in files_at_commit if not matches_any(path, exclude_globs)}
         words = sum_metric(repo_root, row["hash"], files_at_commit, config["content_globs"], word_count_html)
         loc = sum_metric(repo_root, row["hash"], files_at_commit, config["code_globs"], line_count)
         commit_date = row["iso"][:10]
