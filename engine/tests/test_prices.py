@@ -2,6 +2,7 @@ import json
 import os
 import tempfile
 import unittest
+from unittest.mock import patch
 
 from engine.prices import append_entry, find_series, load_ledger, price_at
 
@@ -61,7 +62,7 @@ class TestPriceLedger(unittest.TestCase):
             self.assertEqual(series["entries"][0]["effective_date"], "2026-01-01")
             self.assertEqual(series["entries"][1]["effective_date"], "2026-09-13")
 
-    def test_append_entry_leaves_no_stray_temp_file(self):
+    def test_append_entry_on_success_leaves_only_the_ledger_file(self):
         with tempfile.TemporaryDirectory() as tmpdir:
             path = os.path.join(tmpdir, "prices.json")
             with open(path, "w", encoding="utf-8") as fh:
@@ -85,6 +86,49 @@ class TestPriceLedger(unittest.TestCase):
             series = find_series(ledger, "anthropic", "claude-sonnet-5")
             self.assertEqual(len(series["entries"]), 2)
             self.assertEqual(series["entries"][1]["input_price"], 3.0)
+
+    def test_append_entry_on_replace_failure_leaves_original_file_untouched_and_cleans_up(self):
+        # This test injects a failure in os.replace, the step that swaps the
+        # finished temp file over the live ledger file. It only passes
+        # against an implementation that (a) never touches the live file
+        # until the replace succeeds and (b) removes the temp file when the
+        # replace fails. The old direct open(ledger_path, "w") + json.dump
+        # implementation has neither property: it truncates and overwrites
+        # the live file directly, so this test would fail against it (both
+        # because the live file would change and because there would be no
+        # temp file to clean up in the first place, making the failure
+        # itself impossible to inject the same way).
+        with tempfile.TemporaryDirectory() as tmpdir:
+            path = os.path.join(tmpdir, "prices.json")
+            original_ledger = [{
+                "provider": "anthropic", "model": "claude-sonnet-5", "currency": "USD",
+                "entries": [{"effective_date": "2026-01-01", "input_price": 5.0,
+                             "output_price": 20.0, "cache_read_price": 0.5,
+                             "cache_creation_price": 6.0, "sources": []}],
+            }]
+            with open(path, "w", encoding="utf-8") as fh:
+                json.dump(original_ledger, fh)
+            with open(path, encoding="utf-8") as fh:
+                original_text = fh.read()
+
+            with patch("engine.prices.os.replace", side_effect=OSError("simulated failure")):
+                with self.assertRaises(OSError):
+                    append_entry(
+                        path, "anthropic", "claude-sonnet-5", "USD", "2026-09-13",
+                        {"input_price": 3.0, "output_price": 15.0, "cache_read_price": 0.3,
+                         "cache_creation_price": 3.75},
+                        [{"name": "a", "url": "u1", "checked_at": "2026-09-13"},
+                         {"name": "b", "url": "u2", "checked_at": "2026-09-13"}],
+                    )
+
+            # The live file must be completely unchanged: same text on disk,
+            # still valid JSON, still holding only the original entry.
+            with open(path, encoding="utf-8") as fh:
+                self.assertEqual(fh.read(), original_text)
+            self.assertEqual(load_ledger(path), original_ledger)
+
+            # The failed write must not leave its temp file behind.
+            self.assertEqual(os.listdir(tmpdir), ["prices.json"])
 
     def test_price_at_breaks_same_date_tie_in_favour_of_the_later_entry(self):
         series = {
