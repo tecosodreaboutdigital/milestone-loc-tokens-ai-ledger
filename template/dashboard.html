@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Milestone ledger</title>
+<style>
+body{font-family:Arial,sans-serif;max-width:760px;margin:0 auto;padding:24px 16px;color:#1b1b19;background:#faf9f6}
+.kpi-row{display:flex;gap:16px;flex-wrap:wrap;margin:16px 0}
+.kpi{border:1px solid #e2e0d8;border-radius:6px;padding:10px 14px}
+.kpi-n{display:block;font-size:20px;font-weight:bold}
+.kpi-l{font-size:11px;color:#8a887f;text-transform:uppercase}
+table{width:100%;border-collapse:collapse;margin-top:16px}
+th,td{text-align:left;padding:6px 8px;border-bottom:1px solid #e2e0d8;font-size:13px}
+.price-panel{border:1px solid #e2e0d8;border-radius:6px;padding:16px;margin:16px 0}
+.price-panel label{display:block;font-size:12px;margin-top:8px}
+.price-panel input,.price-panel select{width:100%;padding:4px;box-sizing:border-box}
+svg text{font-family:Arial,sans-serif}
+.svg-sub{font-size:10px;fill:#8a887f}
+.svg-cap{font-size:9px;fill:#8a887f}
+footer{margin-top:32px;font-size:12px;color:#8a887f}
+</style>
+</head>
+<body>
+<h1>Milestone ledger</h1>
+<div class="kpi-row">__KPI_ROWS__</div>
+<h2>Words and lines</h2>
+__CHART_WORDS__
+<h2>Tokens</h2>
+__CHART_TOKENS__
+
+<div class="price-panel">
+  <h2>Recompute cost</h2>
+  <label>Provider and model
+    <select id="price-series-select"></select>
+  </label>
+  <label>Input price per million tokens
+    <input id="price-input" type="number" step="0.01">
+  </label>
+  <label>Output price per million tokens
+    <input id="price-output" type="number" step="0.01">
+  </label>
+  <label>Cache read price per million tokens
+    <input id="price-cache-read" type="number" step="0.01">
+  </label>
+  <label>Cache creation price per million tokens
+    <input id="price-cache-creation" type="number" step="0.01">
+  </label>
+</div>
+
+<h2>Milestones</h2>
+<table>
+<thead><tr><th>Date</th><th>Commit</th><th>Words</th><th>Lines</th><th>Recorded cost</th><th>Live cost</th><th>Note</th></tr></thead>
+<tbody>
+__TABLE_ROWS__
+</tbody>
+</table>
+
+<footer>Metrics engine originated in the <a href="https://github.com/tecosodreaboutdigital/harness-medir">harness-medir</a> project.</footer>
+
+<script>__EMBEDDED_DATA__</script>
+<script src="dashboard.js"></script>
+</body>
+</html>
