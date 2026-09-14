@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-14T01:33:17.143142+00:00",
+  "generated_at": "2026-09-14T10:55:20.529405+00:00",
   "milestones": [
     {
       "date": "2026-09-13",
@@ -8,12 +8,18 @@
       "words_delta": 0,
       "loc_delta": 0,
       "tokens": {
-        "input": 0,
-        "output": 0,
-        "cache_read": 0,
-        "cache_creation": 0
+        "input": 66,
+        "output": 1966,
+        "cache_read": 236396,
+        "cache_creation": 35467
       },
-      "cost_recorded": null,
+      "cost_recorded": {
+        "amount": 0.2336,
+        "currency": "USD",
+        "priced_at": "2026-09-13",
+        "provider": "anthropic",
+        "model": "claude-sonnet-5"
+      },
       "note": null
     },
     {
@@ -23,12 +29,18 @@
       "words_delta": 0,
       "loc_delta": 82,
       "tokens": {
-        "input": 0,
-        "output": 0,
-        "cache_read": 0,
-        "cache_creation": 0
+        "input": 132,
+        "output": 11601,
+        "cache_read": 722981,
+        "cache_creation": 74170
       },
-      "cost_recorded": null,
+      "cost_recorded": {
+        "amount": 0.6694,
+        "currency": "USD",
+        "priced_at": "2026-09-13",
+        "provider": "anthropic",
+        "model": "claude-sonnet-5"
+      },
       "note": null
     },
     {
@@ -38,12 +50,18 @@
       "words_delta": 0,
       "loc_delta": 89,
       "tokens": {
-        "input": 0,
-        "output": 0,
-        "cache_read": 0,
-        "cache_creation": 0
+        "input": 136,
+        "output": 7895,
+        "cache_read": 857335,
+        "cache_creation": 43343
       },
-      "cost_recorded": null,
+      "cost_recorded": {
+        "amount": 0.5386,
+        "currency": "USD",
+        "priced_at": "2026-09-13",
+        "provider": "anthropic",
+        "model": "claude-sonnet-5"
+      },
       "note": null
     },
     {
@@ -53,12 +71,18 @@
       "words_delta": 0,
       "loc_delta": 3,
       "tokens": {
-        "input": 0,
-        "output": 0,
-        "cache_read": 0,
-        "cache_creation": 0
+        "input": 80,
+        "output": 14889,
+        "cache_read": 438347,
+        "cache_creation": 43191
       },
-      "cost_recorded": null,
+      "cost_recorded": {
+        "amount": 0.517,
+        "currency": "USD",
+        "priced_at": "2026-09-13",
+        "provider": "anthropic",
+        "model": "claude-sonnet-5"
+      },
       "note": null
     },
     {
@@ -68,12 +92,18 @@
       "words_delta": 0,
       "loc_delta": 158,
       "tokens": {
-        "input": 0,
-        "output": 0,
-        "cache_read": 0,
-        "cache_creation": 0
+        "input": 130,
+        "output": 7013,
+        "cache_read": 715825,
+        "cache_creation": 47326
       },
-      "cost_recorded": null,
+      "cost_recorded": {
+        "amount": 0.4978,
+        "currency": "USD",
+        "priced_at": "2026-09-13",
+        "provider": "anthropic",
+        "model": "claude-sonnet-5"
+      },
       "note": null
     },
     {
@@ -83,12 +113,18 @@
       "words_delta": 0,
       "loc_delta": 175,
       "tokens": {
-        "input": 0,
-        "output": 0,
-        "cache_read": 0,
-        "cache_creation": 0
+        "input": 118,
+        "output": 18102,
+        "cache_read": 803520,
+        "cache_creation": 63568
       },
-      "cost_recorded": null,
+      "cost_recorded": {
+        "amount": 0.7513,
+        "currency": "USD",
+        "priced_at": "2026-09-13",
+        "provider": "anthropic",
+        "model": "claude-sonnet-5"
+      },
       "note": null
     },
     {
@@ -98,12 +134,18 @@
       "words_delta": 0,
       "loc_delta": 172,
       "tokens": {
-        "input": 0,
-        "output": 0,
-        "cache_read": 0,
-        "cache_creation": 0
+        "input": 126,
+        "output": 21441,
+        "cache_read": 646701,
+        "cache_creation": 50124
       },
-      "cost_recorded": null,
+      "cost_recorded": {
+        "amount": 0.704,
+        "currency": "USD",
+        "priced_at": "2026-09-13",
+        "provider": "anthropic",
+        "model": "claude-sonnet-5"
+      },
       "note": null
     },
     {
@@ -113,12 +155,18 @@
       "words_delta": 0,
       "loc_delta": 52,
       "tokens": {
-        "input": 0,
-        "output": 0,
-        "cache_read": 0,
-        "cache_creation": 0
+        "input": 50,
+        "output": 15395,
+        "cache_read": 748479,
+        "cache_creation": 94682
       },
-      "cost_recorded": null,
+      "cost_recorded": {
+        "amount": 0.8107,
+        "currency": "USD",
+        "priced_at": "2026-09-13",
+        "provider": "anthropic",
+        "model": "claude-sonnet-5"
+      },
       "note": null
     },
     {
@@ -128,12 +176,18 @@
       "words_delta": 0,
       "loc_delta": 44,
       "tokens": {
-        "input": 0,
-        "output": 0,
-        "cache_read": 0,
-        "cache_creation": 0
+        "input": 56,
+        "output": 32613,
+        "cache_read": 1615970,
+        "cache_creation": 98056
       },
-      "cost_recorded": null,
+      "cost_recorded": {
+        "amount": 1.3419,
+        "currency": "USD",
+        "priced_at": "2026-09-13",
+        "provider": "anthropic",
+        "model": "claude-sonnet-5"
+      },
       "note": null
     },
     {
@@ -143,12 +197,18 @@
       "words_delta": 0,
       "loc_delta": 43,
       "tokens": {
-        "input": 0,
-        "output": 0,
-        "cache_read": 0,
-        "cache_creation": 0
+        "input": 74,
+        "output": 9571,
+        "cache_read": 630130,
+        "cache_creation": 73072
       },
-      "cost_recorded": null,
+      "cost_recorded": {
+        "amount": 0.6068,
+        "currency": "USD",
+        "priced_at": "2026-09-13",
+        "provider": "anthropic",
+        "model": "claude-sonnet-5"
+      },
       "note": null
     },
     {
@@ -158,12 +218,18 @@
       "words_delta": 0,
       "loc_delta": 88,
       "tokens": {
-        "input": 0,
-        "output": 0,
-        "cache_read": 0,
-        "cache_creation": 0
+        "input": 74,
+        "output": 6708,
+        "cache_read": 437954,
+        "cache_creation": 40295
       },
-      "cost_recorded": null,
+      "cost_recorded": {
+        "amount": 0.3833,
+        "currency": "USD",
+        "priced_at": "2026-09-13",
+        "provider": "anthropic",
+        "model": "claude-sonnet-5"
+      },
       "note": null
     },
     {
@@ -173,12 +239,18 @@
       "words_delta": 56,
       "loc_delta": 185,
       "tokens": {
-        "input": 0,
-        "output": 0,
-        "cache_read": 0,
-        "cache_creation": 0
+        "input": 146,
+        "output": 20430,
+        "cache_read": 1244415,
+        "cache_creation": 61157
       },
-      "cost_recorded": null,
+      "cost_recorded": {
+        "amount": 0.9096,
+        "currency": "USD",
+        "priced_at": "2026-09-13",
+        "provider": "anthropic",
+        "model": "claude-sonnet-5"
+      },
       "note": null
     },
     {
@@ -188,12 +260,18 @@
       "words_delta": 0,
       "loc_delta": 306,
       "tokens": {
-        "input": 0,
-        "output": 0,
-        "cache_read": 0,
-        "cache_creation": 0
+        "input": 68,
+        "output": 30444,
+        "cache_read": 1472355,
+        "cache_creation": 98455
       },
-      "cost_recorded": null,
+      "cost_recorded": {
+        "amount": 1.2678,
+        "currency": "USD",
+        "priced_at": "2026-09-13",
+        "provider": "anthropic",
+        "model": "claude-sonnet-5"
+      },
       "note": null
     },
     {
@@ -203,12 +281,18 @@
       "words_delta": 0,
       "loc_delta": 41,
       "tokens": {
-        "input": 0,
-        "output": 0,
-        "cache_read": 0,
-        "cache_creation": 0
+        "input": 72,
+        "output": 42895,
+        "cache_read": 2405049,
+        "cache_creation": 111513
       },
-      "cost_recorded": null,
+      "cost_recorded": {
+        "amount": 1.7833,
+        "currency": "USD",
+        "priced_at": "2026-09-13",
+        "provider": "anthropic",
+        "model": "claude-sonnet-5"
+      },
       "note": null
     },
     {
@@ -218,12 +302,18 @@
       "words_delta": 0,
       "loc_delta": 81,
       "tokens": {
-        "input": 0,
-        "output": 0,
-        "cache_read": 0,
-        "cache_creation": 0
+        "input": 90,
+        "output": 13484,
+        "cache_read": 1277547,
+        "cache_creation": 87504
       },
-      "cost_recorded": null,
+      "cost_recorded": {
+        "amount": 0.9139,
+        "currency": "USD",
+        "priced_at": "2026-09-13",
+        "provider": "anthropic",
+        "model": "claude-sonnet-5"
+      },
       "note": null
     },
     {
@@ -233,12 +323,18 @@
       "words_delta": 2118,
       "loc_delta": 0,
       "tokens": {
-        "input": 0,
-        "output": 0,
-        "cache_read": 0,
-        "cache_creation": 0
+        "input": 162,
+        "output": 15333,
+        "cache_read": 1102834,
+        "cache_creation": 58831
       },
-      "cost_recorded": null,
+      "cost_recorded": {
+        "amount": 0.7819,
+        "currency": "USD",
+        "priced_at": "2026-09-13",
+        "provider": "anthropic",
+        "model": "claude-sonnet-5"
+      },
       "note": null
     },
     {
@@ -248,12 +344,18 @@
       "words_delta": 0,
       "loc_delta": 76,
       "tokens": {
-        "input": 0,
-        "output": 0,
-        "cache_read": 0,
-        "cache_creation": 0
+        "input": 144,
+        "output": 48151,
+        "cache_read": 3420567,
+        "cache_creation": 154273
       },
-      "cost_recorded": null,
+      "cost_recorded": {
+        "amount": 2.3274,
+        "currency": "USD",
+        "priced_at": "2026-09-13",
+        "provider": "anthropic",
+        "model": "claude-sonnet-5"
+      },
       "note": null
     },
     {
@@ -263,12 +365,18 @@
       "words_delta": 0,
       "loc_delta": 0,
       "tokens": {
-        "input": 0,
-        "output": 0,
-        "cache_read": 0,
-        "cache_creation": 0
+        "input": 74,
+        "output": 23291,
+        "cache_read": 2258574,
+        "cache_creation": 101613
       },
-      "cost_recorded": null,
+      "cost_recorded": {
+        "amount": 1.4082,
+        "currency": "USD",
+        "priced_at": "2026-09-13",
+        "provider": "anthropic",
+        "model": "claude-sonnet-5"
+      },
       "note": null
     },
     {
@@ -278,12 +386,18 @@
       "words_delta": 7,
       "loc_delta": 0,
       "tokens": {
-        "input": 0,
-        "output": 0,
-        "cache_read": 0,
-        "cache_creation": 0
+        "input": 106,
+        "output": 56708,
+        "cache_read": 3465006,
+        "cache_creation": 171121
       },
-      "cost_recorded": null,
+      "cost_recorded": {
+        "amount": 2.5321,
+        "currency": "USD",
+        "priced_at": "2026-09-13",
+        "provider": "anthropic",
+        "model": "claude-sonnet-5"
+      },
       "note": null
     },
     {
@@ -293,12 +407,18 @@
       "words_delta": 0,
       "loc_delta": 92,
       "tokens": {
-        "input": 0,
-        "output": 0,
-        "cache_read": 0,
-        "cache_creation": 0
+        "input": 206,
+        "output": 134903,
+        "cache_read": 12062022,
+        "cache_creation": 395722
       },
-      "cost_recorded": null,
+      "cost_recorded": {
+        "amount": 7.1267,
+        "currency": "USD",
+        "priced_at": "2026-09-13",
+        "provider": "anthropic",
+        "model": "claude-sonnet-5"
+      },
       "note": null
     },
     {
@@ -308,12 +428,18 @@
       "words_delta": 3,
       "loc_delta": 78,
       "tokens": {
-        "input": 0,
-        "output": 0,
-        "cache_read": 0,
-        "cache_creation": 0
+        "input": 14,
+        "output": 4212,
+        "cache_read": 1330082,
+        "cache_creation": 5405
       },
-      "cost_recorded": null,
+      "cost_recorded": {
+        "amount": 0.4825,
+        "currency": "USD",
+        "priced_at": "2026-09-13",
+        "provider": "anthropic",
+        "model": "claude-sonnet-5"
+      },
       "note": null
     },
     {
@@ -323,12 +449,18 @@
       "words_delta": 0,
       "loc_delta": 206,
       "tokens": {
-        "input": 0,
-        "output": 0,
-        "cache_read": 0,
-        "cache_creation": 0
+        "input": 18,
+        "output": 7099,
+        "cache_read": 1766543,
+        "cache_creation": 9989
       },
-      "cost_recorded": null,
+      "cost_recorded": {
+        "amount": 0.674,
+        "currency": "USD",
+        "priced_at": "2026-09-13",
+        "provider": "anthropic",
+        "model": "claude-sonnet-5"
+      },
       "note": null
     },
     {
@@ -338,12 +470,18 @@
       "words_delta": 1,
       "loc_delta": 91,
       "tokens": {
-        "input": 0,
-        "output": 0,
-        "cache_read": 0,
-        "cache_creation": 0
+        "input": 24,
+        "output": 5374,
+        "cache_read": 2474775,
+        "cache_creation": 7704
       },
-      "cost_recorded": null,
+      "cost_recorded": {
+        "amount": 0.852,
+        "currency": "USD",
+        "priced_at": "2026-09-13",
+        "provider": "anthropic",
+        "model": "claude-sonnet-5"
+      },
       "note": null
     },
     {
@@ -353,12 +491,18 @@
       "words_delta": 1,
       "loc_delta": 35,
       "tokens": {
-        "input": 0,
-        "output": 0,
-        "cache_read": 0,
-        "cache_creation": 0
+        "input": 16,
+        "output": 2777,
+        "cache_read": 1697694,
+        "cache_creation": 4301
       },
-      "cost_recorded": null,
+      "cost_recorded": {
+        "amount": 0.5671,
+        "currency": "USD",
+        "priced_at": "2026-09-13",
+        "provider": "anthropic",
+        "model": "claude-sonnet-5"
+      },
       "note": null
     },
     {
@@ -368,12 +512,60 @@
       "words_delta": 130,
       "loc_delta": 0,
       "tokens": {
-        "input": 0,
-        "output": 0,
-        "cache_read": 0,
-        "cache_creation": 0
+        "input": 18,
+        "output": 3042,
+        "cache_read": 1971747,
+        "cache_creation": 9713
       },
-      "cost_recorded": null,
+      "cost_recorded": {
+        "amount": 0.6736,
+        "currency": "USD",
+        "priced_at": "2026-09-13",
+        "provider": "anthropic",
+        "model": "claude-sonnet-5"
+      },
+      "note": null
+    },
+    {
+      "date": "2026-09-13",
+      "commit": "f3f6a30",
+      "subject": "Regenerate the self-hosted logbook against the fixed engine",
+      "words_delta": 0,
+      "loc_delta": 0,
+      "tokens": {
+        "input": 14,
+        "output": 2586,
+        "cache_read": 1581411,
+        "cache_creation": 3554
+      },
+      "cost_recorded": {
+        "amount": 0.5266,
+        "currency": "USD",
+        "priced_at": "2026-09-13",
+        "provider": "anthropic",
+        "model": "claude-sonnet-5"
+      },
+      "note": null
+    },
+    {
+      "date": "2026-09-14",
+      "commit": "a70fd1e",
+      "subject": "Add a GitHub Pages redirect and link the live logbook from the README",
+      "words_delta": 41,
+      "loc_delta": 0,
+      "tokens": {
+        "input": 18,
+        "output": 12233,
+        "cache_read": 2109724,
+        "cache_creation": 19586
+      },
+      "cost_recorded": {
+        "amount": 0.8899,
+        "currency": "USD",
+        "priced_at": "2026-09-13",
+        "provider": "anthropic",
+        "model": "claude-sonnet-5"
+      },
       "note": null
     }
   ]
