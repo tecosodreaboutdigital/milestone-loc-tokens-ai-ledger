@@ -1,5 +1,5 @@
 const assert = require("assert");
-const { priceForSelection, calculateCost } = require("./dashboard.js");
+const { priceForSelection, calculateCost, buildSeriesOptions } = require("./dashboard.js");
 
 const pricesBySeries = {
   "anthropic::claude-sonnet-5": [
@@ -37,5 +37,18 @@ const cost = calculateCost(
 assert.strictEqual(cost, 18.0);
 
 assert.strictEqual(calculateCost({ input: 1, output: 0, cache_read: 0, cache_creation: 0 }, null), null);
+
+// buildSeriesOptions: turns the embedded price series map into a
+// sorted, human-readable option list, without touching the DOM.
+const options = buildSeriesOptions({
+  "custom::on-premise": [],
+  "anthropic::claude-sonnet-5": [],
+});
+assert.deepStrictEqual(options, [
+  { value: "anthropic::claude-sonnet-5", label: "anthropic / claude-sonnet-5" },
+  { value: "custom::on-premise", label: "custom / on-premise" },
+], "should sort by key and turn :: into / in the label");
+
+assert.deepStrictEqual(buildSeriesOptions({}), [], "should return an empty list for an empty series map");
 
 console.log("all dashboard.js tests passed");

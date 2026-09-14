@@ -5,6 +5,8 @@
 // time, in window.MILESTONE_DATA, set by a script tag this file does
 // not own.
 
+const PRICE_SELECTION_STORAGE_KEY = "milestone-ledger-price-selection";
+
 function priceForSelection(pricesBySeries, provider, model, targetDate) {
   const key = provider + "::" + model;
   const entries = pricesBySeries[key] || [];
@@ -27,14 +29,71 @@ function calculateCost(tokens, priceEntry) {
   return Math.round(amount * 10000) / 10000;
 }
 
+// Turns the embedded provider/model price series into a stable,
+// sorted list of selectable options. Pure and DOM-free so it can be
+// tested from Node the same way priceForSelection and calculateCost
+// already are.
+function buildSeriesOptions(pricesBySeries) {
+  return Object.keys(pricesBySeries)
+    .sort()
+    .map((key) => ({ value: key, label: key.replace("::", " / ") }));
+}
+
+function loadSavedPriceSelection() {
+  try {
+    const raw = window.localStorage.getItem(PRICE_SELECTION_STORAGE_KEY);
+    return raw ? JSON.parse(raw) : null;
+  } catch (err) {
+    // A blocked or unavailable localStorage (private browsing, disabled
+    // site data) must never break the page: fall back to no saved
+    // selection.
+    return null;
+  }
+}
+
+function savePriceSelection(series, date) {
+  try {
+    window.localStorage.setItem(
+      PRICE_SELECTION_STORAGE_KEY,
+      JSON.stringify({ series: series, date: date })
+    );
+  } catch (err) {
+    // Same as above: saving is best-effort only.
+  }
+}
+
 function wireUpPricePanel() {
   const data = window.MILESTONE_DATA;
   const select = document.getElementById("price-series-select");
+  const dateInput = document.getElementById("price-date");
   const inputPrice = document.getElementById("price-input");
   const outputPrice = document.getElementById("price-output");
   const cacheReadPrice = document.getElementById("price-cache-read");
   const cacheCreationPrice = document.getElementById("price-cache-creation");
   const rows = document.querySelectorAll("[data-milestone-tokens]");
+
+  const options = buildSeriesOptions(data.prices);
+  options.forEach((option) => {
+    const el = document.createElement("option");
+    el.value = option.value;
+    el.textContent = option.label;
+    select.appendChild(el);
+  });
+
+  dateInput.value = data.today;
+  if (options.length > 0) {
+    select.value = options[0].value;
+  }
+
+  const saved = loadSavedPriceSelection();
+  if (saved) {
+    if (saved.series && options.some((option) => option.value === saved.series)) {
+      select.value = saved.series;
+    }
+    if (saved.date) {
+      dateInput.value = saved.date;
+    }
+  }
 
   function recalculate() {
     const priceEntry = {
@@ -55,7 +114,8 @@ function wireUpPricePanel() {
 
   function applySelection() {
     const [provider, model] = select.value.split("::");
-    const latest = priceForSelection(data.prices, provider, model, data.today);
+    const targetDate = dateInput.value || data.today;
+    const latest = priceForSelection(data.prices, provider, model, targetDate);
     if (latest) {
       inputPrice.value = latest.input_price;
       outputPrice.value = latest.output_price;
@@ -63,9 +123,11 @@ function wireUpPricePanel() {
       cacheCreationPrice.value = latest.cache_creation_price;
     }
     recalculate();
+    savePriceSelection(select.value, targetDate);
   }
 
   select.addEventListener("change", applySelection);
+  dateInput.addEventListener("change", applySelection);
   [inputPrice, outputPrice, cacheReadPrice, cacheCreationPrice].forEach((el) =>
     el.addEventListener("input", recalculate)
   );
@@ -73,7 +135,7 @@ function wireUpPricePanel() {
 }
 
 if (typeof module !== "undefined") {
-  module.exports = { priceForSelection, calculateCost };
+  module.exports = { priceForSelection, calculateCost, buildSeriesOptions };
 }
 if (typeof document !== "undefined") {
   document.addEventListener("DOMContentLoaded", wireUpPricePanel);
