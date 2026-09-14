@@ -8,17 +8,23 @@
 
 There are tools that count lines of code. There are tools that track LLM token cost. None of the ones this project could find, after a real search, combine a named project milestone with a token cost that stays editable after publication, on a page with no backend. This skill does.
 
+As of the last time this engine ran against this repository (see `logbook/data.json`'s own `generated_at`): **31 milestones, 66.3M tokens, $37.04 recorded cost, zero left unpriced.** These three cards are regenerated from that same run, every run, never hand-edited; click any of them for the live, interactive dashboard behind them:
+
+[<img src="logbook/thumb-tokens.svg" width="266" alt="Tokens consumed, with a per-milestone trend line">](https://tecosodreaboutdigital.github.io/milestone-loc-tokens-ai-ledger/logbook/dashboard.html) [<img src="logbook/thumb-cost.svg" width="266" alt="Cost recorded, with a cumulative trend line">](https://tecosodreaboutdigital.github.io/milestone-loc-tokens-ai-ledger/logbook/dashboard.html) [<img src="logbook/thumb-words.svg" width="266" alt="Words published, with a cumulative trend line">](https://tecosodreaboutdigital.github.io/milestone-loc-tokens-ai-ledger/logbook/dashboard.html)
+
 ## The problem
 
 A line-of-code counter tells you how big a project got. A token cost tracker tells you what a session cost, usually behind a login, usually with the price baked in at generation time. Neither tells a reader, months later, both what a specific milestone cost when it happened and what that same milestone would cost today, under a different price or a different provider.
 
 ## What it delivers
 
-**Three growth charts**, words, lines, and tokens, over the project's own milestones.
+**Four growth charts**, words, lines, tokens, and cost, over the project's own milestones. The cost chart is the only one that recalculates live, in the browser, the moment the price panel below it changes, never a network call.
 
-**A milestone table**, one row per commit: words changed, lines changed, the cost recorded at the price in effect that day, and an optional one-line decision note.
+**A milestone table**, one row per commit: words changed, lines changed, the cost recorded at the price in effect that day, a live recalculated cost next to it, and an optional one-line decision note.
 
-**A live price panel**, editable in the published page itself, with zero network calls: pick any provider, model, or historical price already in the ledger, and every milestone's cost recalculates instantly, client-side.
+**A live price panel**, editable in the published page itself, with zero network calls: pick any provider, model, or historical price already in the ledger — by dropdown, by typing a number, or by dragging a slider, all three kept in sync with each other — and every milestone's cost, the live-cost table column, and the cost chart all recalculate together, instantly, client-side.
+
+**A sources-consulted panel**, right under the price panel: whichever price is currently selected shows the dated, linked source(s) it actually came from, on the page itself, not only in the ledger file backing it.
 
 **An append-only, multi-source price ledger.** A price entry never gets overwritten, it gets superseded by a new dated entry, each one citing at least one source, ideally two independent ones.
 
@@ -67,7 +73,7 @@ Only subagent transcripts whose own content literally names this project's path 
 
 This repository's own logbook first shipped showing zero token usage for every milestone. The reason: this project was built by subagents dispatched from a sibling planning repository, `harness-medir`, so the Claude Code transcripts covering the actual work were filed under that sibling's own project path, not this one. The engine's exact-match project isolation (see `AGENTS.md`) correctly declined to guess or reach into another project's transcripts, so it reported zero and said why, rather than quietly borrowing numbers that were never really this project's own.
 
-The zero was correct but not the end of the story: a subagent dispatched with the Task tool gets its own transcript file, and every one of the 27 subagents that actually implemented, reviewed, or fixed a task of this project's own build still names this project's own absolute path inside its own transcript, real, checkable evidence, not a same-day coincidence. `--linked-project` (see above) reads exactly those, and only those: never the sibling session's own top-level file, which mixes in a whole day of unrelated `harness-medir` work no filter could safely untangle. Run once against this repository's own history, it recovered real, sourced usage for all 27 of its own milestones: 52,030,106 tokens and $30.77 recorded at the price in effect on 13 September 2026, now committed in `logbook/data.json`, not an estimate for either figure.
+The zero was correct but not the end of the story: a subagent dispatched with the Task tool gets its own transcript file, and every one of the 27 subagents that actually implemented, reviewed, or fixed a task of this project's own build still names this project's own absolute path inside its own transcript, real, checkable evidence, not a same-day coincidence. `--linked-project` (see above) reads exactly those, and only those: never the sibling session's own top-level file, which mixes in a whole day of unrelated `harness-medir` work no filter could safely untangle. Run once against this repository's own history, it recovered real, sourced usage for all 27 of its own milestones at the time: 52,030,106 tokens and $30.77 recorded at the price in effect on 13 September 2026, now committed in `logbook/data.json`, not an estimate for either figure. Every run since has repeated the same flag, per commit added since then; the live dashboard, and the numbers and thumbnails at the top of this README, are that same recovery continuing, not a one-off.
 
 One boundary stays deliberate, not an oversight: the sibling session's own dispatching and coordination overhead is not counted, only the work its subagents actually did. That is almost certainly an undercount of the true total, and it stays that way on purpose, because no defensible line separates that session's genuine coordination of this project from the rest of its own, entirely unrelated work that same day.
 

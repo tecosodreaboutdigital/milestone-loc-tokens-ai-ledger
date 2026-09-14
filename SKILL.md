@@ -17,7 +17,7 @@ Every word, line, and token count comes from reading git history and a real sess
 
 ## What it delivers
 
-**A self-hosted dashboard** (`<milestone_folder>/dashboard.html`), regenerated on every run: two growth charts (words, tokens), a milestone table, and a live price panel that recomputes cost against any provider, model, or historical price already in the ledger, entirely client-side, with no network call from the published page ever.
+**A self-hosted dashboard** (`<milestone_folder>/dashboard.html`), regenerated on every run: four growth charts (words, lines, tokens, cost), a milestone table, a sources-consulted panel, and a live price panel — dropdown, number field, and slider, kept in sync — that recomputes cost, the cost chart, and every milestone's live-cost cell against any provider, model, or historical price already in the ledger, entirely client-side, with no network call from the published page ever.
 
 **A frozen historical cost per milestone.** Computed once, at the price in effect on that milestone's date, and never recalculated when the ledger later gains a newer entry. The past stays recorded at the moment it happened.
 
