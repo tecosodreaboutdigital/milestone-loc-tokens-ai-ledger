@@ -1,0 +1,7 @@
+<svg width="320" height="120" viewBox="0 0 320 120" role="img" aria-label="Tokens consumed">
+<rect x="0.5" y="0.5" width="319" height="119" rx="8" fill="#faf9f6" stroke="#e2e0d8"/>
+<text x="16" y="34" font-family="Arial,sans-serif" font-size="22" font-weight="bold" fill="#1b1b19">79.2M</text>
+<text x="16" y="52" font-family="Arial,sans-serif" font-size="11" fill="#8a887f">Tokens consumed</text>
+<polyline points="16.0,103.8 25.0,101.9 34.0,101.6 43.0,103.0 52.0,102.1 61.0,101.7 70.0,102.3 79.0,101.8 88.0,98.8 97.0,102.3 106.0,103.0 115.0,100.2 124.0,99.3 133.0,96.0 142.0,100.0 151.0,100.7 160.0,92.5 169.0,96.6 178.0,92.2 187.0,62.2 196.0,100.2 205.0,98.7 214.0,96.3 223.0,98.9 232.0,98.0 241.0,99.3 250.0,97.5 259.0,62.1 268.0,103.9 277.0,103.9 286.0,100.7 295.0,62.0 304.0,104.0" fill="none" stroke="#1b1b19" stroke-width="1.5"/>
+<circle cx="304.0" cy="104.0" r="2.5" fill="#1b1b19"/>
+</svg>

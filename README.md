@@ -8,7 +8,7 @@
 
 There are tools that count lines of code. There are tools that track LLM token cost. None of the ones this project could find, after a real search, combine a named project milestone with a token cost that stays editable after publication, on a page with no backend. This skill does.
 
-As of the last time this engine ran against this repository (see `logbook/data.json`'s own `generated_at`): **31 milestones, 66.3M tokens, $37.04 recorded cost, zero left unpriced.** These three cards are regenerated from that same run, every run, never hand-edited; click any of them for the live, interactive dashboard behind them:
+As of the last time this engine ran against this repository (see `logbook/data.json`'s own `generated_at`): **33 milestones, 79.2M tokens, $43.30 recorded cost, zero left unpriced.** These three cards are regenerated from that same run, every run, never hand-edited; click any of them for the live, interactive dashboard behind them:
 
 [<img src="logbook/thumb-tokens.svg" width="266" alt="Tokens consumed, with a per-milestone trend line">](https://tecosodreaboutdigital.github.io/milestone-loc-tokens-ai-ledger/logbook/dashboard.html) [<img src="logbook/thumb-cost.svg" width="266" alt="Cost recorded, with a cumulative trend line">](https://tecosodreaboutdigital.github.io/milestone-loc-tokens-ai-ledger/logbook/dashboard.html) [<img src="logbook/thumb-words.svg" width="266" alt="Words published, with a cumulative trend line">](https://tecosodreaboutdigital.github.io/milestone-loc-tokens-ai-ledger/logbook/dashboard.html)
 

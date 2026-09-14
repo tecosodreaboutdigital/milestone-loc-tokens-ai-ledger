@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-14T11:01:53.795496+00:00",
+  "generated_at": "2026-09-14T13:13:17.557448+00:00",
   "milestones": [
     {
       "date": "2026-09-13",
@@ -624,6 +624,69 @@
       },
       "cost_recorded": {
         "amount": 0.0794,
+        "currency": "USD",
+        "priced_at": "2026-09-13",
+        "provider": "anthropic",
+        "model": "claude-sonnet-5"
+      },
+      "note": null
+    },
+    {
+      "date": "2026-09-14",
+      "commit": "32f23da",
+      "subject": "Regenerate the logbook to sweep in this session's own 3 commits",
+      "words_delta": 0,
+      "loc_delta": 0,
+      "tokens": {
+        "input": 10,
+        "output": 3270,
+        "cache_read": 1169895,
+        "cache_creation": 4264
+      },
+      "cost_recorded": {
+        "amount": 0.416,
+        "currency": "USD",
+        "priced_at": "2026-09-13",
+        "provider": "anthropic",
+        "model": "claude-sonnet-5"
+      },
+      "note": null
+    },
+    {
+      "date": "2026-09-14",
+      "commit": "b7e5646",
+      "subject": "Add a live cost chart, cost/unpriced KPIs, cross-linked price sliders, and a sources panel",
+      "words_delta": 47,
+      "loc_delta": 435,
+      "tokens": {
+        "input": 166,
+        "output": 74591,
+        "cache_read": 12203896,
+        "cache_creation": 373387
+      },
+      "cost_recorded": {
+        "amount": 6.1807,
+        "currency": "USD",
+        "priced_at": "2026-09-13",
+        "provider": "anthropic",
+        "model": "claude-sonnet-5"
+      },
+      "note": null
+    },
+    {
+      "date": "2026-09-14",
+      "commit": "e4aa925",
+      "subject": "Update README and SKILL.md for the four-chart dashboard, fix stale numbers",
+      "words_delta": 214,
+      "loc_delta": 0,
+      "tokens": {
+        "input": 2,
+        "output": 850,
+        "cache_read": 199364,
+        "cache_creation": 830
+      },
+      "cost_recorded": {
+        "amount": 0.0757,
         "currency": "USD",
         "priced_at": "2026-09-13",
         "provider": "anthropic",
