@@ -84,4 +84,7 @@ assert.ok(svg.includes('viewBox="0 0 700 200"'), "should honour a custom viewBox
 svg = growthChartSVG([], [], fmtInt, "cap", "sub");
 assert.ok(svg.includes("<svg"), "an empty series should still render a valid, empty chart, not throw");
 
+svg = growthChartSVG([1, 2], ["M1", "M2"], fmtInt, "cap", "sub");
+assert.ok(svg.includes('xmlns="http://www.w3.org/2000/svg"'), "should declare the SVG namespace, matching engine/svg_chart.py's own output");
+
 console.log("all dashboard.js tests passed");

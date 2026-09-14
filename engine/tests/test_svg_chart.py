@@ -31,6 +31,21 @@ class TestSvgGrowthChart(unittest.TestCase):
         )
         self.assertIn('viewBox="0 0 700 200"', svg)
 
+    def test_declares_the_svg_namespace(self):
+        # Without xmlns="http://www.w3.org/2000/svg" on the root <svg>,
+        # this still parses as well-formed XML and still serves with
+        # the right Content-Type when committed as a standalone .svg
+        # file, but a browser loading it via <img src> can refuse to
+        # rasterise it at all, showing a broken-image icon instead.
+        # Embedding it inline inside an HTML5 page (as the dashboard
+        # does) doesn't strictly need this, but every SVG this module
+        # produces declares it anyway, so the two never silently drift
+        # apart depending on where the output happens to be used.
+        svg = svg_growth_chart(
+            "w", [10, 20], ["M1", "M2"], lambda v: str(int(v)), "cap", "sub",
+        )
+        self.assertIn('xmlns="http://www.w3.org/2000/svg"', svg)
+
 
 class TestSvgStatThumbnail(unittest.TestCase):
     def test_includes_the_big_value_and_label_text(self):
@@ -56,6 +71,14 @@ class TestSvgStatThumbnail(unittest.TestCase):
     def test_includes_the_default_viewbox(self):
         svg = svg_stat_thumbnail("1", "Label", [1, 2])
         self.assertIn('viewBox="0 0 320 120"', svg)
+
+    def test_declares_the_svg_namespace(self):
+        # This one matters most of the four: svg_stat_thumbnail is the
+        # only function here whose output is always committed as a
+        # standalone .svg file (a README thumbnail), never inlined
+        # into an HTML5 page that would supply the namespace itself.
+        svg = svg_stat_thumbnail("1", "Label", [1, 2])
+        self.assertIn('xmlns="http://www.w3.org/2000/svg"', svg)
 
 
 if __name__ == "__main__":

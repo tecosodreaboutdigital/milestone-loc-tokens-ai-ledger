@@ -68,7 +68,7 @@ function growthChartSVG(values, xLabels, yFmt, caption, subcaption, viewboxH) {
   const points = xs.map((x, i) => x.toFixed(1) + "," + ys[i].toFixed(1)).join(" ");
 
   const parts = [];
-  parts.push('<svg viewBox="0 0 ' + width + " " + height + '" role="img" aria-label="' + caption + '">');
+  parts.push('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ' + width + " " + height + '" role="img" aria-label="' + caption + '">');
   parts.push('<line x1="' + left + '" y1="' + bottom + '" x2="' + right + '" y2="' + bottom + '" stroke="#c9c7bf" stroke-width=".7"/>');
   parts.push('<line x1="' + left + '" y1="' + top + '" x2="' + right + '" y2="' + top + '" stroke="#c9c7bf" stroke-width=".5" stroke-dasharray="2,3"/>');
   parts.push('<text class="svg-sub" x="' + (left - 6) + '" y="' + (top + 4) + '" text-anchor="end">' + yFmt(maxV) + "</text>");

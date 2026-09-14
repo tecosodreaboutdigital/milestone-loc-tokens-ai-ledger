@@ -15,7 +15,10 @@ def svg_growth_chart(marker_prefix, values, x_labels, y_fmt, caption, subcaption
     points = " ".join("%.1f,%.1f" % (x, y) for x, y in zip(xs, ys))
 
     parts = []
-    parts.append('<svg viewBox="0 0 %d %d" role="img" aria-label="%s">' % (width, height, caption))
+    parts.append(
+        '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 %d %d" role="img" aria-label="%s">'
+        % (width, height, caption)
+    )
     parts.append('<line x1="%d" y1="%d" x2="%d" y2="%d" stroke="#c9c7bf" stroke-width=".7"/>' % (left, bottom, right, bottom))
     parts.append('<line x1="%d" y1="%d" x2="%d" y2="%d" stroke="#c9c7bf" stroke-width=".5" stroke-dasharray="2,3"/>' % (left, top, right, top))
     parts.append('<text class="svg-sub" x="%d" y="%d" text-anchor="end">%s</text>' % (left - 6, top + 4, y_fmt(max_v)))
@@ -77,7 +80,7 @@ def svg_stat_thumbnail(big_value_text, label_text, values, width=320, height=120
 
     parts = []
     parts.append(
-        '<svg width="%d" height="%d" viewBox="0 0 %d %d" role="img" aria-label="%s">'
+        '<svg xmlns="http://www.w3.org/2000/svg" width="%d" height="%d" viewBox="0 0 %d %d" role="img" aria-label="%s">'
         % (width, height, width, height, label_text)
     )
     parts.append(

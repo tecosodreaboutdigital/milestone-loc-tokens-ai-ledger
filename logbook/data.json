@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-14T13:13:17.557448+00:00",
+  "generated_at": "2026-09-14T13:32:47.743609+00:00",
   "milestones": [
     {
       "date": "2026-09-13",
@@ -687,6 +687,27 @@
       },
       "cost_recorded": {
         "amount": 0.0757,
+        "currency": "USD",
+        "priced_at": "2026-09-13",
+        "provider": "anthropic",
+        "model": "claude-sonnet-5"
+      },
+      "note": null
+    },
+    {
+      "date": "2026-09-14",
+      "commit": "8f9d65d",
+      "subject": "Self-run: regenerate the logbook with the cost chart and thumbnails live",
+      "words_delta": 0,
+      "loc_delta": 0,
+      "tokens": {
+        "input": 22,
+        "output": 4808,
+        "cache_read": 2242950,
+        "cache_creation": 7555
+      },
+      "cost_recorded": {
+        "amount": 0.7734,
         "currency": "USD",
         "priced_at": "2026-09-13",
         "provider": "anthropic",
