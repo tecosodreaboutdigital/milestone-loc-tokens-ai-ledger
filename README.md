@@ -29,7 +29,7 @@ Verified 13 September 2026 against each vendor's own official documentation. Thi
 | Claude Code | `.claude/skills/milestone-loc-tokens-ai-ledger/` (project) or `~/.claude/skills/...` (personal), or as a plugin via `.claude-plugin/` | None |
 | Cursor | `.cursor/skills/...` or `.agents/skills/...` (project and personal) | Also reads `AGENTS.md` at the root as an alternative to `.cursor/rules` |
 | OpenAI Codex CLI | `AGENTS.md`, read hierarchically from `~/.codex/AGENTS.md` down to the current directory; skills in `.agents/skills/...` | None |
-| Gemini CLI | `GEMINI.md`; `.gemini/skills/...` or `.agents/skills/...` | The standalone product stopped serving free, Pro, and Ultra accounts on 18 June 2026, replaced by the Antigravity CLI. Only an enterprise Gemini Code Assist licence keeps access |
+| Gemini CLI | `GEMINI.md`; `.gemini/skills/...` or `.agents/skills/...` | The standalone product stopped serving free, Pro, and Ultra accounts on 18 June 2026, replaced by the Antigravity CLI. Accounts with a Gemini Code Assist Standard or Enterprise licence keep access to the legacy CLI |
 | Google Antigravity | `.agents/skills/...` (project, confirmed and consistent) | The personal path is not asserted here: three official pages document three different strings. Confirm at the source before relying on a personal install |
 | VS Code (via GitHub Copilot) | `.github/skills/`, `.claude/skills/`, or `.agents/skills/` (Agent Skills); `.github/copilot-instructions.md` (classic) | The Claude Code extension inside VS Code follows the Claude Code row above |
 
