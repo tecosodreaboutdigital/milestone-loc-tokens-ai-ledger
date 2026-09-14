@@ -4,8 +4,11 @@ import subprocess
 import sys
 import tempfile
 import unittest
+from unittest.mock import patch
 
 from engine.generate_metrics import bootstrap_if_missing, build_milestones, main
+from engine.prices import append_entry
+from engine.readers.claude_code import encode_project_path
 
 GENERATE_METRICS_PATH = os.path.join(
     os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "generate_metrics.py"
@@ -235,6 +238,166 @@ class TestDeltaSeries(unittest.TestCase):
             # The deltas must still telescope back to the true final total.
             self.assertEqual(sum(m["words_delta"] for m in milestones), 8)
             self.assertEqual(sum(m["loc_delta"] for m in milestones), 5)
+
+
+class TestConfigurableMilestoneFolder(unittest.TestCase):
+    # Fix D: milestone_folder is not actually configurable unless the
+    # engine creates it, and the self-exclusion fix must follow
+    # whatever the folder is renamed to, not stay pinned to "logbook/".
+    def test_main_creates_the_configured_milestone_folder_when_missing(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            run(tmpdir, "init")
+            run(tmpdir, "config", "user.email", "test@example.com")
+            run(tmpdir, "config", "user.name", "Test")
+            with open(os.path.join(tmpdir, "README.md"), "w", encoding="utf-8") as fh:
+                fh.write("hello world")
+            run(tmpdir, "add", ".")
+            run(tmpdir, "commit", "-m", "First milestone")
+
+            bootstrap_if_missing(tmpdir, "logbook")
+            config_path = os.path.join(tmpdir, "logbook", "config.json")
+            with open(config_path, "w", encoding="utf-8") as fh:
+                json.dump({
+                    "milestone_folder": "reports/output",
+                    "content_globs": ["*.md"],
+                    "code_globs": [],
+                    "exclude_globs": ["logbook/"],
+                    "transcript_reader": "claude_code",
+                    "price_provider": "anthropic",
+                    "price_model": "claude-sonnet-5",
+                    "currency": "USD",
+                }, fh)
+
+            output_dir = os.path.join(tmpdir, "reports", "output")
+            self.assertFalse(os.path.isdir(output_dir))
+            main(repo_root=tmpdir, claude_projects_dir="/no/such/dir")
+            self.assertTrue(os.path.isdir(output_dir))
+            self.assertTrue(os.path.isfile(os.path.join(output_dir, "dashboard.html")))
+            self.assertTrue(os.path.isfile(os.path.join(output_dir, "data.json")))
+
+    def test_configured_milestone_folder_is_always_self_excluded(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            run(tmpdir, "init")
+            run(tmpdir, "config", "user.email", "test@example.com")
+            run(tmpdir, "config", "user.name", "Test")
+            with open(os.path.join(tmpdir, "README.md"), "w", encoding="utf-8") as fh:
+                fh.write("hello world from the first milestone")
+            # A previously generated dashboard, already tracked, living
+            # under a renamed milestone_folder that exclude_globs
+            # (deliberately left at the historical "logbook/" default)
+            # never mentions.
+            os.makedirs(os.path.join(tmpdir, "reports"))
+            with open(os.path.join(tmpdir, "reports", "dashboard.html"), "w", encoding="utf-8") as fh:
+                fh.write("<html><body>" + " ".join(["word"] * 50) + "</body></html>")
+            run(tmpdir, "add", ".")
+            run(tmpdir, "commit", "-m", "First milestone")
+
+            os.makedirs(os.path.join(tmpdir, "logbook"))
+            config_path = os.path.join(tmpdir, "logbook", "config.json")
+            with open(config_path, "w", encoding="utf-8") as fh:
+                json.dump({
+                    "milestone_folder": "reports",
+                    "content_globs": ["*.md", "*.html"],
+                    "code_globs": [],
+                    "exclude_globs": ["logbook/"],
+                    "transcript_reader": "claude_code",
+                    "price_provider": "anthropic",
+                    "price_model": "claude-sonnet-5",
+                    "currency": "USD",
+                }, fh)
+            from engine.config import load_config
+            config = load_config(config_path)
+            self.assertEqual(config["exclude_globs"], ["logbook/"])
+            milestones = build_milestones(tmpdir, config, claude_projects_dir="/no/such/dir")
+            # Only README.md's 6 words should count. reports/dashboard.html
+            # matches content_globs' "*.html" but lives under the
+            # milestone_folder itself, which must always be excluded
+            # even though exclude_globs never names it.
+            self.assertEqual(milestones[0]["words_delta"], 6)
+
+
+class TestCostFreeze(unittest.TestCase):
+    # Fix E: cost_recorded, once written, must never be recalculated,
+    # even when a same-day price correction is appended later and
+    # would win price_at's later-entry tie-break on a fresh run.
+    def test_cost_recorded_never_changes_once_written(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            run(tmpdir, "init")
+            run(tmpdir, "config", "user.email", "test@example.com")
+            run(tmpdir, "config", "user.name", "Test")
+            with open(os.path.join(tmpdir, "README.md"), "w", encoding="utf-8") as fh:
+                fh.write("hello world from the only milestone")
+            run(tmpdir, "add", ".")
+            run(tmpdir, "commit", "-m", "Only milestone")
+
+            bootstrap_if_missing(tmpdir, "logbook")
+            config_path = os.path.join(tmpdir, "logbook", "config.json")
+            with open(config_path, "w", encoding="utf-8") as fh:
+                json.dump({
+                    "milestone_folder": "logbook",
+                    "content_globs": ["*.md"],
+                    "code_globs": [],
+                    "exclude_globs": ["logbook/"],
+                    "transcript_reader": "claude_code",
+                    "price_provider": "anthropic",
+                    "price_model": "claude-sonnet-5",
+                    "currency": "USD",
+                }, fh)
+
+            from engine.git_source import commits
+            first_commit = commits(tmpdir)[0]
+            commit_date = first_commit["iso"][:10]
+
+            projects_dir = os.path.join(tmpdir, "claude_projects")
+            project_dir = os.path.join(projects_dir, encode_project_path(tmpdir))
+            os.makedirs(project_dir)
+            with open(os.path.join(project_dir, "session.jsonl"), "w", encoding="utf-8") as fh:
+                fh.write(json.dumps({
+                    "timestamp": first_commit["iso"],
+                    "message": {
+                        "id": "msg_1",
+                        "usage": {
+                            "input_tokens": 1000, "output_tokens": 500,
+                            "cache_read_input_tokens": 0, "cache_creation_input_tokens": 0,
+                        },
+                    },
+                }) + "\n")
+
+            # An isolated price ledger: this test must never touch the
+            # real, shipped engine/prices.json.
+            ledger_path = os.path.join(tmpdir, "prices.json")
+            with open(ledger_path, "w", encoding="utf-8") as fh:
+                json.dump([{
+                    "provider": "anthropic", "model": "claude-sonnet-5", "currency": "USD",
+                    "entries": [{
+                        "effective_date": commit_date, "input_price": 3.0, "output_price": 15.0,
+                        "cache_read_price": 0.3, "cache_creation_price": 3.75, "sources": [],
+                    }],
+                }], fh)
+
+            with patch("engine.generate_metrics.SHIPPED_PRICES", ledger_path):
+                main(repo_root=tmpdir, claude_projects_dir=projects_dir)
+                with open(os.path.join(tmpdir, "logbook", "data.json"), encoding="utf-8") as fh:
+                    first_run = json.load(fh)
+                first_cost = first_run["milestones"][0]["cost_recorded"]
+                self.assertIsNotNone(first_cost)
+
+                # A same-day price correction, appended later, wins
+                # price_at's tie-break and would change what a fresh
+                # computation produces, if the freeze were not real.
+                append_entry(
+                    ledger_path, "anthropic", "claude-sonnet-5", "USD", commit_date,
+                    {"input_price": 999.0, "output_price": 999.0,
+                     "cache_read_price": 999.0, "cache_creation_price": 999.0},
+                    [{"name": "correction", "url": "u", "checked_at": commit_date}],
+                )
+
+                main(repo_root=tmpdir, claude_projects_dir=projects_dir)
+                with open(os.path.join(tmpdir, "logbook", "data.json"), encoding="utf-8") as fh:
+                    second_run = json.load(fh)
+                second_cost = second_run["milestones"][0]["cost_recorded"]
+
+            self.assertEqual(first_cost, second_cost)
 
 
 if __name__ == "__main__":

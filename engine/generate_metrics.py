@@ -75,6 +75,20 @@ def _bucket_tokens_by_commit(rows, events):
     return buckets
 
 
+def _effective_exclude_globs(config):
+    # A project's own generated output (e.g. logbook/dashboard.html)
+    # must never be counted as its own content, regardless of what the
+    # config file's own exclude_globs happens to say. Always exclude
+    # the configured milestone_folder itself, so renaming
+    # milestone_folder never silently loses this self-exclusion just
+    # because the config file was not updated to match.
+    exclude_globs = list(config["exclude_globs"])
+    milestone_prefix = config["milestone_folder"].rstrip("/") + "/"
+    if milestone_prefix not in exclude_globs:
+        exclude_globs.append(milestone_prefix)
+    return exclude_globs
+
+
 def build_milestones(repo_root, config, claude_projects_dir):
     rows = commits(repo_root)
     session_files = find_session_jsonl(claude_projects_dir, repo_root)
@@ -83,18 +97,13 @@ def build_milestones(repo_root, config, claude_projects_dir):
     notes = load_notes(repo_root, config["milestone_folder"])
     price_ledger = load_ledger(SHIPPED_PRICES)
     price_series = find_series(price_ledger, config["price_provider"], config["price_model"])
+    exclude_globs = _effective_exclude_globs(config)
 
     milestones = []
     prev_words = 0
     prev_loc = 0
     for row, tokens in zip(rows, token_buckets):
         files_at_commit = list_repo_files_at(repo_root, row["hash"])
-        # A project's own generated output (e.g. logbook/dashboard.html)
-        # must never be counted as its own content: exclude_globs keeps
-        # this from turning into a self-referential feedback loop where
-        # each regeneration folds the previous render's word count back
-        # into words_delta.
-        exclude_globs = config["exclude_globs"]
         files_at_commit = {path for path in files_at_commit if not matches_any(path, exclude_globs)}
         # sum_metric measures the current cumulative total content
         # matching a glob AT this commit, not what changed since the
@@ -136,6 +145,33 @@ def build_milestones(repo_root, config, claude_projects_dir):
     return milestones
 
 
+def _freeze_previously_recorded_costs(milestones, data_path):
+    # SKILL.md and the global constraints both promise that a
+    # milestone's cost_recorded, once written, is never recalculated.
+    # Without this, a same-day price correction appended later to the
+    # live ledger could retroactively change a previously published
+    # cost the next time the tie-break in price_at picks the new
+    # entry. Any commit already present in a prior run's data.json
+    # keeps that run's cost_recorded, no matter what the ledger says
+    # now. Milestones with no prior recorded cost (new since the last
+    # run, or previously null) keep their freshly computed value.
+    if not os.path.isfile(data_path):
+        return
+    try:
+        with open(data_path, encoding="utf-8") as fh:
+            previous_data = json.load(fh)
+    except (OSError, ValueError):
+        return
+    previous_costs = {
+        m["commit"]: m["cost_recorded"]
+        for m in previous_data.get("milestones", [])
+        if m.get("cost_recorded") is not None
+    }
+    for m in milestones:
+        if m["commit"] in previous_costs:
+            m["cost_recorded"] = previous_costs[m["commit"]]
+
+
 def render_table_rows(milestones):
     # data-milestone-tokens lives on the <tr> itself so dashboard.js can
     # read a row's token counts without a second lookup.
@@ -171,8 +207,15 @@ def main(repo_root=None, claude_projects_dir=None):
     bootstrap_if_missing(repo_root, "logbook")
     config = load_config(os.path.join(repo_root, "logbook", "config.json"))
     folder = os.path.join(repo_root, config["milestone_folder"])
+    os.makedirs(folder, exist_ok=True)
 
     milestones = build_milestones(repo_root, config, claude_projects_dir)
+
+    # A milestone's recorded cost is frozen the moment it is first
+    # written, so this must happen before the table and data.json are
+    # built from `milestones` below.
+    data_path = os.path.join(folder, "data.json")
+    _freeze_previously_recorded_costs(milestones, data_path)
 
     words_series = [m["words_delta"] for m in milestones] or [0]
     loc_series = [m["loc_delta"] for m in milestones] or [0]
@@ -216,7 +259,7 @@ def main(repo_root=None, claude_projects_dir=None):
         fh.write(html_out)
     shutil.copy(os.path.join(TEMPLATE_DIR, "dashboard.js"), os.path.join(folder, "dashboard.js"))
 
-    with open(os.path.join(folder, "data.json"), "w", encoding="utf-8") as fh:
+    with open(data_path, "w", encoding="utf-8") as fh:
         json.dump({
             "generated_at": datetime.now(timezone.utc).isoformat(),
             "milestones": milestones,
