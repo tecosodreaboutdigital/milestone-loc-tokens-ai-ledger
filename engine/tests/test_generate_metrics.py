@@ -165,6 +165,15 @@ class TestBuildAndGenerate(unittest.TestCase):
             self.assertIn("<h2>Words</h2>", html_out)
             self.assertIn("<h2>Lines</h2>", html_out)
 
+    def test_dashboard_html_includes_a_subject_column_header(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            self.make_repo(tmpdir)
+            self.write_config(tmpdir)
+            main(repo_root=tmpdir, claude_projects_dir="/no/such/dir")
+            with open(os.path.join(tmpdir, "logbook", "dashboard.html"), encoding="utf-8") as fh:
+                html_out = fh.read()
+            self.assertIn("<th>Subject</th>", html_out)
+
     def test_runs_as_a_direct_script_from_another_working_directory(self):
         # The documented usage is `python engine/generate_metrics.py
         # --repo <path>`, invoked directly rather than through
@@ -466,6 +475,30 @@ class TestWarnings(unittest.TestCase):
             with open(os.path.join(tmpdir, "logbook", "dashboard.html"), encoding="utf-8") as fh:
                 html_out = fh.read()
             self.assertIn("No LLM session transcripts were found", html_out)
+
+
+class TestTableRendering(unittest.TestCase):
+    # Fix G: a Subject column, and every interpolated field HTML-escaped.
+    def test_render_table_rows_includes_and_escapes_the_subject_and_note(self):
+        from engine.generate_metrics import render_table_rows
+        milestones = [{
+            "date": "2026-09-13",
+            "commit": "abc1234",
+            "subject": "Fix <script>alert(1)</script> & tidy up",
+            "words_delta": 10,
+            "loc_delta": 5,
+            "tokens": {"input": 0, "output": 0, "cache_read": 0, "cache_creation": 0},
+            "cost_recorded": None,
+            "note": "See <b>details</b>",
+        }]
+        rows_html = render_table_rows(milestones)
+        self.assertNotIn("<script>alert(1)</script>", rows_html)
+        self.assertIn("&lt;script&gt;alert(1)&lt;/script&gt;", rows_html)
+        self.assertIn("&amp;", rows_html)
+        self.assertIn("&lt;b&gt;details&lt;/b&gt;", rows_html)
+        self.assertIn(
+            "<td>Fix &lt;script&gt;alert(1)&lt;/script&gt; &amp; tidy up</td>", rows_html
+        )
 
 
 if __name__ == "__main__":

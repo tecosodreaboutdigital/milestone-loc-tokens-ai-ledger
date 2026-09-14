@@ -8,6 +8,7 @@ which one called it, only on the repository's own git history and
 session transcripts."""
 
 import argparse
+import html
 import itertools
 import json
 import os
@@ -178,12 +179,13 @@ def render_table_rows(milestones):
     rows = []
     for m in milestones:
         cost_text = "-" if m["cost_recorded"] is None else "$%.4f" % m["cost_recorded"]["amount"]
-        note_text = m["note"] or ""
+        subject_text = html.escape(m["subject"])
+        note_text = html.escape(m["note"]) if m["note"] else ""
         tokens_json = json.dumps(m["tokens"])
         rows.append(
-            '<tr data-milestone-tokens=\'%s\'><td>%s</td><td>%s</td><td>%d</td><td>%d</td>'
+            '<tr data-milestone-tokens=\'%s\'><td>%s</td><td>%s</td><td>%s</td><td>%d</td><td>%d</td>'
             '<td>%s</td><td data-live-cost>-</td><td>%s</td></tr>'
-            % (tokens_json, m["date"], m["commit"], m["words_delta"], m["loc_delta"], cost_text, note_text)
+            % (tokens_json, m["date"], m["commit"], subject_text, m["words_delta"], m["loc_delta"], cost_text, note_text)
         )
     return "\n".join(rows)
 
