@@ -1,0 +1,10 @@
+{
+  "milestone_folder": "logbook",
+  "content_globs": ["*.md", "*.html"],
+  "code_globs": ["engine/", "template/"],
+  "exclude_globs": ["logbook/"],
+  "transcript_reader": "claude_code",
+  "price_provider": "anthropic",
+  "price_model": "claude-sonnet-5",
+  "currency": "USD"
+}
