@@ -5,6 +5,8 @@ import unittest
 
 from engine.readers.claude_code import (
     encode_project_path,
+    find_linked_subagent_jsonl,
+    find_nested_subagent_jsonl,
     find_session_jsonl,
     load_usage_events,
 )
@@ -49,6 +51,87 @@ class TestFindSessionJsonl(unittest.TestCase):
 
     def test_no_projects_dir_returns_empty_list(self):
         found = find_session_jsonl("/no/such/dir", "/repo")
+        self.assertEqual(found, [])
+
+    def test_also_finds_nested_subagent_transcripts(self):
+        # A subagent dispatched via the Task tool gets its own JSONL
+        # file, filed under its parent session's own directory as
+        # <project_dir>/<session-uuid>/subagents/*.jsonl, never as a
+        # top-level file next to the parent's own <uuid>.jsonl. Without
+        # find_nested_subagent_jsonl, every token a subagent spent
+        # would be silently missed, even inside this same, correctly
+        # scoped project directory.
+        with tempfile.TemporaryDirectory() as tmpdir:
+            projects_dir = os.path.join(tmpdir, "projects")
+            repo = os.path.join(tmpdir, "repo")
+            os.makedirs(repo)
+            project_dir = os.path.join(projects_dir, encode_project_path(repo))
+            subagents_dir = os.path.join(project_dir, "session-uuid", "subagents")
+            os.makedirs(subagents_dir)
+            open(os.path.join(project_dir, "session-uuid.jsonl"), "w").close()
+            open(os.path.join(subagents_dir, "agent-1.jsonl"), "w").close()
+
+            found = find_session_jsonl(projects_dir, repo)
+            self.assertEqual(len(found), 2)
+            self.assertTrue(any(p.endswith("session-uuid.jsonl") for p in found))
+            self.assertTrue(any(os.path.join("subagents", "agent-1.jsonl") in p for p in found))
+
+
+class TestFindNestedSubagentJsonl(unittest.TestCase):
+    def test_ignores_session_directories_with_no_subagents(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            os.makedirs(os.path.join(tmpdir, "memory"))
+            self.assertEqual(find_nested_subagent_jsonl(tmpdir), [])
+
+    def test_missing_project_dir_returns_empty_list(self):
+        self.assertEqual(find_nested_subagent_jsonl("/no/such/dir"), [])
+
+
+class TestFindLinkedSubagentJsonl(unittest.TestCase):
+    def write_jsonl_containing(self, path, text):
+        os.makedirs(os.path.dirname(path), exist_ok=True)
+        with open(path, "w", encoding="utf-8") as fh:
+            fh.write(json.dumps({"note": text}) + "\n")
+
+    def test_only_returns_subagent_transcripts_that_mention_the_target_repo(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            projects_dir = os.path.join(tmpdir, "projects")
+            linked_project = os.path.join(tmpdir, "sibling-repo")
+            target_repo = os.path.join(tmpdir, "this-repo")
+            os.makedirs(linked_project)
+            os.makedirs(target_repo)
+
+            linked_dir = os.path.join(projects_dir, encode_project_path(linked_project))
+            relevant = os.path.join(linked_dir, "session-uuid", "subagents", "agent-relevant.jsonl")
+            unrelated = os.path.join(linked_dir, "session-uuid", "subagents", "agent-unrelated.jsonl")
+            self.write_jsonl_containing(relevant, "Implementing a task under %s" % target_repo)
+            self.write_jsonl_containing(unrelated, "Unrelated work in the linked project itself")
+
+            found = find_linked_subagent_jsonl(projects_dir, linked_project, target_repo)
+            self.assertEqual(found, [relevant])
+
+    def test_never_returns_the_linked_projects_own_top_level_session_file(self):
+        # The top-level file mixes together a whole session's unrelated
+        # same-day work in the linked project and cannot be safely
+        # scoped to just the target repository's own share of it, even
+        # when it happens to mention the target repo's path too (it
+        # dispatched the subagents that did).
+        with tempfile.TemporaryDirectory() as tmpdir:
+            projects_dir = os.path.join(tmpdir, "projects")
+            linked_project = os.path.join(tmpdir, "sibling-repo")
+            target_repo = os.path.join(tmpdir, "this-repo")
+            os.makedirs(linked_project)
+            os.makedirs(target_repo)
+
+            linked_dir = os.path.join(projects_dir, encode_project_path(linked_project))
+            top_level = os.path.join(linked_dir, "session-uuid.jsonl")
+            self.write_jsonl_containing(top_level, "Dispatching a subagent for %s" % target_repo)
+
+            found = find_linked_subagent_jsonl(projects_dir, linked_project, target_repo)
+            self.assertEqual(found, [])
+
+    def test_no_linked_project_dir_returns_empty_list(self):
+        found = find_linked_subagent_jsonl("/no/such/dir", "/linked", "/target")
         self.assertEqual(found, [])
 
 

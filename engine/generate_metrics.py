@@ -30,7 +30,7 @@ from engine.config import load_config
 from engine.cost import compute_cost
 from engine.git_source import commits, line_count, list_repo_files_at, matches_any, sum_metric, word_count_html
 from engine.prices import find_series, load_ledger, price_at
-from engine.readers.claude_code import find_session_jsonl, load_usage_events
+from engine.readers.claude_code import find_linked_subagent_jsonl, find_session_jsonl, load_usage_events
 from engine.scrub import scrub_text
 from engine.svg_chart import svg_growth_chart
 
@@ -90,9 +90,17 @@ def _effective_exclude_globs(config):
     return exclude_globs
 
 
-def build_milestones(repo_root, config, claude_projects_dir):
+def build_milestones(repo_root, config, claude_projects_dir, linked_projects=None):
     rows = commits(repo_root)
     session_files = find_session_jsonl(claude_projects_dir, repo_root)
+    # An explicit, named exception to project isolation: this project's
+    # own build history sometimes lives in a different top-level
+    # session's transcripts (see find_linked_subagent_jsonl's own
+    # docstring). Never guessed, never on by default: a caller must
+    # name the other project's path themselves, once, for that path to
+    # ever be read.
+    for linked_root in (linked_projects or []):
+        session_files.extend(find_linked_subagent_jsonl(claude_projects_dir, linked_root, repo_root))
     events = load_usage_events(session_files)
     token_buckets = _bucket_tokens_by_commit(rows, events)
     notes = load_notes(repo_root, config["milestone_folder"])
@@ -156,6 +164,14 @@ def _freeze_previously_recorded_costs(milestones, data_path):
     # keeps that run's cost_recorded, no matter what the ledger says
     # now. Milestones with no prior recorded cost (new since the last
     # run, or previously null) keep their freshly computed value.
+    #
+    # The tokens a recorded cost was computed from freeze alongside it,
+    # for the same reason: a discovered transcript is not guaranteed to
+    # stay discoverable forever (a --linked-project path given on one
+    # run might not be repeated on the next), and a milestone's cost
+    # staying frozen while its own tokens quietly reverted to zero
+    # would make the two numbers visibly disagree with each other on
+    # the published page.
     if not os.path.isfile(data_path):
         return
     try:
@@ -163,14 +179,16 @@ def _freeze_previously_recorded_costs(milestones, data_path):
             previous_data = json.load(fh)
     except (OSError, ValueError):
         return
-    previous_costs = {
-        m["commit"]: m["cost_recorded"]
+    previous_milestones = {
+        m["commit"]: m
         for m in previous_data.get("milestones", [])
         if m.get("cost_recorded") is not None
     }
     for m in milestones:
-        if m["commit"] in previous_costs:
-            m["cost_recorded"] = previous_costs[m["commit"]]
+        previous = previous_milestones.get(m["commit"])
+        if previous is not None:
+            m["cost_recorded"] = previous["cost_recorded"]
+            m["tokens"] = previous["tokens"]
 
 
 def render_table_rows(milestones):
@@ -203,7 +221,7 @@ def render_dashboard_html(template_path, kpi_html, words_svg, loc_svg, tokens_sv
     return doc
 
 
-def main(repo_root=None, claude_projects_dir=None):
+def main(repo_root=None, claude_projects_dir=None, linked_projects=None):
     repo_root = repo_root or os.getcwd()
     claude_projects_dir = claude_projects_dir or os.path.expanduser("~/.claude/projects")
 
@@ -212,10 +230,18 @@ def main(repo_root=None, claude_projects_dir=None):
     folder = os.path.join(repo_root, config["milestone_folder"])
     os.makedirs(folder, exist_ok=True)
 
-    milestones = build_milestones(repo_root, config, claude_projects_dir)
+    milestones = build_milestones(repo_root, config, claude_projects_dir, linked_projects)
 
     if len(milestones) == 0:
         print("warning: no commits found in this repository, nothing to report", file=sys.stderr)
+
+    # A milestone's recorded cost, and the tokens it was computed from,
+    # are frozen the moment they are first written, so this must happen
+    # before anything below reads `milestones` (the zero-tokens check,
+    # the table, the charts, and data.json all need the final, frozen
+    # numbers, not the freshly recomputed ones freezing might override).
+    data_path = os.path.join(folder, "data.json")
+    _freeze_previously_recorded_costs(milestones, data_path)
 
     total_tokens = sum(sum(m["tokens"].values()) for m in milestones)
     zero_tokens = total_tokens == 0
@@ -225,12 +251,6 @@ def main(repo_root=None, claude_projects_dir=None):
             "token and cost figures will show as zero or absent, not because nothing happened, "
             "but because no matching transcript was found"
         )
-
-    # A milestone's recorded cost is frozen the moment it is first
-    # written, so this must happen before the table and data.json are
-    # built from `milestones` below.
-    data_path = os.path.join(folder, "data.json")
-    _freeze_previously_recorded_costs(milestones, data_path)
 
     words_series = [m["words_delta"] for m in milestones] or [0]
     loc_series = [m["loc_delta"] for m in milestones] or [0]
@@ -296,5 +316,15 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Generate this repository's milestone ledger dashboard.")
     parser.add_argument("--repo", default=None, help="Repository root, defaults to the current directory.")
     parser.add_argument("--claude-projects-dir", default=None, help="Defaults to ~/.claude/projects.")
+    parser.add_argument(
+        "--linked-project", action="append", dest="linked_projects", default=None,
+        help=(
+            "Absolute path to another project whose subagent transcripts should also be "
+            "scanned, restricted to the ones that literally reference this repository's own "
+            "path (see engine/readers/claude_code.find_linked_subagent_jsonl). Only for a "
+            "project actually built by subagents dispatched from that other project's own "
+            "session. Repeatable."
+        ),
+    )
     args = parser.parse_args()
-    main(repo_root=args.repo, claude_projects_dir=args.claude_projects_dir)
+    main(repo_root=args.repo, claude_projects_dir=args.claude_projects_dir, linked_projects=args.linked_projects)

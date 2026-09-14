@@ -19,6 +19,29 @@ def encode_project_path(path):
     return re.sub(r"[:\\/. ]", "-", combined)
 
 
+def find_nested_subagent_jsonl(project_dir):
+    """A subagent dispatched via the Task tool gets its own JSONL
+    transcript, filed under its parent session's own directory as
+    <project_dir>/<parent-session-uuid>/subagents/*.jsonl, never as a
+    top-level file next to the parent's own <uuid>.jsonl. Without this,
+    every token a subagent spent (routine for a project built with a
+    subagent-driven workflow) would be silently missed, even though it
+    lives inside this same, correctly-scoped project directory."""
+    paths = []
+    if not os.path.isdir(project_dir):
+        return paths
+    for name in sorted(os.listdir(project_dir)):
+        subagents_dir = os.path.join(project_dir, name, "subagents")
+        if not os.path.isdir(subagents_dir):
+            continue
+        paths.extend(
+            os.path.join(subagents_dir, sub_name)
+            for sub_name in sorted(os.listdir(subagents_dir))
+            if sub_name.endswith(".jsonl")
+        )
+    return paths
+
+
 def find_session_jsonl(claude_projects_dir, repo_root):
     if not os.path.isdir(claude_projects_dir):
         return []
@@ -26,11 +49,60 @@ def find_session_jsonl(claude_projects_dir, repo_root):
     project_dir = os.path.join(claude_projects_dir, target)
     if not os.path.isdir(project_dir):
         return []
-    return [
+    top_level = [
         os.path.join(project_dir, name)
         for name in sorted(os.listdir(project_dir))
         if name.endswith(".jsonl")
     ]
+    return top_level + find_nested_subagent_jsonl(project_dir)
+
+
+def _path_variants(path):
+    """Every textual form an absolute path might actually appear in
+    inside a JSONL transcript line: both slash styles, both
+    drive-letter cases (a transcript stores whatever casing was typed
+    or resolved at the time, not a normalised one), and the
+    JSON-escaped double-backslash form a literal backslash takes once
+    serialised into a JSONL line."""
+    normalized = os.path.abspath(path)
+    drive, rest = os.path.splitdrive(normalized)
+    variants = set()
+    for one_drive in {drive, drive.upper(), drive.lower()}:
+        full = one_drive + rest
+        variants.add(full)
+        variants.add(full.replace("\\", "/"))
+        variants.add(full.replace("\\", "\\\\"))
+    return variants
+
+
+def find_linked_subagent_jsonl(claude_projects_dir, linked_project_root, target_repo_root):
+    """Finds subagent transcripts filed under a DIFFERENT project's own
+    session directories, scoped to only the ones that actually did
+    work on target_repo_root. This exists for one real, named
+    situation: a project built by subagents dispatched from a sibling
+    top-level session, whose transcripts are filed under that
+    sibling's own project path, never this one's, so
+    find_session_jsonl's ordinary exact-match lookup cannot see them.
+
+    Never includes a linked project's own top-level session file: that
+    file mixes together a whole session's unrelated same-day work in
+    the linked project and cannot be safely scoped to just this
+    project's share of it. Only a subagent transcript whose own
+    content literally contains target_repo_root's absolute path
+    qualifies. Never a same-day time window, never a guess: a
+    subagent's transcript either shows it was actually pointed at this
+    repository's files, or it is excluded."""
+    if not os.path.isdir(claude_projects_dir):
+        return []
+    linked_dir = os.path.join(claude_projects_dir, encode_project_path(linked_project_root))
+    variants = _path_variants(target_repo_root)
+    matches = []
+    for path in find_nested_subagent_jsonl(linked_dir):
+        with open(path, encoding="utf-8") as fh:
+            content = fh.read()
+        if any(variant in content for variant in variants):
+            matches.append(path)
+    return matches
 
 
 def load_usage_events(paths):

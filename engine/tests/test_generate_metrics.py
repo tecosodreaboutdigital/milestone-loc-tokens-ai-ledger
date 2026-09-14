@@ -411,6 +411,160 @@ class TestCostFreeze(unittest.TestCase):
             self.assertEqual(first_cost, second_cost)
 
 
+class TestLinkedProjects(unittest.TestCase):
+    # This repository's own real situation, generalised: a project
+    # built by subagents dispatched from a different top-level
+    # session's own project folder, so the ordinary exact-match lookup
+    # (scoped to this repository's own path) never finds their
+    # transcripts on its own.
+    def make_repo_with_config(self, tmpdir):
+        run(tmpdir, "init")
+        run(tmpdir, "config", "user.email", "test@example.com")
+        run(tmpdir, "config", "user.name", "Test")
+        with open(os.path.join(tmpdir, "README.md"), "w", encoding="utf-8") as fh:
+            fh.write("hello world from the only milestone")
+        run(tmpdir, "add", ".")
+        run(tmpdir, "commit", "-m", "Only milestone")
+
+        bootstrap_if_missing(tmpdir, "logbook")
+        config_path = os.path.join(tmpdir, "logbook", "config.json")
+        with open(config_path, "w", encoding="utf-8") as fh:
+            json.dump({
+                "milestone_folder": "logbook",
+                "content_globs": ["*.md"],
+                "code_globs": [],
+                "exclude_globs": ["logbook/"],
+                "transcript_reader": "claude_code",
+                "price_provider": "anthropic",
+                "price_model": "claude-sonnet-5",
+                "currency": "USD",
+            }, fh)
+
+    def write_linked_subagent_transcript(self, projects_dir, linked_project_root, target_repo_root, ts, usage):
+        linked_dir = os.path.join(projects_dir, encode_project_path(linked_project_root))
+        subagents_dir = os.path.join(linked_dir, "session-uuid", "subagents")
+        os.makedirs(subagents_dir, exist_ok=True)
+        with open(os.path.join(subagents_dir, "agent-1.jsonl"), "w", encoding="utf-8") as fh:
+            fh.write(json.dumps({
+                "timestamp": ts,
+                "message": {
+                    "id": "msg_1",
+                    "content": "Implementing a task under %s" % target_repo_root,
+                    "usage": usage,
+                },
+            }) + "\n")
+
+    def test_build_milestones_includes_tokens_from_a_linked_projects_subagent_transcript(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            self.make_repo_with_config(tmpdir)
+            from engine.config import load_config
+            from engine.git_source import commits
+            config = load_config(os.path.join(tmpdir, "logbook", "config.json"))
+            commit_iso = commits(tmpdir)[0]["iso"]
+
+            projects_dir = os.path.join(tmpdir, "claude_projects")
+            linked_project_root = os.path.join(tmpdir, "sibling-repo")
+            os.makedirs(linked_project_root)
+            self.write_linked_subagent_transcript(
+                projects_dir, linked_project_root, tmpdir, commit_iso,
+                {"input_tokens": 1000, "output_tokens": 500,
+                 "cache_read_input_tokens": 0, "cache_creation_input_tokens": 0},
+            )
+
+            without_link = build_milestones(tmpdir, config, projects_dir, linked_projects=None)
+            self.assertEqual(without_link[0]["tokens"]["input"], 0)
+
+            with_link = build_milestones(tmpdir, config, projects_dir, linked_projects=[linked_project_root])
+            self.assertEqual(with_link[0]["tokens"]["input"], 1000)
+            self.assertEqual(with_link[0]["tokens"]["output"], 500)
+
+    def test_a_linked_projects_unrelated_subagent_transcript_is_ignored(self):
+        # other_target must not share tmpdir as a path prefix: nested
+        # under it (like "tmpdir/some-other-repo") would make tmpdir's
+        # own path a genuine substring of other_target's, which is not
+        # the scenario this test means to exercise.
+        with tempfile.TemporaryDirectory() as tmpdir, tempfile.TemporaryDirectory() as other_target:
+            self.make_repo_with_config(tmpdir)
+            from engine.config import load_config
+            from engine.git_source import commits
+            config = load_config(os.path.join(tmpdir, "logbook", "config.json"))
+            commit_iso = commits(tmpdir)[0]["iso"]
+
+            projects_dir = os.path.join(tmpdir, "claude_projects")
+            linked_project_root = os.path.join(tmpdir, "sibling-repo")
+            os.makedirs(linked_project_root)
+            self.write_linked_subagent_transcript(
+                projects_dir, linked_project_root, other_target, commit_iso,
+                {"input_tokens": 1000, "output_tokens": 500,
+                 "cache_read_input_tokens": 0, "cache_creation_input_tokens": 0},
+            )
+
+            milestones = build_milestones(tmpdir, config, projects_dir, linked_projects=[linked_project_root])
+            self.assertEqual(milestones[0]["tokens"]["input"], 0)
+
+    def test_tokens_freeze_alongside_cost_once_recorded(self):
+        # A milestone's recorded cost, once written, is frozen. Its
+        # tokens must stay consistent with that frozen cost too: a
+        # later run that omits --linked-project must not silently
+        # revert this milestone's tokens to zero while its cost stays
+        # frozen at the non-zero amount those tokens produced.
+        with tempfile.TemporaryDirectory() as tmpdir:
+            self.make_repo_with_config(tmpdir)
+            from engine.git_source import commits
+            commit_iso = commits(tmpdir)[0]["iso"]
+            commit_date = commit_iso[:10]
+
+            projects_dir = os.path.join(tmpdir, "claude_projects")
+            linked_project_root = os.path.join(tmpdir, "sibling-repo")
+            os.makedirs(linked_project_root)
+            self.write_linked_subagent_transcript(
+                projects_dir, linked_project_root, tmpdir, commit_iso,
+                {"input_tokens": 1000, "output_tokens": 500,
+                 "cache_read_input_tokens": 0, "cache_creation_input_tokens": 0},
+            )
+
+            ledger_path = os.path.join(tmpdir, "prices.json")
+            with open(ledger_path, "w", encoding="utf-8") as fh:
+                json.dump([{
+                    "provider": "anthropic", "model": "claude-sonnet-5", "currency": "USD",
+                    "entries": [{
+                        "effective_date": commit_date, "input_price": 3.0, "output_price": 15.0,
+                        "cache_read_price": 0.3, "cache_creation_price": 3.75, "sources": [],
+                    }],
+                }], fh)
+
+            with patch("engine.generate_metrics.SHIPPED_PRICES", ledger_path):
+                main(repo_root=tmpdir, claude_projects_dir=projects_dir, linked_projects=[linked_project_root])
+                with open(os.path.join(tmpdir, "logbook", "data.json"), encoding="utf-8") as fh:
+                    first_run = json.load(fh)
+                self.assertIsNotNone(first_run["milestones"][0]["cost_recorded"])
+                self.assertEqual(first_run["milestones"][0]["tokens"]["input"], 1000)
+
+                # Second run, --linked-project not repeated this time.
+                main(repo_root=tmpdir, claude_projects_dir=projects_dir, linked_projects=None)
+                with open(os.path.join(tmpdir, "logbook", "data.json"), encoding="utf-8") as fh:
+                    second_run = json.load(fh)
+
+            self.assertEqual(second_run["milestones"][0]["cost_recorded"], first_run["milestones"][0]["cost_recorded"])
+            self.assertEqual(second_run["milestones"][0]["tokens"], first_run["milestones"][0]["tokens"])
+
+    def test_cli_accepts_repeated_linked_project_flags(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            self.make_repo_with_config(tmpdir)
+            result = subprocess.run(
+                [
+                    sys.executable, GENERATE_METRICS_PATH, "--repo", tmpdir,
+                    "--claude-projects-dir", "/no/such/dir",
+                    "--linked-project", os.path.join(tmpdir, "sibling-a"),
+                    "--linked-project", os.path.join(tmpdir, "sibling-b"),
+                ],
+                cwd=tempfile.gettempdir(),
+                capture_output=True,
+                text=True,
+            )
+            self.assertEqual(result.returncode, 0, msg=result.stderr)
+
+
 class TestWarnings(unittest.TestCase):
     # Fix F: silent failure on no commits or no token usage.
     def test_zero_commits_warns_on_stderr_and_still_writes_valid_output(self):
