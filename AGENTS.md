@@ -28,6 +28,7 @@ Run `python engine/generate_metrics.py --repo <path>`. Read `SKILL.md` in full f
 - Never write a note to `notes.json` that the user did not actually provide.
 - Never claim a transcript reader works for an environment `engine/readers/` does not actually contain a module for.
 - Never let the published `dashboard.html` or `dashboard.js` make a network call.
+- Never pass `--linked-project` because two projects were active the same day. Open the candidate subagent transcript yourself and confirm it names this project's own path before trusting it; `engine/readers/claude_code.find_linked_subagent_jsonl` already enforces this at the code level, but do not treat that as a reason to skip checking the actual evidence yourself when a user asks you to invoke it.
 
 ## Honest limits
 
@@ -47,4 +48,4 @@ This file cannot make a tool without a real Claude Code transcript produce a non
 
 ---
 
-Last updated 13 September 2026.
+Last updated 14 September 2026.

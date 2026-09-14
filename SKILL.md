@@ -33,6 +33,21 @@ First run bootstraps `<milestone_folder>/config.json` from `engine/config.exampl
 
 Only the Claude Code transcript reader ships complete. Running this against a project driven from another environment still counts words and lines from git history; token counts stay zero until a reader for that environment's transcript format is contributed, see `engine/readers/`.
 
+A subagent dispatched with the Task tool gets its own transcript, nested under its parent session's own directory, not a top-level file: the engine finds these on its own for the project's own session history, no flag needed.
+
+## When this project's own build history lives in another project's transcripts
+
+A project can be built by subagents dispatched from a different top-level session, one whose own working directory is a different repository entirely (a common shape for a spec-driven, subagent-per-task build run from a sibling planning repo). When that happens, the subagents' transcripts are filed under that other project's own path, never this one's, and the ordinary lookup above correctly finds nothing.
+
+```
+python engine/generate_metrics.py --repo /path/to/your/project \
+  --linked-project /path/to/the/other/repository
+```
+
+This never widens project isolation into a guess. It only ever reads a subagent transcript nested under the named other project, and only the ones whose own transcript content literally contains this project's own absolute path, proof the subagent was actually pointed at these files, not a same-day coincidence. It never reads the other project's own top-level session file: that file mixes together a whole session's unrelated work in that other project and cannot be safely scoped to just this project's share of it. Repeat `--linked-project` for more than one other project. See `engine/readers/claude_code.find_linked_subagent_jsonl` for the exact rule.
+
+A milestone's recorded cost and the tokens it was computed from both freeze the first time they are written (see below), so a later run that omits a `--linked-project` flag given on an earlier run still shows the same historical numbers for milestones already priced; only a not-yet-priced milestone depends on the flag being repeated.
+
 ## Recording a decision alongside a milestone
 
 Add a line to `<milestone_folder>/notes.json`, keyed by the commit's short hash:
@@ -62,6 +77,7 @@ Never edits an existing entry. Always appends.
 - Never overwrite an existing price ledger entry. Append a new one.
 - Never claim a transcript reader exists for an environment this repository has not actually tested.
 - Never call out to the network from `dashboard.html` or `dashboard.js`.
+- Never pass `--linked-project` on a same-day-timing hunch. Confirm, transcript by transcript, that its content actually names this project's own path before trusting what it backfills.
 
 ## Files in this skill
 
