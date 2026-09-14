@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-14T10:55:20.529405+00:00",
+  "generated_at": "2026-09-14T11:01:53.795496+00:00",
   "milestones": [
     {
       "date": "2026-09-13",
@@ -561,6 +561,69 @@
       },
       "cost_recorded": {
         "amount": 0.8899,
+        "currency": "USD",
+        "priced_at": "2026-09-13",
+        "provider": "anthropic",
+        "model": "claude-sonnet-5"
+      },
+      "note": null
+    },
+    {
+      "date": "2026-09-14",
+      "commit": "b76549a",
+      "subject": "Also count tokens from nested subagent transcripts, and a named sibling project",
+      "words_delta": 0,
+      "loc_delta": 339,
+      "tokens": {
+        "input": 160,
+        "output": 83117,
+        "cache_read": 12355554,
+        "cache_creation": 196762
+      },
+      "cost_recorded": {
+        "amount": 5.6918,
+        "currency": "USD",
+        "priced_at": "2026-09-13",
+        "provider": "anthropic",
+        "model": "claude-sonnet-5"
+      },
+      "note": null
+    },
+    {
+      "date": "2026-09-14",
+      "commit": "e4baa67",
+      "subject": "Self-run: recover this repository's own real token usage from harness-medir",
+      "words_delta": 0,
+      "loc_delta": 0,
+      "tokens": {
+        "input": 2,
+        "output": 602,
+        "cache_read": 230600,
+        "cache_creation": 878
+      },
+      "cost_recorded": {
+        "amount": 0.0815,
+        "currency": "USD",
+        "priced_at": "2026-09-13",
+        "provider": "anthropic",
+        "model": "claude-sonnet-5"
+      },
+      "note": null
+    },
+    {
+      "date": "2026-09-14",
+      "commit": "3765880",
+      "subject": "Document --linked-project, and the real numbers it recovered",
+      "words_delta": 728,
+      "loc_delta": 0,
+      "tokens": {
+        "input": 2,
+        "output": 489,
+        "cache_read": 231478,
+        "cache_creation": 703
+      },
+      "cost_recorded": {
+        "amount": 0.0794,
         "currency": "USD",
         "priced_at": "2026-09-13",
         "provider": "anthropic",
