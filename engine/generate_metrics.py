@@ -8,6 +8,7 @@ which one called it, only on the repository's own git history and
 session transcripts."""
 
 import argparse
+import itertools
 import json
 import os
 import shutil
@@ -84,6 +85,8 @@ def build_milestones(repo_root, config, claude_projects_dir):
     price_series = find_series(price_ledger, config["price_provider"], config["price_model"])
 
     milestones = []
+    prev_words = 0
+    prev_loc = 0
     for row, tokens in zip(rows, token_buckets):
         files_at_commit = list_repo_files_at(repo_root, row["hash"])
         # A project's own generated output (e.g. logbook/dashboard.html)
@@ -93,8 +96,17 @@ def build_milestones(repo_root, config, claude_projects_dir):
         # into words_delta.
         exclude_globs = config["exclude_globs"]
         files_at_commit = {path for path in files_at_commit if not matches_any(path, exclude_globs)}
+        # sum_metric measures the current cumulative total content
+        # matching a glob AT this commit, not what changed since the
+        # last one. Track the running total across commits so we can
+        # store a genuine per-milestone delta below, not a repeated
+        # cumulative number mislabeled as one.
         words = sum_metric(repo_root, row["hash"], files_at_commit, config["content_globs"], word_count_html)
         loc = sum_metric(repo_root, row["hash"], files_at_commit, config["code_globs"], line_count)
+        words_delta = words - prev_words
+        loc_delta = loc - prev_loc
+        prev_words = words
+        prev_loc = loc
         commit_date = row["iso"][:10]
         price_entry = price_at(price_series, commit_date)
         # A milestone with no recorded token usage (no transcript covers
@@ -108,8 +120,8 @@ def build_milestones(repo_root, config, claude_projects_dir):
             "date": commit_date,
             "commit": row["hash"][:7],
             "subject": scrub_text(row["subject"]),
-            "words_delta": words,
-            "loc_delta": loc,
+            "words_delta": words_delta,
+            "loc_delta": loc_delta,
             "tokens": tokens,
             "cost_recorded": (
                 {
@@ -140,15 +152,16 @@ def render_table_rows(milestones):
     return "\n".join(rows)
 
 
-def render_dashboard_html(template_path, kpi_html, words_svg, tokens_svg, table_rows_html, embedded_js):
+def render_dashboard_html(template_path, kpi_html, words_svg, loc_svg, tokens_svg, table_rows_html, embedded_js):
     with open(template_path, encoding="utf-8") as fh:
-        html = fh.read()
-    html = html.replace("__KPI_ROWS__", kpi_html)
-    html = html.replace("__CHART_WORDS__", words_svg)
-    html = html.replace("__CHART_TOKENS__", tokens_svg)
-    html = html.replace("__TABLE_ROWS__", table_rows_html)
-    html = html.replace("__EMBEDDED_DATA__", embedded_js)
-    return html
+        doc = fh.read()
+    doc = doc.replace("__KPI_ROWS__", kpi_html)
+    doc = doc.replace("__CHART_WORDS__", words_svg)
+    doc = doc.replace("__CHART_LOC__", loc_svg)
+    doc = doc.replace("__CHART_TOKENS__", tokens_svg)
+    doc = doc.replace("__TABLE_ROWS__", table_rows_html)
+    doc = doc.replace("__EMBEDDED_DATA__", embedded_js)
+    return doc
 
 
 def main(repo_root=None, claude_projects_dir=None):
@@ -162,10 +175,20 @@ def main(repo_root=None, claude_projects_dir=None):
     milestones = build_milestones(repo_root, config, claude_projects_dir)
 
     words_series = [m["words_delta"] for m in milestones] or [0]
+    loc_series = [m["loc_delta"] for m in milestones] or [0]
     tokens_series = [sum(m["tokens"].values()) for m in milestones] or [0]
     x_labels = ["M%d" % (i + 1) for i in range(len(milestones))] or ["M1"]
 
-    words_svg = svg_growth_chart("w", words_series, x_labels, lambda v: str(int(v)), "Words per milestone", "Words published")
+    # The charts show cumulative growth over time, the point of a
+    # growth chart, even though words_delta/loc_delta are now genuine
+    # per-milestone deltas: accumulate them back into running totals
+    # for charting only. tokens_series is already a genuine per-commit
+    # bucket (see _bucket_tokens_by_commit), so its chart is unchanged.
+    words_cumulative = list(itertools.accumulate(words_series))
+    loc_cumulative = list(itertools.accumulate(loc_series))
+
+    words_svg = svg_growth_chart("w", words_cumulative, x_labels, lambda v: str(int(v)), "Words per milestone", "Words published")
+    loc_svg = svg_growth_chart("l", loc_cumulative, x_labels, lambda v: str(int(v)), "Lines per milestone", "Lines of code")
     tokens_svg = svg_growth_chart("t", tokens_series, x_labels, lambda v: str(int(v)), "Tokens per milestone", "LLM tokens consumed")
 
     kpi_html = (
@@ -186,11 +209,11 @@ def main(repo_root=None, claude_projects_dir=None):
         "today": today,
     })
 
-    html = render_dashboard_html(
-        os.path.join(TEMPLATE_DIR, "dashboard.html"), kpi_html, words_svg, tokens_svg, table_rows_html, embedded_js,
+    html_out = render_dashboard_html(
+        os.path.join(TEMPLATE_DIR, "dashboard.html"), kpi_html, words_svg, loc_svg, tokens_svg, table_rows_html, embedded_js,
     )
     with open(os.path.join(folder, "dashboard.html"), "w", encoding="utf-8") as fh:
-        fh.write(html)
+        fh.write(html_out)
     shutil.copy(os.path.join(TEMPLATE_DIR, "dashboard.js"), os.path.join(folder, "dashboard.js"))
 
     with open(os.path.join(folder, "data.json"), "w", encoding="utf-8") as fh:

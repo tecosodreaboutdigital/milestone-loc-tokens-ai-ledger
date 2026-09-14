@@ -147,6 +147,19 @@ class TestBuildAndGenerate(unittest.TestCase):
             self.assertEqual(milestones[0]["note"], "Decided to start with the README only.")
             self.assertIsNone(milestones[1]["note"])
 
+    def test_dashboard_html_renders_a_separate_lines_chart(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            self.make_repo(tmpdir)
+            self.write_config(tmpdir)
+            main(repo_root=tmpdir, claude_projects_dir="/no/such/dir")
+            with open(os.path.join(tmpdir, "logbook", "dashboard.html"), encoding="utf-8") as fh:
+                html_out = fh.read()
+            self.assertNotIn("__CHART_LOC__", html_out)
+            self.assertIn('aria-label="Words per milestone"', html_out)
+            self.assertIn('aria-label="Lines per milestone"', html_out)
+            self.assertIn("<h2>Words</h2>", html_out)
+            self.assertIn("<h2>Lines</h2>", html_out)
+
     def test_runs_as_a_direct_script_from_another_working_directory(self):
         # The documented usage is `python engine/generate_metrics.py
         # --repo <path>`, invoked directly rather than through
@@ -168,6 +181,60 @@ class TestBuildAndGenerate(unittest.TestCase):
             )
             self.assertEqual(result.returncode, 0, msg=result.stderr)
             self.assertNotIn("ModuleNotFoundError", result.stderr)
+
+
+class TestDeltaSeries(unittest.TestCase):
+    # Fix A: words_delta/loc_delta must be genuine per-milestone deltas,
+    # not the cumulative running total sum_metric measures at each
+    # commit. A repo whose content and code both grow unevenly across
+    # three commits is the only way to tell a delta series apart from a
+    # cumulative one: a cumulative series would repeat 3, 8, 8, not
+    # 3, 5, 0.
+    def test_words_and_loc_deltas_are_not_cumulative_totals(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            run(tmpdir, "init")
+            run(tmpdir, "config", "user.email", "test@example.com")
+            run(tmpdir, "config", "user.name", "Test")
+
+            with open(os.path.join(tmpdir, "README.md"), "w", encoding="utf-8") as fh:
+                fh.write("one two three")
+            run(tmpdir, "add", ".")
+            run(tmpdir, "commit", "-m", "First milestone")
+
+            with open(os.path.join(tmpdir, "README.md"), "w", encoding="utf-8") as fh:
+                fh.write("one two three four five six seven eight")
+            with open(os.path.join(tmpdir, "code.py"), "w", encoding="utf-8") as fh:
+                fh.write("line1\nline2\n")
+            run(tmpdir, "add", ".")
+            run(tmpdir, "commit", "-m", "Second milestone")
+
+            with open(os.path.join(tmpdir, "code.py"), "w", encoding="utf-8") as fh:
+                fh.write("line1\nline2\nline3\nline4\nline5\n")
+            run(tmpdir, "add", ".")
+            run(tmpdir, "commit", "-m", "Third milestone")
+
+            bootstrap_if_missing(tmpdir, "logbook")
+            config_path = os.path.join(tmpdir, "logbook", "config.json")
+            with open(config_path, "w", encoding="utf-8") as fh:
+                json.dump({
+                    "milestone_folder": "logbook",
+                    "content_globs": ["*.md"],
+                    "code_globs": ["*.py"],
+                    "exclude_globs": ["logbook/"],
+                    "transcript_reader": "claude_code",
+                    "price_provider": "anthropic",
+                    "price_model": "claude-sonnet-5",
+                    "currency": "USD",
+                }, fh)
+            from engine.config import load_config
+            config = load_config(config_path)
+            milestones = build_milestones(tmpdir, config, claude_projects_dir="/no/such/dir")
+
+            self.assertEqual([m["words_delta"] for m in milestones], [3, 5, 0])
+            self.assertEqual([m["loc_delta"] for m in milestones], [0, 2, 3])
+            # The deltas must still telescope back to the true final total.
+            self.assertEqual(sum(m["words_delta"] for m in milestones), 8)
+            self.assertEqual(sum(m["loc_delta"] for m in milestones), 5)
 
 
 if __name__ == "__main__":
