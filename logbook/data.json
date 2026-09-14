@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-14T00:27:12.871007+00:00",
+  "generated_at": "2026-09-14T01:33:17.143142+00:00",
   "milestones": [
     {
       "date": "2026-09-13",
@@ -36,7 +36,7 @@
       "commit": "bf0f42f",
       "subject": "Add the scrub module: strip local machine detail from any string",
       "words_delta": 0,
-      "loc_delta": 171,
+      "loc_delta": 89,
       "tokens": {
         "input": 0,
         "output": 0,
@@ -51,7 +51,7 @@
       "commit": "e589de8",
       "subject": "Document why hostname must be scrubbed before username in scrub.py",
       "words_delta": 0,
-      "loc_delta": 174,
+      "loc_delta": 3,
       "tokens": {
         "input": 0,
         "output": 0,
@@ -63,10 +63,10 @@
     },
     {
       "date": "2026-09-13",
-      "commit": "ef46db4",
-      "subject": "Add the git source reader with config-driven glob counting Co-Authored-By: Claude Haiku 4.5 <noreply@anthropic.com>",
+      "commit": "d65f6b0",
+      "subject": "Add the git source reader with config-driven glob counting",
       "words_delta": 0,
-      "loc_delta": 332,
+      "loc_delta": 158,
       "tokens": {
         "input": 0,
         "output": 0,
@@ -78,10 +78,10 @@
     },
     {
       "date": "2026-09-13",
-      "commit": "7856600",
+      "commit": "2230d83",
       "subject": "Add the Claude Code transcript reader, isolated to one project by full path",
       "words_delta": 0,
-      "loc_delta": 507,
+      "loc_delta": 175,
       "tokens": {
         "input": 0,
         "output": 0,
@@ -93,10 +93,10 @@
     },
     {
       "date": "2026-09-13",
-      "commit": "b5c3dbd",
-      "subject": "Add the append-only, multi-source price ledger Co-Authored-By: Claude Haiku 4.5 <noreply@anthropic.com>",
+      "commit": "b254f1d",
+      "subject": "Add the append-only, multi-source price ledger",
       "words_delta": 0,
-      "loc_delta": 679,
+      "loc_delta": 172,
       "tokens": {
         "input": 0,
         "output": 0,
@@ -108,10 +108,10 @@
     },
     {
       "date": "2026-09-13",
-      "commit": "8280676",
+      "commit": "a96e4ba",
       "subject": "Make the price ledger write atomic and fix same-date tie-break to favour the later entry",
       "words_delta": 0,
-      "loc_delta": 731,
+      "loc_delta": 52,
       "tokens": {
         "input": 0,
         "output": 0,
@@ -123,10 +123,10 @@
     },
     {
       "date": "2026-09-13",
-      "commit": "2552264",
+      "commit": "2e2e985",
       "subject": "Strengthen the atomic-write test to actually exercise the failure and cleanup path",
       "words_delta": 0,
-      "loc_delta": 775,
+      "loc_delta": 44,
       "tokens": {
         "input": 0,
         "output": 0,
@@ -138,10 +138,10 @@
     },
     {
       "date": "2026-09-13",
-      "commit": "9e7474f",
+      "commit": "3cb11c5",
       "subject": "Add cost computation from token counts and a price entry",
       "words_delta": 0,
-      "loc_delta": 818,
+      "loc_delta": 43,
       "tokens": {
         "input": 0,
         "output": 0,
@@ -153,10 +153,10 @@
     },
     {
       "date": "2026-09-13",
-      "commit": "2bfce58",
+      "commit": "6a09caa",
       "subject": "Port the growth-chart SVG renderer from harness-medir",
       "words_delta": 0,
-      "loc_delta": 906,
+      "loc_delta": 88,
       "tokens": {
         "input": 0,
         "output": 0,
@@ -168,10 +168,10 @@
     },
     {
       "date": "2026-09-13",
-      "commit": "c45acaa",
+      "commit": "586ba58",
       "subject": "Add the dashboard template and its live, network-free price panel",
       "words_delta": 56,
-      "loc_delta": 1091,
+      "loc_delta": 185,
       "tokens": {
         "input": 0,
         "output": 0,
@@ -183,10 +183,10 @@
     },
     {
       "date": "2026-09-13",
-      "commit": "c851aaf",
+      "commit": "9ef18db",
       "subject": "Add the orchestrator: bootstrap, build milestones, render the dashboard",
-      "words_delta": 56,
-      "loc_delta": 1397,
+      "words_delta": 0,
+      "loc_delta": 306,
       "tokens": {
         "input": 0,
         "output": 0,
@@ -198,10 +198,10 @@
     },
     {
       "date": "2026-09-13",
-      "commit": "561537b",
+      "commit": "0375e29",
       "subject": "Apply exclude_globs so a project's own generated output is never counted as its own content",
-      "words_delta": 56,
-      "loc_delta": 1438,
+      "words_delta": 0,
+      "loc_delta": 41,
       "tokens": {
         "input": 0,
         "output": 0,
@@ -213,10 +213,10 @@
     },
     {
       "date": "2026-09-13",
-      "commit": "6622f1a",
+      "commit": "4a520e4",
       "subject": "Add the price updater CLI, append-only, source-required",
-      "words_delta": 56,
-      "loc_delta": 1519,
+      "words_delta": 0,
+      "loc_delta": 81,
       "tokens": {
         "input": 0,
         "output": 0,
@@ -228,10 +228,10 @@
     },
     {
       "date": "2026-09-13",
-      "commit": "3ae9493",
+      "commit": "45ad468",
       "subject": "Add the skill and protocol documents, plus the installation matrix",
-      "words_delta": 2174,
-      "loc_delta": 1519,
+      "words_delta": 2118,
+      "loc_delta": 0,
       "tokens": {
         "input": 0,
         "output": 0,
@@ -243,10 +243,130 @@
     },
     {
       "date": "2026-09-13",
-      "commit": "299dae4",
+      "commit": "59055e8",
       "subject": "Make generate_metrics.py and update_prices.py runnable as direct scripts, not only as modules",
-      "words_delta": 2174,
-      "loc_delta": 1595,
+      "words_delta": 0,
+      "loc_delta": 76,
+      "tokens": {
+        "input": 0,
+        "output": 0,
+        "cache_read": 0,
+        "cache_creation": 0
+      },
+      "cost_recorded": null,
+      "note": null
+    },
+    {
+      "date": "2026-09-13",
+      "commit": "de38bd5",
+      "subject": "Self-run: this repository now logs itself with its own engine",
+      "words_delta": 0,
+      "loc_delta": 0,
+      "tokens": {
+        "input": 0,
+        "output": 0,
+        "cache_read": 0,
+        "cache_creation": 0
+      },
+      "cost_recorded": null,
+      "note": null
+    },
+    {
+      "date": "2026-09-13",
+      "commit": "741e5d4",
+      "subject": "Correct the Gemini CLI licence caveat: Standard or Enterprise, not Enterprise alone",
+      "words_delta": 7,
+      "loc_delta": 0,
+      "tokens": {
+        "input": 0,
+        "output": 0,
+        "cache_read": 0,
+        "cache_creation": 0
+      },
+      "cost_recorded": null,
+      "note": null
+    },
+    {
+      "date": "2026-09-13",
+      "commit": "0d0d5bc",
+      "subject": "Fix words_delta/loc_delta to be genuine deltas, and chart lines separately",
+      "words_delta": 0,
+      "loc_delta": 92,
+      "tokens": {
+        "input": 0,
+        "output": 0,
+        "cache_read": 0,
+        "cache_creation": 0
+      },
+      "cost_recorded": null,
+      "note": null
+    },
+    {
+      "date": "2026-09-13",
+      "commit": "abc8492",
+      "subject": "Make the live price panel actually work on the published page",
+      "words_delta": 3,
+      "loc_delta": 78,
+      "tokens": {
+        "input": 0,
+        "output": 0,
+        "cache_read": 0,
+        "cache_creation": 0
+      },
+      "cost_recorded": null,
+      "note": null
+    },
+    {
+      "date": "2026-09-13",
+      "commit": "a6849db",
+      "subject": "Make milestone_folder actually configurable, and freeze recorded cost for real",
+      "words_delta": 0,
+      "loc_delta": 206,
+      "tokens": {
+        "input": 0,
+        "output": 0,
+        "cache_read": 0,
+        "cache_creation": 0
+      },
+      "cost_recorded": null,
+      "note": null
+    },
+    {
+      "date": "2026-09-13",
+      "commit": "4ab9153",
+      "subject": "Warn instead of failing silently on no commits or no token usage",
+      "words_delta": 1,
+      "loc_delta": 91,
+      "tokens": {
+        "input": 0,
+        "output": 0,
+        "cache_read": 0,
+        "cache_creation": 0
+      },
+      "cost_recorded": null,
+      "note": null
+    },
+    {
+      "date": "2026-09-13",
+      "commit": "5b42974",
+      "subject": "Add a Subject column to the milestone table, and escape every cell value",
+      "words_delta": 1,
+      "loc_delta": 35,
+      "tokens": {
+        "input": 0,
+        "output": 0,
+        "cache_read": 0,
+        "cache_creation": 0
+      },
+      "cost_recorded": null,
+      "note": null
+    },
+    {
+      "date": "2026-09-13",
+      "commit": "be51f0b",
+      "subject": "Explain this repository's own zero token usage, and null cost_recorded before pricing existed",
+      "words_delta": 130,
+      "loc_delta": 0,
       "tokens": {
         "input": 0,
         "output": 0,
