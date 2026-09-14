@@ -11,7 +11,18 @@ import argparse
 import json
 import os
 import shutil
+import sys
 from datetime import datetime, timezone
+
+# Allow this file to run as a direct script (python engine/generate_metrics.py)
+# from any working directory, not only as a module (python -m
+# engine.generate_metrics) or via python -m unittest. Direct script
+# execution puts only this file's own directory on sys.path, so the
+# repository root, and therefore the engine package itself, would
+# otherwise not be importable.
+_REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+if _REPO_ROOT not in sys.path:
+    sys.path.insert(0, _REPO_ROOT)
 
 from engine.config import load_config
 from engine.cost import compute_cost

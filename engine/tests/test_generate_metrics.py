@@ -1,10 +1,15 @@
 import json
 import os
 import subprocess
+import sys
 import tempfile
 import unittest
 
 from engine.generate_metrics import bootstrap_if_missing, build_milestones, main
+
+GENERATE_METRICS_PATH = os.path.join(
+    os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "generate_metrics.py"
+)
 
 
 def run(cwd, *args):
@@ -141,6 +146,28 @@ class TestBuildAndGenerate(unittest.TestCase):
             milestones = build_milestones(tmpdir, config, claude_projects_dir="/no/such/dir")
             self.assertEqual(milestones[0]["note"], "Decided to start with the README only.")
             self.assertIsNone(milestones[1]["note"])
+
+    def test_runs_as_a_direct_script_from_another_working_directory(self):
+        # The documented usage is `python engine/generate_metrics.py
+        # --repo <path>`, invoked directly rather than through
+        # `python -m unittest`. That code path only puts this file's own
+        # directory on sys.path, so `from engine.config import
+        # load_config` and friends would fail with ModuleNotFoundError
+        # unless the script bootstraps the repository root onto
+        # sys.path itself. Running from tempfile.gettempdir() (never the
+        # repository root) proves the fix does not depend on an
+        # inherited working directory.
+        with tempfile.TemporaryDirectory() as tmpdir:
+            self.make_repo(tmpdir)
+            self.write_config(tmpdir)
+            result = subprocess.run(
+                [sys.executable, GENERATE_METRICS_PATH, "--repo", tmpdir],
+                cwd=tempfile.gettempdir(),
+                capture_output=True,
+                text=True,
+            )
+            self.assertEqual(result.returncode, 0, msg=result.stderr)
+            self.assertNotIn("ModuleNotFoundError", result.stderr)
 
 
 if __name__ == "__main__":
