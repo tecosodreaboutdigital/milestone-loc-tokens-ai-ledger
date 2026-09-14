@@ -1,3 +1,5 @@
+import contextlib
+import io
 import json
 import os
 import subprocess
@@ -398,6 +400,72 @@ class TestCostFreeze(unittest.TestCase):
                 second_cost = second_run["milestones"][0]["cost_recorded"]
 
             self.assertEqual(first_cost, second_cost)
+
+
+class TestWarnings(unittest.TestCase):
+    # Fix F: silent failure on no commits or no token usage.
+    def test_zero_commits_warns_on_stderr_and_still_writes_valid_output(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            run(tmpdir, "init")
+            run(tmpdir, "config", "user.email", "test@example.com")
+            run(tmpdir, "config", "user.name", "Test")
+            bootstrap_if_missing(tmpdir, "logbook")
+            config_path = os.path.join(tmpdir, "logbook", "config.json")
+            with open(config_path, "w", encoding="utf-8") as fh:
+                json.dump({
+                    "milestone_folder": "logbook",
+                    "content_globs": ["*.md"],
+                    "code_globs": [],
+                    "exclude_globs": ["logbook/"],
+                    "transcript_reader": "claude_code",
+                    "price_provider": "anthropic",
+                    "price_model": "claude-sonnet-5",
+                    "currency": "USD",
+                }, fh)
+
+            stderr = io.StringIO()
+            with contextlib.redirect_stderr(stderr):
+                main(repo_root=tmpdir, claude_projects_dir="/no/such/dir")
+
+            self.assertIn("no commits found", stderr.getvalue())
+            data_path = os.path.join(tmpdir, "logbook", "data.json")
+            self.assertTrue(os.path.isfile(data_path))
+            with open(data_path, encoding="utf-8") as fh:
+                data = json.load(fh)
+            self.assertEqual(data["milestones"], [])
+            self.assertTrue(os.path.isfile(os.path.join(tmpdir, "logbook", "dashboard.html")))
+
+    def test_zero_tokens_warns_on_stdout_and_the_dashboard_shows_a_visible_note(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            run(tmpdir, "init")
+            run(tmpdir, "config", "user.email", "test@example.com")
+            run(tmpdir, "config", "user.name", "Test")
+            with open(os.path.join(tmpdir, "README.md"), "w", encoding="utf-8") as fh:
+                fh.write("hello world")
+            run(tmpdir, "add", ".")
+            run(tmpdir, "commit", "-m", "First milestone")
+            bootstrap_if_missing(tmpdir, "logbook")
+            config_path = os.path.join(tmpdir, "logbook", "config.json")
+            with open(config_path, "w", encoding="utf-8") as fh:
+                json.dump({
+                    "milestone_folder": "logbook",
+                    "content_globs": ["*.md"],
+                    "code_globs": [],
+                    "exclude_globs": ["logbook/"],
+                    "transcript_reader": "claude_code",
+                    "price_provider": "anthropic",
+                    "price_model": "claude-sonnet-5",
+                    "currency": "USD",
+                }, fh)
+
+            stdout = io.StringIO()
+            with contextlib.redirect_stdout(stdout):
+                main(repo_root=tmpdir, claude_projects_dir="/no/such/dir")
+
+            self.assertIn("no LLM session transcripts were found", stdout.getvalue())
+            with open(os.path.join(tmpdir, "logbook", "dashboard.html"), encoding="utf-8") as fh:
+                html_out = fh.read()
+            self.assertIn("No LLM session transcripts were found", html_out)
 
 
 if __name__ == "__main__":

@@ -188,7 +188,7 @@ def render_table_rows(milestones):
     return "\n".join(rows)
 
 
-def render_dashboard_html(template_path, kpi_html, words_svg, loc_svg, tokens_svg, table_rows_html, embedded_js):
+def render_dashboard_html(template_path, kpi_html, words_svg, loc_svg, tokens_svg, table_rows_html, embedded_js, zero_tokens_note=""):
     with open(template_path, encoding="utf-8") as fh:
         doc = fh.read()
     doc = doc.replace("__KPI_ROWS__", kpi_html)
@@ -197,6 +197,7 @@ def render_dashboard_html(template_path, kpi_html, words_svg, loc_svg, tokens_sv
     doc = doc.replace("__CHART_TOKENS__", tokens_svg)
     doc = doc.replace("__TABLE_ROWS__", table_rows_html)
     doc = doc.replace("__EMBEDDED_DATA__", embedded_js)
+    doc = doc.replace("__ZERO_TOKENS_NOTE__", zero_tokens_note)
     return doc
 
 
@@ -210,6 +211,18 @@ def main(repo_root=None, claude_projects_dir=None):
     os.makedirs(folder, exist_ok=True)
 
     milestones = build_milestones(repo_root, config, claude_projects_dir)
+
+    if len(milestones) == 0:
+        print("warning: no commits found in this repository, nothing to report", file=sys.stderr)
+
+    total_tokens = sum(sum(m["tokens"].values()) for m in milestones)
+    zero_tokens = total_tokens == 0
+    if zero_tokens:
+        print(
+            "warning: no LLM session transcripts were found for this project (see AGENTS.md); "
+            "token and cost figures will show as zero or absent, not because nothing happened, "
+            "but because no matching transcript was found"
+        )
 
     # A milestone's recorded cost is frozen the moment it is first
     # written, so this must happen before the table and data.json are
@@ -252,8 +265,16 @@ def main(repo_root=None, claude_projects_dir=None):
         "today": today,
     })
 
+    zero_tokens_note = (
+        '<p class="honest-note">No LLM session transcripts were found for this project '
+        '(see AGENTS.md). Token and cost figures below show as zero or absent because no '
+        'matching transcript was found, not because no work happened.</p>'
+        if zero_tokens else ""
+    )
+
     html_out = render_dashboard_html(
-        os.path.join(TEMPLATE_DIR, "dashboard.html"), kpi_html, words_svg, loc_svg, tokens_svg, table_rows_html, embedded_js,
+        os.path.join(TEMPLATE_DIR, "dashboard.html"), kpi_html, words_svg, loc_svg, tokens_svg,
+        table_rows_html, embedded_js, zero_tokens_note,
     )
     with open(os.path.join(folder, "dashboard.html"), "w", encoding="utf-8") as fh:
         fh.write(html_out)
