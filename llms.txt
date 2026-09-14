@@ -1,0 +1,21 @@
+# milestone-loc-tokens-ai-ledger
+
+> Generates a self-hosted, static HTML dashboard tracking a project's lines of code, words, and LLM token cost per git milestone, with a dated, multi-source, editable price ledger.
+
+Author: Fernando Teco Sodré. English only, no translations.
+
+## Start here
+
+- [AGENTS.md](AGENTS.md): operating protocol for an AI agent or assistant installing or running this skill on someone's behalf. Read this before installing it or running the engine.
+- [README.md](README.md): what this skill delivers, the installation matrix, honest limits.
+- [SKILL.md](SKILL.md): the skill itself, the non-negotiable rule, how to run the engine.
+
+## Kit
+
+- [engine/](engine/): the Python engine, standard library only.
+- [template/](template/): the dashboard skeleton and its price panel.
+- [logbook/](logbook/): this repository's own generated dashboard, proof this works.
+
+## Origin
+
+Part of the [Harness series and the MEDIR cycle](https://github.com/tecosodreaboutdigital/harness-medir): Map, Equip, Delegate, Inspect, Reinforce.

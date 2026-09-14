@@ -1,0 +1,15 @@
+{
+  "name": "milestone-loc-tokens-ai-ledger",
+  "owner": {
+    "name": "Fernando Teco Sodré",
+    "url": "https://github.com/tecosodreaboutdigital"
+  },
+  "description": "Marketplace for the milestone-loc-tokens-ai-ledger skill: a self-hosted milestone dashboard with editable token cost.",
+  "plugins": [
+    {
+      "name": "milestone-loc-tokens-ai-ledger",
+      "source": "./",
+      "description": "Generates a self-hosted, static HTML dashboard tracking lines of code, words, and LLM token cost per git milestone."
+    }
+  ]
+}

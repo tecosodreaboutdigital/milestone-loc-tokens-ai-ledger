@@ -1,0 +1,14 @@
+{
+  "name": "milestone-loc-tokens-ai-ledger",
+  "displayName": "Milestone LOC Tokens AI Ledger",
+  "version": "1.0.0",
+  "description": "Generates a self-hosted, static HTML dashboard tracking a project's lines of code, words, and LLM token cost per git milestone, with a dated, multi-source, editable price ledger.",
+  "author": {
+    "name": "Fernando Teco Sodré",
+    "url": "https://github.com/tecosodreaboutdigital"
+  },
+  "homepage": "https://github.com/tecosodreaboutdigital/milestone-loc-tokens-ai-ledger",
+  "repository": "https://github.com/tecosodreaboutdigital/milestone-loc-tokens-ai-ledger",
+  "license": "MIT",
+  "keywords": ["metrics", "logbook", "tokens", "cost", "governance", "MEDIR", "harness"]
+}
