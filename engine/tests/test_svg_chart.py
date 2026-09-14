@@ -1,6 +1,6 @@
 import unittest
 
-from engine.svg_chart import svg_growth_chart
+from engine.svg_chart import svg_growth_chart, svg_stat_thumbnail
 
 
 class TestSvgGrowthChart(unittest.TestCase):
@@ -30,6 +30,32 @@ class TestSvgGrowthChart(unittest.TestCase):
             "t", [1, 2], ["M1", "M2"], lambda v: str(int(v)), "cap", "sub", viewbox_h=200,
         )
         self.assertIn('viewBox="0 0 700 200"', svg)
+
+
+class TestSvgStatThumbnail(unittest.TestCase):
+    def test_includes_the_big_value_and_label_text(self):
+        svg = svg_stat_thumbnail("65.1M", "Tokens consumed", [1, 5, 3, 9])
+        self.assertIn(">65.1M<", svg)
+        self.assertIn(">Tokens consumed<", svg)
+
+    def test_renders_a_polyline_with_one_point_per_value(self):
+        svg = svg_stat_thumbnail("$1.00", "Cost recorded", [0.1, 0.4, 0.9])
+        points = svg.split('points="')[1].split('"')[0]
+        self.assertEqual(len(points.split(" ")), 3)  # one "x,y" pair per value
+
+    def test_a_single_value_still_renders_without_dividing_by_zero(self):
+        svg = svg_stat_thumbnail("3,085", "Words published", [42])
+        self.assertIn("<polyline", svg)
+        self.assertIn("<circle", svg)
+
+    def test_no_values_renders_the_card_without_a_sparkline(self):
+        svg = svg_stat_thumbnail("0", "Words published", [])
+        self.assertNotIn("<polyline", svg)
+        self.assertIn("<rect", svg)
+
+    def test_includes_the_default_viewbox(self):
+        svg = svg_stat_thumbnail("1", "Label", [1, 2])
+        self.assertIn('viewBox="0 0 320 120"', svg)
 
 
 if __name__ == "__main__":

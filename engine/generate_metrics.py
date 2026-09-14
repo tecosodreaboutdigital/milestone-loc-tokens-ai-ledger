@@ -32,7 +32,7 @@ from engine.git_source import commits, line_count, list_repo_files_at, matches_a
 from engine.prices import find_series, load_ledger, price_at
 from engine.readers.claude_code import find_linked_subagent_jsonl, find_session_jsonl, load_usage_events
 from engine.scrub import scrub_text
-from engine.svg_chart import svg_growth_chart
+from engine.svg_chart import svg_growth_chart, svg_stat_thumbnail
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 TEMPLATE_DIR = os.path.join(os.path.dirname(HERE), "template")
@@ -191,6 +191,18 @@ def _freeze_previously_recorded_costs(milestones, data_path):
             m["tokens"] = previous["tokens"]
 
 
+def format_compact_count(n):
+    """1234 -> "1,234"; 65130453 -> "65.1M"; 770294 -> "770.3K". Only
+    for the headline number on a README thumbnail card, where a raw
+    eight-digit token count would overflow a 320px-wide card; the
+    dashboard's own KPI tiles keep showing the exact integer."""
+    if n >= 1_000_000:
+        return "%.1fM" % (n / 1_000_000)
+    if n >= 10_000:
+        return "%.1fK" % (n / 1_000)
+    return "{:,}".format(n)
+
+
 def render_table_rows(milestones):
     # data-milestone-tokens lives on the <tr> itself so dashboard.js can
     # read a row's token counts without a second lookup.
@@ -208,13 +220,14 @@ def render_table_rows(milestones):
     return "\n".join(rows)
 
 
-def render_dashboard_html(template_path, kpi_html, words_svg, loc_svg, tokens_svg, table_rows_html, embedded_js, zero_tokens_note=""):
+def render_dashboard_html(template_path, kpi_html, words_svg, loc_svg, tokens_svg, cost_svg, table_rows_html, embedded_js, zero_tokens_note=""):
     with open(template_path, encoding="utf-8") as fh:
         doc = fh.read()
     doc = doc.replace("__KPI_ROWS__", kpi_html)
     doc = doc.replace("__CHART_WORDS__", words_svg)
     doc = doc.replace("__CHART_LOC__", loc_svg)
     doc = doc.replace("__CHART_TOKENS__", tokens_svg)
+    doc = doc.replace("__CHART_COST__", cost_svg)
     doc = doc.replace("__TABLE_ROWS__", table_rows_html)
     doc = doc.replace("__EMBEDDED_DATA__", embedded_js)
     doc = doc.replace("__ZERO_TOKENS_NOTE__", zero_tokens_note)
@@ -255,6 +268,14 @@ def main(repo_root=None, claude_projects_dir=None, linked_projects=None):
     words_series = [m["words_delta"] for m in milestones] or [0]
     loc_series = [m["loc_delta"] for m in milestones] or [0]
     tokens_series = [sum(m["tokens"].values()) for m in milestones] or [0]
+    # A milestone with no recorded cost (no price entry covered it yet)
+    # contributes 0 to the running total charted below, the same
+    # convention the "Cost recorded" KPI uses: it is a ledger of what
+    # is actually known, never a guess for what is not.
+    cost_series = [
+        (m["cost_recorded"]["amount"] if m["cost_recorded"] is not None else 0.0)
+        for m in milestones
+    ] or [0.0]
     x_labels = ["M%d" % (i + 1) for i in range(len(milestones))] or ["M1"]
 
     # The charts show cumulative growth over time, the point of a
@@ -262,20 +283,32 @@ def main(repo_root=None, claude_projects_dir=None, linked_projects=None):
     # per-milestone deltas: accumulate them back into running totals
     # for charting only. tokens_series is already a genuine per-commit
     # bucket (see _bucket_tokens_by_commit), so its chart is unchanged.
+    # cost_series accumulates too: a ledger's own running balance is
+    # the whole point of charting it.
     words_cumulative = list(itertools.accumulate(words_series))
     loc_cumulative = list(itertools.accumulate(loc_series))
+    cost_cumulative = list(itertools.accumulate(cost_series))
 
     words_svg = svg_growth_chart("w", words_cumulative, x_labels, lambda v: str(int(v)), "Words per milestone", "Words published")
     loc_svg = svg_growth_chart("l", loc_cumulative, x_labels, lambda v: str(int(v)), "Lines per milestone", "Lines of code")
     tokens_svg = svg_growth_chart("t", tokens_series, x_labels, lambda v: str(int(v)), "Tokens per milestone", "LLM tokens consumed")
+    cost_svg = svg_growth_chart("c", cost_cumulative, x_labels, lambda v: "$%.2f" % v, "Recorded cost per milestone", "Cumulative recorded cost (USD)")
 
+    total_cost = sum(cost_series)
+    unpriced_count = sum(1 for m in milestones if m["cost_recorded"] is None)
     kpi_html = (
         '<div class="kpi"><span class="kpi-n">%d</span><span class="kpi-l">Milestones</span></div>'
         '<div class="kpi"><span class="kpi-n">%d</span><span class="kpi-l">Words published</span></div>'
         '<div class="kpi"><span class="kpi-n">%d</span><span class="kpi-l">Tokens consumed</span></div>'
-        % (len(milestones), sum(words_series), sum(tokens_series))
+        '<div class="kpi"><span class="kpi-n">$%.2f</span><span class="kpi-l">Cost recorded</span></div>'
+        '<div class="kpi"><span class="kpi-n">%d</span><span class="kpi-l">Unpriced milestones</span></div>'
+        % (len(milestones), sum(words_series), sum(tokens_series), total_cost, unpriced_count)
     )
     table_rows_html = render_table_rows(milestones)
+
+    words_thumb = svg_stat_thumbnail(format_compact_count(sum(words_series)), "Words published", words_cumulative)
+    tokens_thumb = svg_stat_thumbnail(format_compact_count(sum(tokens_series)), "Tokens consumed", tokens_series)
+    cost_thumb = svg_stat_thumbnail("$%.2f" % total_cost, "Cost recorded", cost_cumulative)
 
     price_ledger = load_ledger(SHIPPED_PRICES)
     prices_by_series = {
@@ -295,12 +328,24 @@ def main(repo_root=None, claude_projects_dir=None, linked_projects=None):
     )
 
     html_out = render_dashboard_html(
-        os.path.join(TEMPLATE_DIR, "dashboard.html"), kpi_html, words_svg, loc_svg, tokens_svg,
+        os.path.join(TEMPLATE_DIR, "dashboard.html"), kpi_html, words_svg, loc_svg, tokens_svg, cost_svg,
         table_rows_html, embedded_js, zero_tokens_note,
     )
     with open(os.path.join(folder, "dashboard.html"), "w", encoding="utf-8") as fh:
         fh.write(html_out)
     shutil.copy(os.path.join(TEMPLATE_DIR, "dashboard.js"), os.path.join(folder, "dashboard.js"))
+
+    # Small, standalone thumbnail cards, meant to be embedded outside
+    # the dashboard itself (the README, say) where a full interactive
+    # page cannot go. Regenerated on every run alongside the dashboard
+    # so they can never drift from the numbers it shows.
+    for name, svg in (
+        ("thumb-words.svg", words_thumb),
+        ("thumb-tokens.svg", tokens_thumb),
+        ("thumb-cost.svg", cost_thumb),
+    ):
+        with open(os.path.join(folder, name), "w", encoding="utf-8") as fh:
+            fh.write(svg + "\n")
 
     with open(data_path, "w", encoding="utf-8") as fh:
         json.dump({

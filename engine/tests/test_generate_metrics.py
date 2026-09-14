@@ -631,6 +631,110 @@ class TestWarnings(unittest.TestCase):
             self.assertIn("No LLM session transcripts were found", html_out)
 
 
+class TestCostChartAndKpis(unittest.TestCase):
+    # The dashboard's cost total and a live-updating cost chart, added
+    # alongside the pre-existing words/lines/tokens KPIs and charts.
+    def make_repo(self, tmpdir):
+        run(tmpdir, "init")
+        run(tmpdir, "config", "user.email", "test@example.com")
+        run(tmpdir, "config", "user.name", "Test")
+        with open(os.path.join(tmpdir, "README.md"), "w", encoding="utf-8") as fh:
+            fh.write("hello world from the first milestone")
+        run(tmpdir, "add", ".")
+        run(tmpdir, "commit", "-m", "First milestone")
+
+    def write_config_and_priced_transcript(self, tmpdir, projects_dir):
+        bootstrap_if_missing(tmpdir, "logbook")
+        config_path = os.path.join(tmpdir, "logbook", "config.json")
+        with open(config_path, "w", encoding="utf-8") as fh:
+            json.dump({
+                "milestone_folder": "logbook",
+                "content_globs": ["*.md"],
+                "code_globs": [],
+                "exclude_globs": ["logbook/"],
+                "transcript_reader": "claude_code",
+                "price_provider": "anthropic",
+                "price_model": "claude-sonnet-5",
+                "currency": "USD",
+            }, fh)
+
+        from engine.git_source import commits
+        first_commit = commits(tmpdir)[0]
+        project_dir = os.path.join(projects_dir, encode_project_path(tmpdir))
+        os.makedirs(project_dir)
+        with open(os.path.join(project_dir, "session.jsonl"), "w", encoding="utf-8") as fh:
+            fh.write(json.dumps({
+                "timestamp": first_commit["iso"],
+                "message": {
+                    "id": "msg_1",
+                    "usage": {
+                        "input_tokens": 1000000, "output_tokens": 0,
+                        "cache_read_input_tokens": 0, "cache_creation_input_tokens": 0,
+                    },
+                },
+            }) + "\n")
+
+    def test_dashboard_shows_total_cost_and_unpriced_count_kpis(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            self.make_repo(tmpdir)
+            projects_dir = os.path.join(tmpdir, "claude_projects")
+            self.write_config_and_priced_transcript(tmpdir, projects_dir)
+            main(repo_root=tmpdir, claude_projects_dir=projects_dir)
+            with open(os.path.join(tmpdir, "logbook", "dashboard.html"), encoding="utf-8") as fh:
+                html_out = fh.read()
+            # 1,000,000 input tokens at the shipped $3.00/M rate is $3.00.
+            self.assertIn('<span class="kpi-n">$3.00</span><span class="kpi-l">Cost recorded</span>', html_out)
+            self.assertIn('<span class="kpi-n">0</span><span class="kpi-l">Unpriced milestones</span>', html_out)
+
+    def test_dashboard_renders_a_cost_chart(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            self.make_repo(tmpdir)
+            projects_dir = os.path.join(tmpdir, "claude_projects")
+            self.write_config_and_priced_transcript(tmpdir, projects_dir)
+            main(repo_root=tmpdir, claude_projects_dir=projects_dir)
+            with open(os.path.join(tmpdir, "logbook", "dashboard.html"), encoding="utf-8") as fh:
+                html_out = fh.read()
+            self.assertNotIn("__CHART_COST__", html_out)
+            self.assertIn('aria-label="Recorded cost per milestone"', html_out)
+            self.assertIn('id="chart-cost"', html_out)
+            self.assertIn("<h2>Cost</h2>", html_out)
+
+    def test_dashboard_includes_a_sources_panel_and_price_sliders(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            self.make_repo(tmpdir)
+            projects_dir = os.path.join(tmpdir, "claude_projects")
+            self.write_config_and_priced_transcript(tmpdir, projects_dir)
+            main(repo_root=tmpdir, claude_projects_dir=projects_dir)
+            with open(os.path.join(tmpdir, "logbook", "dashboard.html"), encoding="utf-8") as fh:
+                html_out = fh.read()
+            self.assertIn('id="price-sources"', html_out)
+            self.assertIn('id="price-input-range"', html_out)
+            self.assertIn('id="price-output-range"', html_out)
+            self.assertIn('id="price-cache-read-range"', html_out)
+            self.assertIn('id="price-cache-creation-range"', html_out)
+
+    def test_thumbnail_svgs_are_written_alongside_the_dashboard(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            self.make_repo(tmpdir)
+            projects_dir = os.path.join(tmpdir, "claude_projects")
+            self.write_config_and_priced_transcript(tmpdir, projects_dir)
+            main(repo_root=tmpdir, claude_projects_dir=projects_dir)
+            for name in ("thumb-words.svg", "thumb-tokens.svg", "thumb-cost.svg"):
+                path = os.path.join(tmpdir, "logbook", name)
+                self.assertTrue(os.path.isfile(path), "%s should be written" % name)
+                with open(path, encoding="utf-8") as fh:
+                    self.assertIn("<svg", fh.read())
+
+
+class TestFormatCompactCount(unittest.TestCase):
+    def test_formats_millions_thousands_and_plain_counts(self):
+        from engine.generate_metrics import format_compact_count
+        self.assertEqual(format_compact_count(65130453), "65.1M")
+        self.assertEqual(format_compact_count(770294), "770.3K")
+        self.assertEqual(format_compact_count(3085), "3,085")
+        self.assertEqual(format_compact_count(0), "0")
+
+
 class TestTableRendering(unittest.TestCase):
     # Fix G: a Subject column, and every interpolated field HTML-escaped.
     def test_render_table_rows_includes_and_escapes_the_subject_and_note(self):

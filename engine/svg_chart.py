@@ -50,3 +50,50 @@ def svg_growth_chart(marker_prefix, values, x_labels, y_fmt, caption, subcaption
     parts.append('<text class="svg-cap" x="%d" y="%d">%s</text>' % (left, height - 16, subcaption))
     parts.append("</svg>")
     return "\n".join(parts)
+
+
+def svg_stat_thumbnail(big_value_text, label_text, values, width=320, height=120):
+    """A small, self-contained "stat card with a sparkline" SVG: one
+    big headline number, its label, and a minimal trend line beneath
+    it. Meant to stand on its own outside the dashboard (e.g. embedded
+    as a README image), so it carries its own card background and
+    never depends on a surrounding stylesheet, unlike svg_growth_chart
+    whose <text> elements lean on the dashboard page's own CSS."""
+    pad_x, spark_top, spark_bottom = 16, 62, height - 16
+    spark_left, spark_right = pad_x, width - pad_x
+    n = len(values)
+    max_v = max(values) if values else 0
+    min_v = min(values) if values else 0
+    span = (max_v - min_v) or 1
+
+    def sx(i):
+        return spark_left + i * (spark_right - spark_left) / (n - 1) if n > 1 else spark_left
+
+    def sy(v):
+        return spark_bottom - (v - min_v) / span * (spark_bottom - spark_top)
+
+    points = " ".join("%.1f,%.1f" % (sx(i), sy(v)) for i, v in enumerate(values))
+    last_x, last_y = (sx(n - 1), sy(values[-1])) if values else (spark_left, spark_bottom)
+
+    parts = []
+    parts.append(
+        '<svg width="%d" height="%d" viewBox="0 0 %d %d" role="img" aria-label="%s">'
+        % (width, height, width, height, label_text)
+    )
+    parts.append(
+        '<rect x="0.5" y="0.5" width="%d" height="%d" rx="8" fill="#faf9f6" stroke="#e2e0d8"/>'
+        % (width - 1, height - 1)
+    )
+    parts.append(
+        '<text x="%d" y="34" font-family="Arial,sans-serif" font-size="22" font-weight="bold" fill="#1b1b19">%s</text>'
+        % (pad_x, big_value_text)
+    )
+    parts.append(
+        '<text x="%d" y="52" font-family="Arial,sans-serif" font-size="11" fill="#8a887f">%s</text>'
+        % (pad_x, label_text)
+    )
+    if points:
+        parts.append('<polyline points="%s" fill="none" stroke="#1b1b19" stroke-width="1.5"/>' % points)
+        parts.append('<circle cx="%.1f" cy="%.1f" r="2.5" fill="#1b1b19"/>' % (last_x, last_y))
+    parts.append("</svg>")
+    return "\n".join(parts)
