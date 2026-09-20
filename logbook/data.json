@@ -1,6 +1,7 @@
 {
   "generated_at": "2026-09-14T13:32:47.743609+00:00",
   "last_repriced_at": "2026-09-20T03:16:27.893757+00:00",
+  "last_enriched_at": "2026-09-20T12:53:49.683380+00:00",
   "milestones": [
     {
       "date": "2026-09-13",
@@ -12,14 +13,30 @@
         "input": 66,
         "output": 1966,
         "cache_read": 236396,
-        "cache_creation": 35467
+        "cache_creation": 35467,
+        "cache_creation_1h": 0,
+        "by_model": {
+          "claude-haiku-4-5-20251001": {
+            "input": 66,
+            "output": 1966,
+            "cache_read": 236396,
+            "cache_creation": 35467,
+            "cache_creation_1h": 0
+          }
+        }
       },
       "cost_recorded": {
-        "amount": 0.1557,
+        "amount": 0.0779,
         "currency": "USD",
         "priced_at": "2026-09-13",
         "provider": "anthropic",
-        "model": "claude-sonnet-5"
+        "model": "claude-haiku-4-5-20251001",
+        "by_model": {
+          "claude-haiku-4-5-20251001": {
+            "amount": 0.0779,
+            "priced_at": "2026-09-13"
+          }
+        }
       },
       "note": null,
       "repricings": [
@@ -32,6 +49,17 @@
             "provider": "anthropic",
             "model": "claude-sonnet-5"
           }
+        },
+        {
+          "repriced_at": "2026-09-20T12:53:49.683380+00:00",
+          "previous_cost": {
+            "amount": 0.1557,
+            "currency": "USD",
+            "priced_at": "2026-09-13",
+            "provider": "anthropic",
+            "model": "claude-sonnet-5"
+          },
+          "reason": "enrich"
         }
       ]
     },
@@ -45,14 +73,41 @@
         "input": 132,
         "output": 11601,
         "cache_read": 722981,
-        "cache_creation": 74170
+        "cache_creation": 74170,
+        "cache_creation_1h": 0,
+        "by_model": {
+          "claude-haiku-4-5-20251001": {
+            "input": 122,
+            "output": 4404,
+            "cache_read": 520845,
+            "cache_creation": 18044,
+            "cache_creation_1h": 0
+          },
+          "claude-sonnet-5": {
+            "input": 10,
+            "output": 7197,
+            "cache_read": 202136,
+            "cache_creation": 56126,
+            "cache_creation_1h": 0
+          }
+        }
       },
       "cost_recorded": {
-        "amount": 0.4463,
+        "amount": 0.3495,
         "currency": "USD",
         "priced_at": "2026-09-13",
         "provider": "anthropic",
-        "model": "claude-sonnet-5"
+        "model": "multiple",
+        "by_model": {
+          "claude-haiku-4-5-20251001": {
+            "amount": 0.0968,
+            "priced_at": "2026-09-13"
+          },
+          "claude-sonnet-5": {
+            "amount": 0.2527,
+            "priced_at": "2026-09-13"
+          }
+        }
       },
       "note": null,
       "repricings": [
@@ -65,6 +120,17 @@
             "provider": "anthropic",
             "model": "claude-sonnet-5"
           }
+        },
+        {
+          "repriced_at": "2026-09-20T12:53:49.683380+00:00",
+          "previous_cost": {
+            "amount": 0.4463,
+            "currency": "USD",
+            "priced_at": "2026-09-13",
+            "provider": "anthropic",
+            "model": "claude-sonnet-5"
+          },
+          "reason": "enrich"
         }
       ]
     },
@@ -78,14 +144,41 @@
         "input": 136,
         "output": 7895,
         "cache_read": 857335,
-        "cache_creation": 43343
+        "cache_creation": 43343,
+        "cache_creation_1h": 0,
+        "by_model": {
+          "claude-haiku-4-5-20251001": {
+            "input": 122,
+            "output": 4895,
+            "cache_read": 525522,
+            "cache_creation": 18554,
+            "cache_creation_1h": 0
+          },
+          "claude-sonnet-5": {
+            "input": 14,
+            "output": 3000,
+            "cache_read": 331813,
+            "cache_creation": 24789,
+            "cache_creation_1h": 0
+          }
+        }
       },
       "cost_recorded": {
-        "amount": 0.359,
+        "amount": 0.2587,
         "currency": "USD",
         "priced_at": "2026-09-13",
         "provider": "anthropic",
-        "model": "claude-sonnet-5"
+        "model": "multiple",
+        "by_model": {
+          "claude-haiku-4-5-20251001": {
+            "amount": 0.1003,
+            "priced_at": "2026-09-13"
+          },
+          "claude-sonnet-5": {
+            "amount": 0.1584,
+            "priced_at": "2026-09-13"
+          }
+        }
       },
       "note": null,
       "repricings": [
@@ -98,6 +191,17 @@
             "provider": "anthropic",
             "model": "claude-sonnet-5"
           }
+        },
+        {
+          "repriced_at": "2026-09-20T12:53:49.683380+00:00",
+          "previous_cost": {
+            "amount": 0.359,
+            "currency": "USD",
+            "priced_at": "2026-09-13",
+            "provider": "anthropic",
+            "model": "claude-sonnet-5"
+          },
+          "reason": "enrich"
         }
       ]
     },
@@ -111,14 +215,41 @@
         "input": 80,
         "output": 14889,
         "cache_read": 438347,
-        "cache_creation": 43191
+        "cache_creation": 43191,
+        "cache_creation_1h": 0,
+        "by_model": {
+          "claude-haiku-4-5-20251001": {
+            "input": 74,
+            "output": 2247,
+            "cache_read": 314671,
+            "cache_creation": 14012,
+            "cache_creation_1h": 0
+          },
+          "claude-sonnet-5": {
+            "input": 6,
+            "output": 12642,
+            "cache_read": 123676,
+            "cache_creation": 29179,
+            "cache_creation_1h": 0
+          }
+        }
       },
       "cost_recorded": {
-        "amount": 0.3447,
+        "amount": 0.2844,
         "currency": "USD",
         "priced_at": "2026-09-13",
         "provider": "anthropic",
-        "model": "claude-sonnet-5"
+        "model": "multiple",
+        "by_model": {
+          "claude-haiku-4-5-20251001": {
+            "amount": 0.0603,
+            "priced_at": "2026-09-13"
+          },
+          "claude-sonnet-5": {
+            "amount": 0.2241,
+            "priced_at": "2026-09-13"
+          }
+        }
       },
       "note": null,
       "repricings": [
@@ -131,6 +262,17 @@
             "provider": "anthropic",
             "model": "claude-sonnet-5"
           }
+        },
+        {
+          "repriced_at": "2026-09-20T12:53:49.683380+00:00",
+          "previous_cost": {
+            "amount": 0.3447,
+            "currency": "USD",
+            "priced_at": "2026-09-13",
+            "provider": "anthropic",
+            "model": "claude-sonnet-5"
+          },
+          "reason": "enrich"
         }
       ]
     },
@@ -144,14 +286,41 @@
         "input": 130,
         "output": 7013,
         "cache_read": 715825,
-        "cache_creation": 47326
+        "cache_creation": 47326,
+        "cache_creation_1h": 0,
+        "by_model": {
+          "claude-haiku-4-5-20251001": {
+            "input": 122,
+            "output": 4074,
+            "cache_read": 538669,
+            "cache_creation": 22585,
+            "cache_creation_1h": 0
+          },
+          "claude-sonnet-5": {
+            "input": 8,
+            "output": 2939,
+            "cache_read": 177156,
+            "cache_creation": 24741,
+            "cache_creation_1h": 0
+          }
+        }
       },
       "cost_recorded": {
-        "amount": 0.3319,
+        "amount": 0.2293,
         "currency": "USD",
         "priced_at": "2026-09-13",
         "provider": "anthropic",
-        "model": "claude-sonnet-5"
+        "model": "multiple",
+        "by_model": {
+          "claude-haiku-4-5-20251001": {
+            "amount": 0.1026,
+            "priced_at": "2026-09-13"
+          },
+          "claude-sonnet-5": {
+            "amount": 0.1267,
+            "priced_at": "2026-09-13"
+          }
+        }
       },
       "note": null,
       "repricings": [
@@ -164,6 +333,17 @@
             "provider": "anthropic",
             "model": "claude-sonnet-5"
           }
+        },
+        {
+          "repriced_at": "2026-09-20T12:53:49.683380+00:00",
+          "previous_cost": {
+            "amount": 0.3319,
+            "currency": "USD",
+            "priced_at": "2026-09-13",
+            "provider": "anthropic",
+            "model": "claude-sonnet-5"
+          },
+          "reason": "enrich"
         }
       ]
     },
@@ -177,14 +357,41 @@
         "input": 118,
         "output": 18102,
         "cache_read": 803520,
-        "cache_creation": 63568
+        "cache_creation": 63568,
+        "cache_creation_1h": 0,
+        "by_model": {
+          "claude-haiku-4-5-20251001": {
+            "input": 106,
+            "output": 3957,
+            "cache_read": 493759,
+            "cache_creation": 20827,
+            "cache_creation_1h": 0
+          },
+          "claude-sonnet-5": {
+            "input": 12,
+            "output": 14145,
+            "cache_read": 309761,
+            "cache_creation": 42741,
+            "cache_creation_1h": 0
+          }
+        }
       },
       "cost_recorded": {
-        "amount": 0.5009,
+        "amount": 0.4056,
         "currency": "USD",
         "priced_at": "2026-09-13",
         "provider": "anthropic",
-        "model": "claude-sonnet-5"
+        "model": "multiple",
+        "by_model": {
+          "claude-haiku-4-5-20251001": {
+            "amount": 0.0953,
+            "priced_at": "2026-09-13"
+          },
+          "claude-sonnet-5": {
+            "amount": 0.3103,
+            "priced_at": "2026-09-13"
+          }
+        }
       },
       "note": null,
       "repricings": [
@@ -197,6 +404,17 @@
             "provider": "anthropic",
             "model": "claude-sonnet-5"
           }
+        },
+        {
+          "repriced_at": "2026-09-20T12:53:49.683380+00:00",
+          "previous_cost": {
+            "amount": 0.5009,
+            "currency": "USD",
+            "priced_at": "2026-09-13",
+            "provider": "anthropic",
+            "model": "claude-sonnet-5"
+          },
+          "reason": "enrich"
         }
       ]
     },
@@ -210,14 +428,41 @@
         "input": 126,
         "output": 21441,
         "cache_read": 646701,
-        "cache_creation": 50124
+        "cache_creation": 50124,
+        "cache_creation_1h": 0,
+        "by_model": {
+          "claude-haiku-4-5-20251001": {
+            "input": 122,
+            "output": 7109,
+            "cache_read": 574354,
+            "cache_creation": 22931,
+            "cache_creation_1h": 0
+          },
+          "claude-sonnet-5": {
+            "input": 4,
+            "output": 14332,
+            "cache_read": 72347,
+            "cache_creation": 27193,
+            "cache_creation_1h": 0
+          }
+        }
       },
       "cost_recorded": {
-        "amount": 0.4693,
+        "amount": 0.3475,
         "currency": "USD",
         "priced_at": "2026-09-13",
         "provider": "anthropic",
-        "model": "claude-sonnet-5"
+        "model": "multiple",
+        "by_model": {
+          "claude-haiku-4-5-20251001": {
+            "amount": 0.1218,
+            "priced_at": "2026-09-13"
+          },
+          "claude-sonnet-5": {
+            "amount": 0.2258,
+            "priced_at": "2026-09-13"
+          }
+        }
       },
       "note": null,
       "repricings": [
@@ -230,6 +475,17 @@
             "provider": "anthropic",
             "model": "claude-sonnet-5"
           }
+        },
+        {
+          "repriced_at": "2026-09-20T12:53:49.683380+00:00",
+          "previous_cost": {
+            "amount": 0.4693,
+            "currency": "USD",
+            "priced_at": "2026-09-13",
+            "provider": "anthropic",
+            "model": "claude-sonnet-5"
+          },
+          "reason": "enrich"
         }
       ]
     },
@@ -243,14 +499,41 @@
         "input": 50,
         "output": 15395,
         "cache_read": 748479,
-        "cache_creation": 94682
+        "cache_creation": 94682,
+        "cache_creation_1h": 0,
+        "by_model": {
+          "claude-haiku-4-5-20251001": {
+            "input": 24,
+            "output": 1843,
+            "cache_read": 126018,
+            "cache_creation": 2758,
+            "cache_creation_1h": 0
+          },
+          "claude-sonnet-5": {
+            "input": 26,
+            "output": 13552,
+            "cache_read": 622461,
+            "cache_creation": 91924,
+            "cache_creation_1h": 0
+          }
+        }
       },
       "cost_recorded": {
-        "amount": 0.5405,
+        "amount": 0.5152,
         "currency": "USD",
         "priced_at": "2026-09-13",
         "provider": "anthropic",
-        "model": "claude-sonnet-5"
+        "model": "multiple",
+        "by_model": {
+          "claude-haiku-4-5-20251001": {
+            "amount": 0.0253,
+            "priced_at": "2026-09-13"
+          },
+          "claude-sonnet-5": {
+            "amount": 0.4899,
+            "priced_at": "2026-09-13"
+          }
+        }
       },
       "note": null,
       "repricings": [
@@ -263,6 +546,17 @@
             "provider": "anthropic",
             "model": "claude-sonnet-5"
           }
+        },
+        {
+          "repriced_at": "2026-09-20T12:53:49.683380+00:00",
+          "previous_cost": {
+            "amount": 0.5405,
+            "currency": "USD",
+            "priced_at": "2026-09-13",
+            "provider": "anthropic",
+            "model": "claude-sonnet-5"
+          },
+          "reason": "enrich"
         }
       ]
     },
@@ -276,14 +570,30 @@
         "input": 56,
         "output": 32613,
         "cache_read": 1615970,
-        "cache_creation": 98056
+        "cache_creation": 98056,
+        "cache_creation_1h": 0,
+        "by_model": {
+          "claude-sonnet-5": {
+            "input": 56,
+            "output": 32613,
+            "cache_read": 1615970,
+            "cache_creation": 98056,
+            "cache_creation_1h": 0
+          }
+        }
       },
       "cost_recorded": {
         "amount": 0.8946,
         "currency": "USD",
         "priced_at": "2026-09-13",
         "provider": "anthropic",
-        "model": "claude-sonnet-5"
+        "model": "claude-sonnet-5",
+        "by_model": {
+          "claude-sonnet-5": {
+            "amount": 0.8946,
+            "priced_at": "2026-09-13"
+          }
+        }
       },
       "note": null,
       "repricings": [
@@ -296,6 +606,17 @@
             "provider": "anthropic",
             "model": "claude-sonnet-5"
           }
+        },
+        {
+          "repriced_at": "2026-09-20T12:53:49.683380+00:00",
+          "previous_cost": {
+            "amount": 0.8946,
+            "currency": "USD",
+            "priced_at": "2026-09-13",
+            "provider": "anthropic",
+            "model": "claude-sonnet-5"
+          },
+          "reason": "enrich"
         }
       ]
     },
@@ -309,14 +630,41 @@
         "input": 74,
         "output": 9571,
         "cache_read": 630130,
-        "cache_creation": 73072
+        "cache_creation": 73072,
+        "cache_creation_1h": 0,
+        "by_model": {
+          "claude-sonnet-5": {
+            "input": 16,
+            "output": 7553,
+            "cache_read": 429962,
+            "cache_creation": 37776,
+            "cache_creation_1h": 0
+          },
+          "claude-haiku-4-5-20251001": {
+            "input": 58,
+            "output": 2018,
+            "cache_read": 200168,
+            "cache_creation": 35296,
+            "cache_creation_1h": 0
+          }
+        }
       },
       "cost_recorded": {
-        "amount": 0.4046,
+        "amount": 0.3303,
         "currency": "USD",
         "priced_at": "2026-09-13",
         "provider": "anthropic",
-        "model": "claude-sonnet-5"
+        "model": "multiple",
+        "by_model": {
+          "claude-haiku-4-5-20251001": {
+            "amount": 0.0743,
+            "priced_at": "2026-09-13"
+          },
+          "claude-sonnet-5": {
+            "amount": 0.256,
+            "priced_at": "2026-09-13"
+          }
+        }
       },
       "note": null,
       "repricings": [
@@ -329,6 +677,17 @@
             "provider": "anthropic",
             "model": "claude-sonnet-5"
           }
+        },
+        {
+          "repriced_at": "2026-09-20T12:53:49.683380+00:00",
+          "previous_cost": {
+            "amount": 0.4046,
+            "currency": "USD",
+            "priced_at": "2026-09-13",
+            "provider": "anthropic",
+            "model": "claude-sonnet-5"
+          },
+          "reason": "enrich"
         }
       ]
     },
@@ -342,14 +701,41 @@
         "input": 74,
         "output": 6708,
         "cache_read": 437954,
-        "cache_creation": 40295
+        "cache_creation": 40295,
+        "cache_creation_1h": 0,
+        "by_model": {
+          "claude-haiku-4-5-20251001": {
+            "input": 66,
+            "output": 3695,
+            "cache_read": 264786,
+            "cache_creation": 16440,
+            "cache_creation_1h": 0
+          },
+          "claude-sonnet-5": {
+            "input": 8,
+            "output": 3013,
+            "cache_read": 173168,
+            "cache_creation": 23855,
+            "cache_creation_1h": 0
+          }
+        }
       },
       "cost_recorded": {
-        "amount": 0.2556,
+        "amount": 0.19,
         "currency": "USD",
         "priced_at": "2026-09-13",
         "provider": "anthropic",
-        "model": "claude-sonnet-5"
+        "model": "multiple",
+        "by_model": {
+          "claude-haiku-4-5-20251001": {
+            "amount": 0.0656,
+            "priced_at": "2026-09-13"
+          },
+          "claude-sonnet-5": {
+            "amount": 0.1244,
+            "priced_at": "2026-09-13"
+          }
+        }
       },
       "note": null,
       "repricings": [
@@ -362,6 +748,17 @@
             "provider": "anthropic",
             "model": "claude-sonnet-5"
           }
+        },
+        {
+          "repriced_at": "2026-09-20T12:53:49.683380+00:00",
+          "previous_cost": {
+            "amount": 0.2556,
+            "currency": "USD",
+            "priced_at": "2026-09-13",
+            "provider": "anthropic",
+            "model": "claude-sonnet-5"
+          },
+          "reason": "enrich"
         }
       ]
     },
@@ -375,14 +772,41 @@
         "input": 146,
         "output": 20430,
         "cache_read": 1244415,
-        "cache_creation": 61157
+        "cache_creation": 61157,
+        "cache_creation_1h": 0,
+        "by_model": {
+          "claude-haiku-4-5-20251001": {
+            "input": 122,
+            "output": 6793,
+            "cache_read": 553484,
+            "cache_creation": 23341,
+            "cache_creation_1h": 0
+          },
+          "claude-sonnet-5": {
+            "input": 24,
+            "output": 13637,
+            "cache_read": 690931,
+            "cache_creation": 37816,
+            "cache_creation_1h": 0
+          }
+        }
       },
       "cost_recorded": {
-        "amount": 0.6064,
+        "amount": 0.4878,
         "currency": "USD",
         "priced_at": "2026-09-13",
         "provider": "anthropic",
-        "model": "claude-sonnet-5"
+        "model": "multiple",
+        "by_model": {
+          "claude-haiku-4-5-20251001": {
+            "amount": 0.1186,
+            "priced_at": "2026-09-13"
+          },
+          "claude-sonnet-5": {
+            "amount": 0.3691,
+            "priced_at": "2026-09-13"
+          }
+        }
       },
       "note": null,
       "repricings": [
@@ -395,6 +819,17 @@
             "provider": "anthropic",
             "model": "claude-sonnet-5"
           }
+        },
+        {
+          "repriced_at": "2026-09-20T12:53:49.683380+00:00",
+          "previous_cost": {
+            "amount": 0.6064,
+            "currency": "USD",
+            "priced_at": "2026-09-13",
+            "provider": "anthropic",
+            "model": "claude-sonnet-5"
+          },
+          "reason": "enrich"
         }
       ]
     },
@@ -408,14 +843,41 @@
         "input": 68,
         "output": 30444,
         "cache_read": 1472355,
-        "cache_creation": 98455
+        "cache_creation": 98455,
+        "cache_creation_1h": 0,
+        "by_model": {
+          "claude-haiku-4-5-20251001": {
+            "input": 24,
+            "output": 2685,
+            "cache_read": 124342,
+            "cache_creation": 3086,
+            "cache_creation_1h": 0
+          },
+          "claude-sonnet-5": {
+            "input": 44,
+            "output": 27759,
+            "cache_read": 1348013,
+            "cache_creation": 95369,
+            "cache_creation_1h": 0
+          }
+        }
       },
       "cost_recorded": {
-        "amount": 0.8452,
+        "amount": 0.8154,
         "currency": "USD",
         "priced_at": "2026-09-13",
         "provider": "anthropic",
-        "model": "claude-sonnet-5"
+        "model": "multiple",
+        "by_model": {
+          "claude-haiku-4-5-20251001": {
+            "amount": 0.0297,
+            "priced_at": "2026-09-13"
+          },
+          "claude-sonnet-5": {
+            "amount": 0.7857,
+            "priced_at": "2026-09-13"
+          }
+        }
       },
       "note": null,
       "repricings": [
@@ -428,6 +890,17 @@
             "provider": "anthropic",
             "model": "claude-sonnet-5"
           }
+        },
+        {
+          "repriced_at": "2026-09-20T12:53:49.683380+00:00",
+          "previous_cost": {
+            "amount": 0.8452,
+            "currency": "USD",
+            "priced_at": "2026-09-13",
+            "provider": "anthropic",
+            "model": "claude-sonnet-5"
+          },
+          "reason": "enrich"
         }
       ]
     },
@@ -441,14 +914,30 @@
         "input": 72,
         "output": 42895,
         "cache_read": 2405049,
-        "cache_creation": 111513
+        "cache_creation": 111513,
+        "cache_creation_1h": 0,
+        "by_model": {
+          "claude-sonnet-5": {
+            "input": 72,
+            "output": 42895,
+            "cache_read": 2405049,
+            "cache_creation": 111513,
+            "cache_creation_1h": 0
+          }
+        }
       },
       "cost_recorded": {
         "amount": 1.1889,
         "currency": "USD",
         "priced_at": "2026-09-13",
         "provider": "anthropic",
-        "model": "claude-sonnet-5"
+        "model": "claude-sonnet-5",
+        "by_model": {
+          "claude-sonnet-5": {
+            "amount": 1.1889,
+            "priced_at": "2026-09-13"
+          }
+        }
       },
       "note": null,
       "repricings": [
@@ -461,6 +950,17 @@
             "provider": "anthropic",
             "model": "claude-sonnet-5"
           }
+        },
+        {
+          "repriced_at": "2026-09-20T12:53:49.683380+00:00",
+          "previous_cost": {
+            "amount": 1.1889,
+            "currency": "USD",
+            "priced_at": "2026-09-13",
+            "provider": "anthropic",
+            "model": "claude-sonnet-5"
+          },
+          "reason": "enrich"
         }
       ]
     },
@@ -474,14 +974,41 @@
         "input": 90,
         "output": 13484,
         "cache_read": 1277547,
-        "cache_creation": 87504
+        "cache_creation": 87504,
+        "cache_creation_1h": 0,
+        "by_model": {
+          "claude-sonnet-5": {
+            "input": 32,
+            "output": 10705,
+            "cache_read": 1069996,
+            "cache_creation": 50111,
+            "cache_creation_1h": 0
+          },
+          "claude-haiku-4-5-20251001": {
+            "input": 58,
+            "output": 2779,
+            "cache_read": 207551,
+            "cache_creation": 37393,
+            "cache_creation_1h": 0
+          }
+        }
       },
       "cost_recorded": {
-        "amount": 0.6093,
+        "amount": 0.5278,
         "currency": "USD",
         "priced_at": "2026-09-13",
         "provider": "anthropic",
-        "model": "claude-sonnet-5"
+        "model": "multiple",
+        "by_model": {
+          "claude-haiku-4-5-20251001": {
+            "amount": 0.0814,
+            "priced_at": "2026-09-13"
+          },
+          "claude-sonnet-5": {
+            "amount": 0.4464,
+            "priced_at": "2026-09-13"
+          }
+        }
       },
       "note": null,
       "repricings": [
@@ -494,6 +1021,17 @@
             "provider": "anthropic",
             "model": "claude-sonnet-5"
           }
+        },
+        {
+          "repriced_at": "2026-09-20T12:53:49.683380+00:00",
+          "previous_cost": {
+            "amount": 0.6093,
+            "currency": "USD",
+            "priced_at": "2026-09-13",
+            "provider": "anthropic",
+            "model": "claude-sonnet-5"
+          },
+          "reason": "enrich"
         }
       ]
     },
@@ -507,14 +1045,41 @@
         "input": 162,
         "output": 15333,
         "cache_read": 1102834,
-        "cache_creation": 58831
+        "cache_creation": 58831,
+        "cache_creation_1h": 0,
+        "by_model": {
+          "claude-haiku-4-5-20251001": {
+            "input": 146,
+            "output": 9120,
+            "cache_read": 709590,
+            "cache_creation": 26725,
+            "cache_creation_1h": 0
+          },
+          "claude-sonnet-5": {
+            "input": 16,
+            "output": 6213,
+            "cache_read": 393244,
+            "cache_creation": 32106,
+            "cache_creation_1h": 0
+          }
+        }
       },
       "cost_recorded": {
-        "amount": 0.5213,
+        "amount": 0.3712,
         "currency": "USD",
         "priced_at": "2026-09-13",
         "provider": "anthropic",
-        "model": "claude-sonnet-5"
+        "model": "multiple",
+        "by_model": {
+          "claude-haiku-4-5-20251001": {
+            "amount": 0.1501,
+            "priced_at": "2026-09-13"
+          },
+          "claude-sonnet-5": {
+            "amount": 0.2211,
+            "priced_at": "2026-09-13"
+          }
+        }
       },
       "note": null,
       "repricings": [
@@ -527,6 +1092,17 @@
             "provider": "anthropic",
             "model": "claude-sonnet-5"
           }
+        },
+        {
+          "repriced_at": "2026-09-20T12:53:49.683380+00:00",
+          "previous_cost": {
+            "amount": 0.5213,
+            "currency": "USD",
+            "priced_at": "2026-09-13",
+            "provider": "anthropic",
+            "model": "claude-sonnet-5"
+          },
+          "reason": "enrich"
         }
       ]
     },
@@ -540,14 +1116,41 @@
         "input": 144,
         "output": 48151,
         "cache_read": 3420567,
-        "cache_creation": 154273
+        "cache_creation": 154273,
+        "cache_creation_1h": 0,
+        "by_model": {
+          "claude-haiku-4-5-20251001": {
+            "input": 40,
+            "output": 2313,
+            "cache_read": 232983,
+            "cache_creation": 3293,
+            "cache_creation_1h": 0
+          },
+          "claude-sonnet-5": {
+            "input": 104,
+            "output": 45838,
+            "cache_read": 3187584,
+            "cache_creation": 150980,
+            "cache_creation_1h": 0
+          }
+        }
       },
       "cost_recorded": {
-        "amount": 1.5516,
+        "amount": 1.5126,
         "currency": "USD",
         "priced_at": "2026-09-13",
         "provider": "anthropic",
-        "model": "claude-sonnet-5"
+        "model": "multiple",
+        "by_model": {
+          "claude-haiku-4-5-20251001": {
+            "amount": 0.039,
+            "priced_at": "2026-09-13"
+          },
+          "claude-sonnet-5": {
+            "amount": 1.4736,
+            "priced_at": "2026-09-13"
+          }
+        }
       },
       "note": null,
       "repricings": [
@@ -560,6 +1163,17 @@
             "provider": "anthropic",
             "model": "claude-sonnet-5"
           }
+        },
+        {
+          "repriced_at": "2026-09-20T12:53:49.683380+00:00",
+          "previous_cost": {
+            "amount": 1.5516,
+            "currency": "USD",
+            "priced_at": "2026-09-13",
+            "provider": "anthropic",
+            "model": "claude-sonnet-5"
+          },
+          "reason": "enrich"
         }
       ]
     },
@@ -573,14 +1187,30 @@
         "input": 74,
         "output": 23291,
         "cache_read": 2258574,
-        "cache_creation": 101613
+        "cache_creation": 101613,
+        "cache_creation_1h": 0,
+        "by_model": {
+          "claude-sonnet-5": {
+            "input": 74,
+            "output": 23291,
+            "cache_read": 2258574,
+            "cache_creation": 101613,
+            "cache_creation_1h": 0
+          }
+        }
       },
       "cost_recorded": {
         "amount": 0.9388,
         "currency": "USD",
         "priced_at": "2026-09-13",
         "provider": "anthropic",
-        "model": "claude-sonnet-5"
+        "model": "claude-sonnet-5",
+        "by_model": {
+          "claude-sonnet-5": {
+            "amount": 0.9388,
+            "priced_at": "2026-09-13"
+          }
+        }
       },
       "note": null,
       "repricings": [
@@ -593,6 +1223,17 @@
             "provider": "anthropic",
             "model": "claude-sonnet-5"
           }
+        },
+        {
+          "repriced_at": "2026-09-20T12:53:49.683380+00:00",
+          "previous_cost": {
+            "amount": 0.9388,
+            "currency": "USD",
+            "priced_at": "2026-09-13",
+            "provider": "anthropic",
+            "model": "claude-sonnet-5"
+          },
+          "reason": "enrich"
         }
       ]
     },
@@ -606,14 +1247,30 @@
         "input": 106,
         "output": 56708,
         "cache_read": 3465006,
-        "cache_creation": 171121
+        "cache_creation": 171121,
+        "cache_creation_1h": 0,
+        "by_model": {
+          "claude-sonnet-5": {
+            "input": 106,
+            "output": 56708,
+            "cache_read": 3465006,
+            "cache_creation": 171121,
+            "cache_creation_1h": 0
+          }
+        }
       },
       "cost_recorded": {
         "amount": 1.6881,
         "currency": "USD",
         "priced_at": "2026-09-13",
         "provider": "anthropic",
-        "model": "claude-sonnet-5"
+        "model": "claude-sonnet-5",
+        "by_model": {
+          "claude-sonnet-5": {
+            "amount": 1.6881,
+            "priced_at": "2026-09-13"
+          }
+        }
       },
       "note": null,
       "repricings": [
@@ -626,6 +1283,17 @@
             "provider": "anthropic",
             "model": "claude-sonnet-5"
           }
+        },
+        {
+          "repriced_at": "2026-09-20T12:53:49.683380+00:00",
+          "previous_cost": {
+            "amount": 1.6881,
+            "currency": "USD",
+            "priced_at": "2026-09-13",
+            "provider": "anthropic",
+            "model": "claude-sonnet-5"
+          },
+          "reason": "enrich"
         }
       ]
     },
@@ -639,14 +1307,41 @@
         "input": 206,
         "output": 134903,
         "cache_read": 12062022,
-        "cache_creation": 395722
+        "cache_creation": 395722,
+        "cache_creation_1h": 0,
+        "by_model": {
+          "claude-sonnet-5": {
+            "input": 152,
+            "output": 99493,
+            "cache_read": 8647068,
+            "cache_creation": 226791,
+            "cache_creation_1h": 0
+          },
+          "claude-opus-5": {
+            "input": 54,
+            "output": 35410,
+            "cache_read": 3414954,
+            "cache_creation": 168931,
+            "cache_creation_1h": 0
+          }
+        }
       },
       "cost_recorded": {
-        "amount": 4.7512,
+        "amount": 6.9404,
         "currency": "USD",
         "priced_at": "2026-09-13",
         "provider": "anthropic",
-        "model": "claude-sonnet-5"
+        "model": "multiple",
+        "by_model": {
+          "claude-opus-5": {
+            "amount": 3.6488,
+            "priced_at": "2026-09-13"
+          },
+          "claude-sonnet-5": {
+            "amount": 3.2916,
+            "priced_at": "2026-09-13"
+          }
+        }
       },
       "note": null,
       "repricings": [
@@ -659,6 +1354,17 @@
             "provider": "anthropic",
             "model": "claude-sonnet-5"
           }
+        },
+        {
+          "repriced_at": "2026-09-20T12:53:49.683380+00:00",
+          "previous_cost": {
+            "amount": 4.7512,
+            "currency": "USD",
+            "priced_at": "2026-09-13",
+            "provider": "anthropic",
+            "model": "claude-sonnet-5"
+          },
+          "reason": "enrich"
         }
       ]
     },
@@ -672,14 +1378,30 @@
         "input": 14,
         "output": 4212,
         "cache_read": 1330082,
-        "cache_creation": 5405
+        "cache_creation": 5405,
+        "cache_creation_1h": 0,
+        "by_model": {
+          "claude-sonnet-5": {
+            "input": 14,
+            "output": 4212,
+            "cache_read": 1330082,
+            "cache_creation": 5405,
+            "cache_creation_1h": 0
+          }
+        }
       },
       "cost_recorded": {
         "amount": 0.3217,
         "currency": "USD",
         "priced_at": "2026-09-13",
         "provider": "anthropic",
-        "model": "claude-sonnet-5"
+        "model": "claude-sonnet-5",
+        "by_model": {
+          "claude-sonnet-5": {
+            "amount": 0.3217,
+            "priced_at": "2026-09-13"
+          }
+        }
       },
       "note": null,
       "repricings": [
@@ -692,6 +1414,17 @@
             "provider": "anthropic",
             "model": "claude-sonnet-5"
           }
+        },
+        {
+          "repriced_at": "2026-09-20T12:53:49.683380+00:00",
+          "previous_cost": {
+            "amount": 0.3217,
+            "currency": "USD",
+            "priced_at": "2026-09-13",
+            "provider": "anthropic",
+            "model": "claude-sonnet-5"
+          },
+          "reason": "enrich"
         }
       ]
     },
@@ -705,14 +1438,30 @@
         "input": 18,
         "output": 7099,
         "cache_read": 1766543,
-        "cache_creation": 9989
+        "cache_creation": 9989,
+        "cache_creation_1h": 0,
+        "by_model": {
+          "claude-sonnet-5": {
+            "input": 18,
+            "output": 7099,
+            "cache_read": 1766543,
+            "cache_creation": 9989,
+            "cache_creation_1h": 0
+          }
+        }
       },
       "cost_recorded": {
         "amount": 0.4493,
         "currency": "USD",
         "priced_at": "2026-09-13",
         "provider": "anthropic",
-        "model": "claude-sonnet-5"
+        "model": "claude-sonnet-5",
+        "by_model": {
+          "claude-sonnet-5": {
+            "amount": 0.4493,
+            "priced_at": "2026-09-13"
+          }
+        }
       },
       "note": null,
       "repricings": [
@@ -725,6 +1474,17 @@
             "provider": "anthropic",
             "model": "claude-sonnet-5"
           }
+        },
+        {
+          "repriced_at": "2026-09-20T12:53:49.683380+00:00",
+          "previous_cost": {
+            "amount": 0.4493,
+            "currency": "USD",
+            "priced_at": "2026-09-13",
+            "provider": "anthropic",
+            "model": "claude-sonnet-5"
+          },
+          "reason": "enrich"
         }
       ]
     },
@@ -738,14 +1498,30 @@
         "input": 24,
         "output": 5374,
         "cache_read": 2474775,
-        "cache_creation": 7704
+        "cache_creation": 7704,
+        "cache_creation_1h": 0,
+        "by_model": {
+          "claude-sonnet-5": {
+            "input": 24,
+            "output": 5374,
+            "cache_read": 2474775,
+            "cache_creation": 7704,
+            "cache_creation_1h": 0
+          }
+        }
       },
       "cost_recorded": {
         "amount": 0.568,
         "currency": "USD",
         "priced_at": "2026-09-13",
         "provider": "anthropic",
-        "model": "claude-sonnet-5"
+        "model": "claude-sonnet-5",
+        "by_model": {
+          "claude-sonnet-5": {
+            "amount": 0.568,
+            "priced_at": "2026-09-13"
+          }
+        }
       },
       "note": null,
       "repricings": [
@@ -758,6 +1534,17 @@
             "provider": "anthropic",
             "model": "claude-sonnet-5"
           }
+        },
+        {
+          "repriced_at": "2026-09-20T12:53:49.683380+00:00",
+          "previous_cost": {
+            "amount": 0.568,
+            "currency": "USD",
+            "priced_at": "2026-09-13",
+            "provider": "anthropic",
+            "model": "claude-sonnet-5"
+          },
+          "reason": "enrich"
         }
       ]
     },
@@ -771,14 +1558,30 @@
         "input": 16,
         "output": 2777,
         "cache_read": 1697694,
-        "cache_creation": 4301
+        "cache_creation": 4301,
+        "cache_creation_1h": 0,
+        "by_model": {
+          "claude-sonnet-5": {
+            "input": 16,
+            "output": 2777,
+            "cache_read": 1697694,
+            "cache_creation": 4301,
+            "cache_creation_1h": 0
+          }
+        }
       },
       "cost_recorded": {
         "amount": 0.3781,
         "currency": "USD",
         "priced_at": "2026-09-13",
         "provider": "anthropic",
-        "model": "claude-sonnet-5"
+        "model": "claude-sonnet-5",
+        "by_model": {
+          "claude-sonnet-5": {
+            "amount": 0.3781,
+            "priced_at": "2026-09-13"
+          }
+        }
       },
       "note": null,
       "repricings": [
@@ -791,6 +1594,17 @@
             "provider": "anthropic",
             "model": "claude-sonnet-5"
           }
+        },
+        {
+          "repriced_at": "2026-09-20T12:53:49.683380+00:00",
+          "previous_cost": {
+            "amount": 0.3781,
+            "currency": "USD",
+            "priced_at": "2026-09-13",
+            "provider": "anthropic",
+            "model": "claude-sonnet-5"
+          },
+          "reason": "enrich"
         }
       ]
     },
@@ -804,14 +1618,30 @@
         "input": 18,
         "output": 3042,
         "cache_read": 1971747,
-        "cache_creation": 9713
+        "cache_creation": 9713,
+        "cache_creation_1h": 0,
+        "by_model": {
+          "claude-sonnet-5": {
+            "input": 18,
+            "output": 3042,
+            "cache_read": 1971747,
+            "cache_creation": 9713,
+            "cache_creation_1h": 0
+          }
+        }
       },
       "cost_recorded": {
         "amount": 0.4491,
         "currency": "USD",
         "priced_at": "2026-09-13",
         "provider": "anthropic",
-        "model": "claude-sonnet-5"
+        "model": "claude-sonnet-5",
+        "by_model": {
+          "claude-sonnet-5": {
+            "amount": 0.4491,
+            "priced_at": "2026-09-13"
+          }
+        }
       },
       "note": null,
       "repricings": [
@@ -824,6 +1654,17 @@
             "provider": "anthropic",
             "model": "claude-sonnet-5"
           }
+        },
+        {
+          "repriced_at": "2026-09-20T12:53:49.683380+00:00",
+          "previous_cost": {
+            "amount": 0.4491,
+            "currency": "USD",
+            "priced_at": "2026-09-13",
+            "provider": "anthropic",
+            "model": "claude-sonnet-5"
+          },
+          "reason": "enrich"
         }
       ]
     },
@@ -837,14 +1678,30 @@
         "input": 14,
         "output": 2586,
         "cache_read": 1581411,
-        "cache_creation": 3554
+        "cache_creation": 3554,
+        "cache_creation_1h": 0,
+        "by_model": {
+          "claude-sonnet-5": {
+            "input": 14,
+            "output": 2586,
+            "cache_read": 1581411,
+            "cache_creation": 3554,
+            "cache_creation_1h": 0
+          }
+        }
       },
       "cost_recorded": {
         "amount": 0.3511,
         "currency": "USD",
         "priced_at": "2026-09-13",
         "provider": "anthropic",
-        "model": "claude-sonnet-5"
+        "model": "claude-sonnet-5",
+        "by_model": {
+          "claude-sonnet-5": {
+            "amount": 0.3511,
+            "priced_at": "2026-09-13"
+          }
+        }
       },
       "note": null,
       "repricings": [
@@ -857,6 +1714,17 @@
             "provider": "anthropic",
             "model": "claude-sonnet-5"
           }
+        },
+        {
+          "repriced_at": "2026-09-20T12:53:49.683380+00:00",
+          "previous_cost": {
+            "amount": 0.3511,
+            "currency": "USD",
+            "priced_at": "2026-09-13",
+            "provider": "anthropic",
+            "model": "claude-sonnet-5"
+          },
+          "reason": "enrich"
         }
       ]
     },
@@ -870,14 +1738,30 @@
         "input": 18,
         "output": 12233,
         "cache_read": 2109724,
-        "cache_creation": 19586
+        "cache_creation": 19586,
+        "cache_creation_1h": 0,
+        "by_model": {
+          "claude-sonnet-5": {
+            "input": 18,
+            "output": 12233,
+            "cache_read": 2109724,
+            "cache_creation": 19586,
+            "cache_creation_1h": 0
+          }
+        }
       },
       "cost_recorded": {
         "amount": 0.5933,
         "currency": "USD",
         "priced_at": "2026-09-13",
         "provider": "anthropic",
-        "model": "claude-sonnet-5"
+        "model": "claude-sonnet-5",
+        "by_model": {
+          "claude-sonnet-5": {
+            "amount": 0.5933,
+            "priced_at": "2026-09-13"
+          }
+        }
       },
       "note": null,
       "repricings": [
@@ -890,6 +1774,17 @@
             "provider": "anthropic",
             "model": "claude-sonnet-5"
           }
+        },
+        {
+          "repriced_at": "2026-09-20T12:53:49.683380+00:00",
+          "previous_cost": {
+            "amount": 0.5933,
+            "currency": "USD",
+            "priced_at": "2026-09-13",
+            "provider": "anthropic",
+            "model": "claude-sonnet-5"
+          },
+          "reason": "enrich"
         }
       ]
     },
@@ -903,14 +1798,30 @@
         "input": 160,
         "output": 83117,
         "cache_read": 12355554,
-        "cache_creation": 196762
+        "cache_creation": 196762,
+        "cache_creation_1h": 196762,
+        "by_model": {
+          "claude-sonnet-5": {
+            "input": 160,
+            "output": 83117,
+            "cache_read": 12355554,
+            "cache_creation": 196762,
+            "cache_creation_1h": 196762
+          }
+        }
       },
       "cost_recorded": {
-        "amount": 3.7945,
+        "amount": 4.0896,
         "currency": "USD",
         "priced_at": "2026-09-13",
         "provider": "anthropic",
-        "model": "claude-sonnet-5"
+        "model": "claude-sonnet-5",
+        "by_model": {
+          "claude-sonnet-5": {
+            "amount": 4.0896,
+            "priced_at": "2026-09-13"
+          }
+        }
       },
       "note": null,
       "repricings": [
@@ -923,6 +1834,17 @@
             "provider": "anthropic",
             "model": "claude-sonnet-5"
           }
+        },
+        {
+          "repriced_at": "2026-09-20T12:53:49.683380+00:00",
+          "previous_cost": {
+            "amount": 3.7945,
+            "currency": "USD",
+            "priced_at": "2026-09-13",
+            "provider": "anthropic",
+            "model": "claude-sonnet-5"
+          },
+          "reason": "enrich"
         }
       ]
     },
@@ -936,14 +1858,30 @@
         "input": 2,
         "output": 602,
         "cache_read": 230600,
-        "cache_creation": 878
+        "cache_creation": 878,
+        "cache_creation_1h": 878,
+        "by_model": {
+          "claude-sonnet-5": {
+            "input": 2,
+            "output": 602,
+            "cache_read": 230600,
+            "cache_creation": 878,
+            "cache_creation_1h": 878
+          }
+        }
       },
       "cost_recorded": {
-        "amount": 0.0543,
+        "amount": 0.0557,
         "currency": "USD",
         "priced_at": "2026-09-13",
         "provider": "anthropic",
-        "model": "claude-sonnet-5"
+        "model": "claude-sonnet-5",
+        "by_model": {
+          "claude-sonnet-5": {
+            "amount": 0.0557,
+            "priced_at": "2026-09-13"
+          }
+        }
       },
       "note": null,
       "repricings": [
@@ -956,6 +1894,17 @@
             "provider": "anthropic",
             "model": "claude-sonnet-5"
           }
+        },
+        {
+          "repriced_at": "2026-09-20T12:53:49.683380+00:00",
+          "previous_cost": {
+            "amount": 0.0543,
+            "currency": "USD",
+            "priced_at": "2026-09-13",
+            "provider": "anthropic",
+            "model": "claude-sonnet-5"
+          },
+          "reason": "enrich"
         }
       ]
     },
@@ -969,14 +1918,30 @@
         "input": 2,
         "output": 489,
         "cache_read": 231478,
-        "cache_creation": 703
+        "cache_creation": 703,
+        "cache_creation_1h": 703,
+        "by_model": {
+          "claude-sonnet-5": {
+            "input": 2,
+            "output": 489,
+            "cache_read": 231478,
+            "cache_creation": 703,
+            "cache_creation_1h": 703
+          }
+        }
       },
       "cost_recorded": {
-        "amount": 0.0529,
+        "amount": 0.054,
         "currency": "USD",
         "priced_at": "2026-09-13",
         "provider": "anthropic",
-        "model": "claude-sonnet-5"
+        "model": "claude-sonnet-5",
+        "by_model": {
+          "claude-sonnet-5": {
+            "amount": 0.054,
+            "priced_at": "2026-09-13"
+          }
+        }
       },
       "note": null,
       "repricings": [
@@ -989,6 +1954,17 @@
             "provider": "anthropic",
             "model": "claude-sonnet-5"
           }
+        },
+        {
+          "repriced_at": "2026-09-20T12:53:49.683380+00:00",
+          "previous_cost": {
+            "amount": 0.0529,
+            "currency": "USD",
+            "priced_at": "2026-09-13",
+            "provider": "anthropic",
+            "model": "claude-sonnet-5"
+          },
+          "reason": "enrich"
         }
       ]
     },
@@ -1002,14 +1978,30 @@
         "input": 10,
         "output": 3270,
         "cache_read": 1169895,
-        "cache_creation": 4264
+        "cache_creation": 4264,
+        "cache_creation_1h": 4264,
+        "by_model": {
+          "claude-sonnet-5": {
+            "input": 10,
+            "output": 3270,
+            "cache_read": 1169895,
+            "cache_creation": 4264,
+            "cache_creation_1h": 4264
+          }
+        }
       },
       "cost_recorded": {
-        "amount": 0.2774,
+        "amount": 0.2838,
         "currency": "USD",
         "priced_at": "2026-09-13",
         "provider": "anthropic",
-        "model": "claude-sonnet-5"
+        "model": "claude-sonnet-5",
+        "by_model": {
+          "claude-sonnet-5": {
+            "amount": 0.2838,
+            "priced_at": "2026-09-13"
+          }
+        }
       },
       "note": null,
       "repricings": [
@@ -1022,6 +2014,17 @@
             "provider": "anthropic",
             "model": "claude-sonnet-5"
           }
+        },
+        {
+          "repriced_at": "2026-09-20T12:53:49.683380+00:00",
+          "previous_cost": {
+            "amount": 0.2774,
+            "currency": "USD",
+            "priced_at": "2026-09-13",
+            "provider": "anthropic",
+            "model": "claude-sonnet-5"
+          },
+          "reason": "enrich"
         }
       ]
     },
@@ -1035,14 +2038,30 @@
         "input": 166,
         "output": 74591,
         "cache_read": 12203896,
-        "cache_creation": 373387
+        "cache_creation": 373387,
+        "cache_creation_1h": 373387,
+        "by_model": {
+          "claude-sonnet-5": {
+            "input": 166,
+            "output": 74591,
+            "cache_read": 12203896,
+            "cache_creation": 373387,
+            "cache_creation_1h": 373387
+          }
+        }
       },
       "cost_recorded": {
-        "amount": 4.1205,
+        "amount": 4.6806,
         "currency": "USD",
         "priced_at": "2026-09-13",
         "provider": "anthropic",
-        "model": "claude-sonnet-5"
+        "model": "claude-sonnet-5",
+        "by_model": {
+          "claude-sonnet-5": {
+            "amount": 4.6806,
+            "priced_at": "2026-09-13"
+          }
+        }
       },
       "note": null,
       "repricings": [
@@ -1055,6 +2074,17 @@
             "provider": "anthropic",
             "model": "claude-sonnet-5"
           }
+        },
+        {
+          "repriced_at": "2026-09-20T12:53:49.683380+00:00",
+          "previous_cost": {
+            "amount": 4.1205,
+            "currency": "USD",
+            "priced_at": "2026-09-13",
+            "provider": "anthropic",
+            "model": "claude-sonnet-5"
+          },
+          "reason": "enrich"
         }
       ]
     },
@@ -1068,14 +2098,30 @@
         "input": 2,
         "output": 850,
         "cache_read": 199364,
-        "cache_creation": 830
+        "cache_creation": 830,
+        "cache_creation_1h": 830,
+        "by_model": {
+          "claude-sonnet-5": {
+            "input": 2,
+            "output": 850,
+            "cache_read": 199364,
+            "cache_creation": 830,
+            "cache_creation_1h": 830
+          }
+        }
       },
       "cost_recorded": {
-        "amount": 0.0505,
+        "amount": 0.0517,
         "currency": "USD",
         "priced_at": "2026-09-13",
         "provider": "anthropic",
-        "model": "claude-sonnet-5"
+        "model": "claude-sonnet-5",
+        "by_model": {
+          "claude-sonnet-5": {
+            "amount": 0.0517,
+            "priced_at": "2026-09-13"
+          }
+        }
       },
       "note": null,
       "repricings": [
@@ -1088,6 +2134,17 @@
             "provider": "anthropic",
             "model": "claude-sonnet-5"
           }
+        },
+        {
+          "repriced_at": "2026-09-20T12:53:49.683380+00:00",
+          "previous_cost": {
+            "amount": 0.0505,
+            "currency": "USD",
+            "priced_at": "2026-09-13",
+            "provider": "anthropic",
+            "model": "claude-sonnet-5"
+          },
+          "reason": "enrich"
         }
       ]
     },
@@ -1101,14 +2158,30 @@
         "input": 22,
         "output": 4808,
         "cache_read": 2242950,
-        "cache_creation": 7555
+        "cache_creation": 7555,
+        "cache_creation_1h": 7555,
+        "by_model": {
+          "claude-sonnet-5": {
+            "input": 22,
+            "output": 4808,
+            "cache_read": 2242950,
+            "cache_creation": 7555,
+            "cache_creation_1h": 7555
+          }
+        }
       },
       "cost_recorded": {
-        "amount": 0.5156,
+        "amount": 0.5269,
         "currency": "USD",
         "priced_at": "2026-09-13",
         "provider": "anthropic",
-        "model": "claude-sonnet-5"
+        "model": "claude-sonnet-5",
+        "by_model": {
+          "claude-sonnet-5": {
+            "amount": 0.5269,
+            "priced_at": "2026-09-13"
+          }
+        }
       },
       "note": null,
       "repricings": [
@@ -1121,6 +2194,17 @@
             "provider": "anthropic",
             "model": "claude-sonnet-5"
           }
+        },
+        {
+          "repriced_at": "2026-09-20T12:53:49.683380+00:00",
+          "previous_cost": {
+            "amount": 0.5156,
+            "currency": "USD",
+            "priced_at": "2026-09-13",
+            "provider": "anthropic",
+            "model": "claude-sonnet-5"
+          },
+          "reason": "enrich"
         }
       ]
     }

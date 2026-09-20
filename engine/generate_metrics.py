@@ -10,7 +10,14 @@ session transcripts.
 With --reprice it does something narrower and explicit instead: it
 recomputes only the cost of milestones already frozen in data.json,
 from their already-frozen tokens, against the ledger as it is now (see
-reprice_milestones). It never reads git or a transcript in that mode."""
+reprice_milestones). It never reads git or a transcript in that mode.
+
+With --enrich it runs a one-time migration for milestones frozen before the
+per-model and per-TTL token split: the split is re-derived from the
+transcripts and applied only where the four original counters match the
+frozen ones exactly (see engine/enrich.py); the rest are refused and left
+as they were. Each enriched milestone keeps its previous cost in its
+`repricings`. With --dry-run it only reports what it would do."""
 
 import argparse
 import html
@@ -33,6 +40,7 @@ if _REPO_ROOT not in sys.path:
 
 from engine.config import load_config, price_mode
 from engine.cost import MODEL_TOKEN_FIELDS, TOKEN_KINDS, price_milestone, total_tokens
+from engine.enrich import apply_enrichment, format_report, plan_enrichment
 from engine.git_source import commits, line_count, list_repo_files_at, matches_any, sum_metric, word_count_html
 from engine.prices import load_ledger
 from engine.readers.claude_code import find_linked_subagent_jsonl, find_session_jsonl, load_usage_events
@@ -43,6 +51,8 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 TEMPLATE_DIR = os.path.join(os.path.dirname(HERE), "template")
 EXAMPLE_CONFIG = os.path.join(HERE, "config.example.json")
 SHIPPED_PRICES = os.path.join(HERE, "prices.json")
+# The exit code of --enrich when it refused at least one milestone.
+EXIT_SOME_REFUSED = 3
 
 
 def empty_tokens():
@@ -114,7 +124,12 @@ def _effective_exclude_globs(config):
     return exclude_globs
 
 
-def build_milestones(repo_root, config, claude_projects_dir, linked_projects=None):
+def read_token_buckets(repo_root, claude_projects_dir, linked_projects=None):
+    """The git history and, per commit, the tokens this project's
+    transcripts recorded up to it. Shared by a normal run and by
+    --enrich, so the two can never bucket differently. Returns
+    (rows, token_buckets, transcript_files, usage_events): the last two
+    are how many transcript files and usage events were read."""
     rows = commits(repo_root)
     session_files = find_session_jsonl(claude_projects_dir, repo_root)
     # An explicit, named exception to project isolation: this project's
@@ -126,7 +141,11 @@ def build_milestones(repo_root, config, claude_projects_dir, linked_projects=Non
     for linked_root in (linked_projects or []):
         session_files.extend(find_linked_subagent_jsonl(claude_projects_dir, linked_root, repo_root))
     events = load_usage_events(session_files)
-    token_buckets = _bucket_tokens_by_commit(rows, events)
+    return rows, _bucket_tokens_by_commit(rows, events), len(session_files), len(events)
+
+
+def build_milestones(repo_root, config, claude_projects_dir, linked_projects=None):
+    rows, token_buckets, _, _ = read_token_buckets(repo_root, claude_projects_dir, linked_projects)
     notes = load_notes(repo_root, config["milestone_folder"])
     price_ledger = load_ledger(SHIPPED_PRICES)
     exclude_globs = _effective_exclude_globs(config)
@@ -269,17 +288,50 @@ def reprice_milestones(milestones, config, price_ledger, repriced_at):
     return changed
 
 
-def _load_frozen_data(data_path):
+def _load_frozen_data(data_path, flag="--reprice"):
     if not os.path.isfile(data_path):
         raise SystemExit(
-            "--reprice needs an existing %s: it corrects costs already recorded there, "
-            "from the tokens already recorded there. Run a normal generation first." % data_path
+            "%s needs an existing %s: it works on the milestones already recorded there. "
+            "Run a normal generation first." % (flag, data_path)
         )
     try:
         with open(data_path, encoding="utf-8") as fh:
             return json.load(fh)
     except (OSError, ValueError) as err:
-        raise SystemExit("--reprice could not read %s: %s" % (data_path, err))
+        raise SystemExit("%s could not read %s: %s" % (flag, data_path, err))
+
+
+def _plan_enrichment(repo_root, config, data_path, claude_projects_dir, linked_projects):
+    """The frozen data.json document and the enrichment plan for its
+    milestones, re-derived from git and the transcripts as they are now.
+    Only reads. Returns (frozen, plan, transcript_files, usage_events)."""
+    frozen = _load_frozen_data(data_path, "--enrich")
+    rows, token_buckets, transcript_files, usage_events = read_token_buckets(
+        repo_root, claude_projects_dir, linked_projects
+    )
+    buckets_by_commit = {row["hash"][:7]: bucket for row, bucket in zip(rows, token_buckets)}
+    price_ledger = load_ledger(SHIPPED_PRICES)
+    plan = plan_enrichment(
+        frozen.get("milestones", []), buckets_by_commit,
+        lambda tokens, date: _price(tokens, price_ledger, config, date),
+    )
+    return frozen, plan, transcript_files, usage_events
+
+
+def _enrich_exit_code(plan):
+    # A milestone that was refused is the one outcome a script must be able
+    # to tell apart from success, whatever else the run did.
+    return EXIT_SOME_REFUSED if any(r["status"] == "refused" for r in plan) else 0
+
+
+def _enrich_dry_run(repo_root, config, data_path, claude_projects_dir, linked_projects):
+    """What --enrich would do to the milestones frozen in data.json; writes
+    nothing and prints the report. Returns the process exit code."""
+    frozen, plan, transcript_files, usage_events = _plan_enrichment(
+        repo_root, config, data_path, claude_projects_dir, linked_projects
+    )
+    print(format_report(plan, len(frozen.get("milestones", [])), config["currency"], transcript_files, usage_events))
+    return _enrich_exit_code(plan)
 
 
 def _recorded_total(milestones):
@@ -372,29 +424,57 @@ def render_dashboard_html(template_path, kpi_html, words_svg, loc_svg, tokens_sv
     return doc
 
 
-def _previous_last_repriced_at(data_path):
+def _previous_marker(data_path, key):
+    """A top-level key of the previous data.json (last_repriced_at,
+    last_enriched_at), so a run that does not change it carries it over."""
     try:
         with open(data_path, encoding="utf-8") as fh:
-            return json.load(fh).get("last_repriced_at")
+            return json.load(fh).get(key)
     except (OSError, ValueError):
         return None
 
 
-def main(repo_root=None, claude_projects_dir=None, linked_projects=None, reprice=False):
+def main(repo_root=None, claude_projects_dir=None, linked_projects=None, reprice=False, enrich=False, dry_run=False):
+    """Returns the process exit code: 0, or EXIT_SOME_REFUSED after an
+    --enrich that refused a milestone."""
     repo_root = repo_root or os.getcwd()
     claude_projects_dir = claude_projects_dir or os.path.expanduser("~/.claude/projects")
 
-    if not reprice:
+    if not (reprice or enrich):
         bootstrap_if_missing(repo_root, "logbook")
-    # --reprice never bootstraps a folder: it only corrects costs that
-    # already exist in a data.json.
+    # --reprice and --enrich never bootstrap a folder: they only work on
+    # milestones that already exist in a data.json.
     config = load_config(os.path.join(repo_root, "logbook", "config.json"))
     folder = os.path.join(repo_root, config["milestone_folder"])
     data_path = os.path.join(folder, "data.json")
+    if enrich and dry_run:
+        return _enrich_dry_run(repo_root, config, data_path, claude_projects_dir, linked_projects)
     generated_at = datetime.now(timezone.utc).isoformat()
-    last_repriced_at = _previous_last_repriced_at(data_path)
+    last_repriced_at = _previous_marker(data_path, "last_repriced_at")
+    last_enriched_at = _previous_marker(data_path, "last_enriched_at")
+    exit_code = 0
 
-    if reprice:
+    if enrich:
+        frozen, plan, transcript_files, usage_events = _plan_enrichment(
+            repo_root, config, data_path, claude_projects_dir, linked_projects
+        )
+        milestones = frozen.get("milestones", [])
+        # As with --reprice, generated_at keeps saying when the words and
+        # lines were last read from git; only the token split and the cost
+        # of the enriched milestones are new.
+        generated_at = frozen.get("generated_at", generated_at)
+        now = datetime.now(timezone.utc).isoformat()
+        enriched = apply_enrichment(milestones, plan, now)
+        print(format_report(
+            plan, len(milestones), config["currency"], transcript_files, usage_events, dry_run=False
+        ))
+        exit_code = _enrich_exit_code(plan)
+        if not enriched:
+            # Nothing changed, so no file is rewritten: every milestone the
+            # plan refused stays byte for byte what it was.
+            return exit_code
+        last_enriched_at = now
+    elif reprice:
         frozen = _load_frozen_data(data_path)
         milestones = frozen.get("milestones", [])
         # generated_at keeps saying when the milestones and tokens were
@@ -524,11 +604,14 @@ def main(repo_root=None, claude_projects_dir=None, linked_projects=None, reprice
         document = {"generated_at": generated_at}
         if last_repriced_at:
             document["last_repriced_at"] = last_repriced_at
+        if last_enriched_at:
+            document["last_enriched_at"] = last_enriched_at
         document["milestones"] = milestones
         json.dump(document, fh, indent=2)
         fh.write("\n")
 
     print("wrote %d milestones to %s" % (len(milestones), folder))
+    return exit_code
 
 
 if __name__ == "__main__":
@@ -557,13 +640,34 @@ if __name__ == "__main__":
             "past milestones at the price that was true then."
         ),
     )
+    parser.add_argument(
+        "--enrich", action="store_true",
+        help=(
+            "One-time migration for milestones frozen before the per-model and per-TTL token "
+            "split: re-derive the split from the transcripts and apply it only where the four "
+            "original counters match the frozen ones exactly (see engine/enrich.py). A milestone "
+            "that does not match is refused and left as it was; each enriched one keeps its "
+            "previous cost in its `repricings`. Unlike --reprice it reads transcripts, so "
+            "--linked-project and --claude-projects-dir apply. Run it with --dry-run first. "
+            "Exits with %d when it refused at least one milestone." % EXIT_SOME_REFUSED
+        ),
+    )
+    parser.add_argument(
+        "--dry-run", action="store_true",
+        help="With --enrich: report what would change and write nothing.",
+    )
     args = parser.parse_args()
+    if args.enrich and args.reprice:
+        parser.error("--enrich and --reprice are separate corrections; run one at a time")
+    if args.dry_run and not args.enrich:
+        parser.error("--dry-run only applies to --enrich")
     if args.reprice and (args.linked_projects or args.claude_projects_dir):
         parser.error(
             "--reprice never reads transcripts, so --linked-project and "
             "--claude-projects-dir do not apply to it"
         )
-    main(
+    sys.exit(main(
         repo_root=args.repo, claude_projects_dir=args.claude_projects_dir,
         linked_projects=args.linked_projects, reprice=args.reprice,
-    )
+        enrich=args.enrich, dry_run=args.dry_run,
+    ))
