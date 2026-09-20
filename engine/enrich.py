@@ -108,6 +108,38 @@ def plan_enrichment(milestones, buckets_by_commit, price):
     return plan
 
 
+def apply_enrichment(milestones, plan, enriched_at):
+    """The explicit, audited exception to "a recorded cost never changes",
+    for a milestone frozen before the token schema gained a dimension.
+    Applies every "enrich" entry of `plan` to its milestone, in place:
+    the tokens gain the split, cost_recorded and unpriced are re-priced,
+    and one record is appended to the milestone's `repricings` list with
+    the cost (and unpriced list) it had before and reason "enrich". The
+    record is appended even when the cost did not change, because the
+    tokens did. The four original counters, words, lines, subject, note
+    and every milestone the plan refused are never touched. Returns how
+    many milestones were enriched; applying the same plan's inputs again
+    finds none left."""
+    by_commit = {r["commit"]: r for r in plan if r["status"] == "enrich"}
+    enriched = 0
+    for milestone in milestones:
+        result = by_commit.get(milestone["commit"])
+        if result is None:
+            continue
+        record = {"repriced_at": enriched_at, "previous_cost": milestone["cost_recorded"]}
+        if milestone.get("unpriced"):
+            record["previous_unpriced"] = milestone["unpriced"]
+        record["reason"] = "enrich"
+        milestone.setdefault("repricings", []).append(record)
+        milestone["tokens"] = result["tokens"]
+        milestone["cost_recorded"] = result["cost_recorded"]
+        milestone.pop("unpriced", None)
+        if result["unpriced"]:
+            milestone["unpriced"] = result["unpriced"]
+        enriched += 1
+    return enriched
+
+
 def _why_refused(result):
     if result["reason"] == "commit_not_in_history":
         return "commit not found in this repository's git history (rewritten or rebased?)"
@@ -117,16 +149,23 @@ def _why_refused(result):
     )
 
 
-def format_report(plan, total_milestones, currency, transcript_files, usage_events):
-    """The dry-run report: what a real run would do, and what it would
-    refuse and why. Says plainly that nothing was written."""
+def format_report(plan, total_milestones, currency, transcript_files, usage_events, dry_run=True):
+    """The report of an --enrich run: what it does, and what it refuses
+    and why. A dry run says plainly that nothing was written and speaks
+    in the conditional; a real run says what was done."""
     enriched = [r for r in plan if r["status"] == "enrich"]
     refused = [r for r in plan if r["status"] == "refused"]
+    if dry_run:
+        header = "enrich (dry run): nothing was written"
+        done, cost_subject, partial_verb = "would enrich", "would be enriched", "would become"
+    else:
+        header = "enrich: milestones were enriched in place; previous costs are kept in each milestone's repricings"
+        done, cost_subject, partial_verb = "enriched", "were enriched", "became"
     lines = [
-        "enrich (dry run): nothing was written",
+        header,
         "read %d transcript files, %d usage events" % (transcript_files, usage_events),
         "%d of %d milestones were recorded before the per-model split" % (len(plan), total_milestones),
-        "would enrich: %d" % len(enriched),
+        "%s: %d" % (done, len(enriched)),
         "refused: %d" % len(refused),
     ]
     lines.extend("  %s: %s" % (r["commit"], _why_refused(r)) for r in refused)
@@ -135,11 +174,11 @@ def format_report(plan, total_milestones, currency, transcript_files, usage_even
         after = sum(_amount(r["cost_recorded"]) for r in enriched)
         partial = [r for r in enriched if r["becomes_partial"]]
         lines.extend([
-            "recorded cost of the milestones that would be enriched: %.4f -> %.4f %s (%+.4f)"
-            % (before, after, currency, after - before),
+            "recorded cost of the milestones that %s: %.4f -> %.4f %s (%+.4f)"
+            % (cost_subject, before, after, currency, after - before),
             "  1-hour cache writes: %+.4f" % sum(r["delta_one_hour"] for r in enriched),
             "  model mix: %+.4f" % sum(r["delta_model"] for r in enriched),
-            "would become partial (some tokens unpriced): %d" % len(partial),
+            "%s partial (some tokens unpriced): %d" % (partial_verb, len(partial)),
         ])
         for r in partial:
             gaps = ", ".join(
@@ -147,10 +186,16 @@ def format_report(plan, total_milestones, currency, transcript_files, usage_even
             )
             lines.append("  %s: %s" % (r["commit"], gaps))
         drifted = sum(1 for r in enriched if r["ledger_drift"])
-        if drifted:
+        if drifted and dry_run:
             lines.append(
                 "note: %d of these milestones already record a cost that differs from what the current "
                 "ledger gives their frozen tokens; run --reprice first so the changes above show only "
                 "the split" % drifted
+            )
+        elif drifted:
+            lines.append(
+                "note: %d of these milestones already recorded a cost that differed from what the current "
+                "ledger gives their frozen tokens, so their change includes that price correction, "
+                "not only the split" % drifted
             )
     return "\n".join(lines)

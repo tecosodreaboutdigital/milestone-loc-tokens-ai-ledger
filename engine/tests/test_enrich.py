@@ -14,7 +14,7 @@ import unittest
 from unittest.mock import patch
 
 from engine.cost import price_milestone
-from engine.enrich import format_report, needs_enrichment, plan_enrichment
+from engine.enrich import apply_enrichment, format_report, needs_enrichment, plan_enrichment
 from engine.generate_metrics import _load_frozen_data, main, read_token_buckets
 from engine.git_source import commits
 from engine.readers.claude_code import encode_project_path
@@ -229,10 +229,94 @@ class TestPlanEnrichment(unittest.TestCase):
         self.assertTrue(self.plan_one(legacy(amount=18.0))["ledger_drift"])
 
 
+class TestApplyEnrichment(unittest.TestCase):
+    AT = "2026-09-21T00:00:00+00:00"
+
+    def apply(self, milestones, buckets=None, price=None):
+        buckets = buckets if buckets is not None else {m["commit"]: BUCKET for m in milestones}
+        plan = plan_enrichment(milestones, buckets, price or pricer())
+        return apply_enrichment(milestones, plan, self.AT)
+
+    def test_it_replaces_tokens_and_cost_and_keeps_the_previous_cost_in_an_audit_record(self):
+        m = legacy()
+        self.assertEqual(self.apply([m]), 1)
+        self.assertEqual(m["tokens"]["cache_creation_1h"], 400_000)
+        self.assertEqual(sorted(m["tokens"]["by_model"]), ["claude-opus-5", "claude-sonnet-5"])
+        self.assertAlmostEqual(m["cost_recorded"]["amount"], 30.1, places=4)
+        self.assertEqual(m["cost_recorded"]["model"], "multiple")
+        self.assertNotIn("unpriced", m)
+        self.assertEqual(m["repricings"], [{"repriced_at": self.AT, "previous_cost": recorded(LEGACY_COST), "reason": "enrich"}])
+
+    def test_the_audit_record_is_written_even_when_the_cost_does_not_change(self):
+        tokens = {"input": 1_000_000, "output": 0, "cache_read": 0, "cache_creation": 1_000_000}
+        five_minute_only = counts(input=1_000_000, cache_creation=1_000_000)
+        bucket = {**five_minute_only, "by_model": {"claude-sonnet-5": dict(five_minute_only)}}
+        m = legacy(tokens=tokens, amount=4.5)
+        self.apply([m], {"aaaaaaa": bucket})
+        self.assertEqual(m["cost_recorded"]["amount"], 4.5)
+        self.assertEqual(m["tokens"]["cache_creation_1h"], 0)
+        self.assertEqual([r["reason"] for r in m["repricings"]], ["enrich"])
+        self.assertEqual(m["repricings"][0]["previous_cost"]["amount"], 4.5)
+
+    def test_what_was_unpriced_before_is_kept_in_the_record_and_cleared_when_now_priced(self):
+        m = legacy(unpriced=[{"model": "claude-opus-5", "tokens": 5, "reason": "old reason"}])
+        self.apply([m])
+        self.assertNotIn("unpriced", m)
+        self.assertEqual(m["repricings"][0]["previous_unpriced"][0]["reason"], "old reason")
+
+    def test_what_is_still_unpriced_after_enrichment_is_listed(self):
+        tokens = {"input": 1_001_000, "output": 0, "cache_read": 0, "cache_creation": 1_000_000}
+        bucket = {
+            **counts(input=1_001_000, cache_creation=1_000_000, cache_creation_1h=400_000),
+            "by_model": {"claude-sonnet-5": dict(SONNET_MESSAGE), "claude-mystery-9": counts(input=1000)},
+        }
+        m = legacy(tokens=tokens, amount=4.502)
+        self.apply([m], {"aaaaaaa": bucket})
+        self.assertEqual([u["model"] for u in m["unpriced"]], ["claude-mystery-9"])
+
+    def test_earlier_audit_records_stay_and_the_new_one_is_appended(self):
+        earlier = {"repriced_at": "2026-09-19T00:00:00+00:00", "previous_cost": None}
+        m = legacy(repricings=[dict(earlier)])
+        self.apply([m])
+        self.assertEqual(len(m["repricings"]), 2)
+        self.assertEqual(m["repricings"][0], earlier)
+        self.assertEqual(m["repricings"][1]["reason"], "enrich")
+
+    def test_refused_and_non_candidate_milestones_are_left_exactly_as_they_were(self):
+        refused = legacy("bbbbbbb", tokens={**LEGACY_TOKENS, "input": 5})
+        no_cost = legacy("ccccccc", amount=None)
+        done = legacy("ddddddd", tokens=dict(BUCKET))
+        untouched = [refused, no_cost, done]
+        before = copy.deepcopy(untouched)
+        self.assertEqual(self.apply(untouched), 0)
+        self.assertEqual(untouched, before)
+
+    def test_a_second_application_finds_nothing_left_to_do(self):
+        m = legacy()
+        buckets = {"aaaaaaa": BUCKET}
+        self.assertEqual(self.apply([m], buckets), 1)
+        once = copy.deepcopy(m)
+        self.assertEqual(self.apply([m], buckets), 0)
+        self.assertEqual(m, once)
+
+
 class TestFormatReport(unittest.TestCase):
-    def report(self, milestones, buckets):
+    def report(self, milestones, buckets, dry_run=True):
         plan = plan_enrichment(milestones, buckets, pricer())
-        return format_report(plan, len(milestones), "USD", 2, 3)
+        return format_report(plan, len(milestones), "USD", 2, 3, dry_run=dry_run)
+
+    def test_a_real_run_reports_what_was_done_in_the_past_tense(self):
+        text = self.report([legacy()], {"aaaaaaa": BUCKET}, dry_run=False)
+        self.assertNotIn("nothing was written", text)
+        self.assertNotIn("would", text)
+        self.assertIn("enriched: 1", text)
+        self.assertIn("14.5000 -> 30.1000 USD (+15.6000)", text)
+        self.assertIn("previous costs are kept in each milestone's repricings", text)
+
+    def test_a_real_run_explains_drift_as_part_of_the_change_instead_of_telling_you_to_reprice_first(self):
+        text = self.report([legacy(amount=18.0)], {"aaaaaaa": BUCKET}, dry_run=False)
+        self.assertIn("includes that price correction", text)
+        self.assertNotIn("run --reprice first", text)
 
     def test_it_says_nothing_was_written_and_gives_the_totals_and_the_causes(self):
         text = self.report([legacy()], {"aaaaaaa": BUCKET})
@@ -353,6 +437,14 @@ class EnrichRepo(unittest.TestCase):
                 repo_root=self.repo, claude_projects_dir=self.projects_dir, enrich=True, dry_run=True, **kwargs
             )
 
+    def real_run(self, **kwargs):
+        with patch("engine.generate_metrics.SHIPPED_PRICES", self.ledger_path):
+            return quiet_main(repo_root=self.repo, claude_projects_dir=self.projects_dir, enrich=True, **kwargs)
+
+    def data(self):
+        with open(os.path.join(self.repo, "logbook", "data.json"), encoding="utf-8") as fh:
+            return json.load(fh)
+
 
 class TestReadTokenBuckets(EnrichRepo):
     def test_it_returns_the_rows_the_buckets_and_what_it_read(self):
@@ -424,14 +516,99 @@ class TestEnrichDryRun(EnrichRepo):
                 quiet_main(repo_root=bare, enrich=True, dry_run=True)
             self.assertEqual(os.listdir(bare), [])
 
-    def test_enrich_without_dry_run_is_refused_for_now_and_touches_nothing(self):
+class TestEnrichWrite(EnrichRepo):
+    def enrich_the_usual_way(self):
         self.write_own_transcript([self.sonnet_message(), self.opus_message()])
         self.write_frozen()
+        return self.real_run()
+
+    def test_a_real_run_enriches_in_place_and_leaves_everything_else_alone(self):
+        self.write_own_transcript([self.sonnet_message(), self.opus_message()])
+        self.write_frozen()
+        before = self.data()["milestones"][0]
+        code, out = self.real_run()
+        self.assertEqual(code, 0)
+        self.assertIn("enriched: 1", out)
+
+        data = self.data()
+        m = data["milestones"][0]
+        for key in ("date", "commit", "subject", "words_delta", "loc_delta", "note"):
+            self.assertEqual(m[key], before[key], msg=key)
+        for key in ("input", "output", "cache_read", "cache_creation"):
+            self.assertEqual(m["tokens"][key], before["tokens"][key], msg=key)
+        self.assertEqual(m["tokens"]["cache_creation_1h"], 400_000)
+        self.assertEqual(sorted(m["tokens"]["by_model"]), ["claude-opus-5", "claude-sonnet-5"])
+        self.assertAlmostEqual(m["cost_recorded"]["amount"], 30.1, places=4)
+        self.assertEqual(len(m["repricings"]), 1)
+        self.assertEqual(m["repricings"][0]["reason"], "enrich")
+        self.assertEqual(m["repricings"][0]["previous_cost"]["amount"], 14.5)
+        # generated_at keeps saying when git and the transcripts were last read
+        # for the words and lines; only the token split and the cost are new.
+        self.assertEqual(data["generated_at"], "2026-09-14T13:32:47+00:00")
+        self.assertNotIn("last_repriced_at", data)
+        self.assertIn("+00:00", data["last_enriched_at"])
+
+        with open(os.path.join(self.repo, "logbook", "dashboard.html"), encoding="utf-8") as fh:
+            self.assertIn('<span class="kpi-n">$30.10</span><span class="kpi-l">Cost recorded</span>', fh.read())
+        with open(os.path.join(self.repo, "logbook", "thumb-cost.svg"), encoding="utf-8") as fh:
+            self.assertIn("$30.10", fh.read())
+
+    def test_running_it_twice_changes_nothing_the_second_time(self):
+        self.enrich_the_usual_way()
+        once = self.data()
+        code, out = self.real_run()
+        self.assertEqual(code, 0)
+        self.assertIn("enriched: 0", out)
+        self.assertEqual(self.data(), once)
+
+    def test_a_refused_milestone_stays_identical_while_the_others_are_enriched(self):
+        self.write_own_transcript([self.sonnet_message(), self.opus_message()])
+        gone = legacy("zzzzzzz", date=self.date)
+        write_json(
+            os.path.join(self.repo, "logbook", "data.json"),
+            {"generated_at": "2026-09-14T13:32:47+00:00",
+             "milestones": [legacy(self.commit, date=self.date), gone]},
+        )
+        code, out = self.real_run()
+        self.assertEqual(code, 3, "the enrichable one was written, and the exit code still says one was refused")
+        self.assertIn("refused: 1", out)
+        enriched, refused = self.data()["milestones"]
+        self.assertIn("by_model", enriched["tokens"])
+        self.assertEqual(refused, gone)
+
+    def test_when_nothing_can_be_enriched_no_file_is_written_at_all(self):
+        self.write_frozen()
         before = self.snapshot()
-        with self.assertRaises(SystemExit) as raised:
-            quiet_main(repo_root=self.repo, claude_projects_dir=self.projects_dir, enrich=True)
-        self.assertIn("--dry-run", str(raised.exception))
-        self.assertEqual(self.snapshot(), before)
+        code, out = self.real_run()
+        self.assertEqual(code, 3)
+        self.assertIn("enriched: 0", out)
+        self.assertEqual(self.snapshot(), before, "bytes and mtimes of every file are unchanged")
+
+    def test_a_normal_run_afterwards_keeps_the_enriched_tokens_the_audit_trail_and_the_marker(self):
+        self.enrich_the_usual_way()
+        once = self.data()
+        with patch("engine.generate_metrics.SHIPPED_PRICES", self.ledger_path):
+            quiet_main(repo_root=self.repo, claude_projects_dir=self.projects_dir)
+        after = self.data()
+        self.assertEqual(after["milestones"][0]["tokens"], once["milestones"][0]["tokens"])
+        self.assertEqual(after["milestones"][0]["cost_recorded"], once["milestones"][0]["cost_recorded"])
+        self.assertEqual(after["milestones"][0]["repricings"], once["milestones"][0]["repricings"])
+        self.assertEqual(after["last_enriched_at"], once["last_enriched_at"])
+
+    def test_reprice_afterwards_keeps_the_marker(self):
+        self.enrich_the_usual_way()
+        once = self.data()
+        with patch("engine.generate_metrics.SHIPPED_PRICES", self.ledger_path):
+            quiet_main(repo_root=self.repo, reprice=True)
+        self.assertEqual(self.data()["last_enriched_at"], once["last_enriched_at"])
+
+    def test_a_model_with_no_series_stays_unpriced_after_enrichment_and_is_never_priced_at_another_rate(self):
+        write_json(self.ledger_path, [series("claude-sonnet-5", SONNET, self.date)])
+        self.enrich_the_usual_way()
+        m = self.data()["milestones"][0]
+        self.assertAlmostEqual(m["cost_recorded"]["amount"], 5.1, places=4)
+        self.assertEqual([u["model"] for u in m["unpriced"]], ["claude-opus-5"])
+        self.assertEqual(m["unpriced"][0]["tokens"], 1_000_000)
 
 
 class TestLoadFrozenDataNamesTheFlag(unittest.TestCase):
@@ -465,6 +642,16 @@ class TestEnrichCommandLine(EnrichRepo):
         self.assertNotEqual(result.returncode, 0)
         self.assertIn("--dry-run", result.stderr)
         self.assertIn("--enrich", result.stderr)
+
+    def test_a_real_run_as_a_direct_script_writes_the_enriched_milestone(self):
+        self.write_own_transcript([self.sonnet_message(), self.opus_message()])
+        self.write_frozen()
+        result = self.run_script("--enrich", "--claude-projects-dir", self.projects_dir)
+        self.assertEqual(result.returncode, 0, msg=result.stderr)
+        self.assertIn("enriched: 1", result.stdout)
+        m = self.data()["milestones"][0]
+        self.assertIn("by_model", m["tokens"])
+        self.assertEqual(m["repricings"][0]["reason"], "enrich")
 
     def test_as_a_direct_script_the_exit_code_is_zero_on_a_match_and_three_on_a_refusal(self):
         self.write_own_transcript([self.sonnet_message(), self.opus_message()])
