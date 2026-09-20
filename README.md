@@ -30,6 +30,8 @@ A line-of-code counter tells you how big a project got. A token cost tracker tel
 
 **Several models and both cache TTLs, priced separately.** A transcript can mix models (a main session and its subagents) and can write its prompt cache with a 5-minute or a 1-hour lifetime, at different prices. The engine records both per milestone and prices each model with its own ledger series and each write at its own rate. Anything with no sourced price is listed as unpriced, with the reason, never priced at another model's rate. A project with one cost basis of its own can opt into `"price_mode": "flat"` instead (never inferred, always explicit). Milestones recorded before that split existed can be migrated once with `--enrich`, which re-derives it from the transcripts and refuses any milestone it cannot prove (see below).
 
+**A past that is never silently rewritten, and gaps that are never guessed.** A milestone's recorded cost freezes together with the tokens it was computed from. It changes only through two explicit, audited commands: `--reprice` (a price that was recorded wrong) and `--enrich` (a milestone recorded before the model and cache-TTL split, migrated only where the transcripts prove it). Each keeps the cost the milestone had before in its `repricings` list in `logbook/data.json`. Whatever no ledger price covers, a model with no series for instance, is never priced at another model's rate: a milestone only partly priced is marked "(partial)", the dashboard lists every gap under "Unpriced usage", and the "Unpriced milestones" counter includes it.
+
 ## Installation
 
 Verified 13 September 2026 against each vendor's own official documentation. This is a snapshot, not a live status: recheck the vendor's docs before relying on it much later.
