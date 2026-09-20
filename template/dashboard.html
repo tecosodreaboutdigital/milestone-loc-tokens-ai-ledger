@@ -22,6 +22,7 @@ th,td{text-align:left;padding:6px 8px;border-bottom:1px solid #e2e0d8;font-size:
 .sources-list li{padding:4px 0;border-bottom:1px solid #e2e0d8}
 .sources-list a{color:#1b1b19}
 .sources-list .checked-at{color:#8a887f;font-size:11px}
+.sources-list .entry-note{font-style:italic}
 svg text{font-family:Arial,sans-serif}
 .svg-sub{font-size:10px;fill:#8a887f}
 .svg-cap{font-size:9px;fill:#8a887f}
@@ -40,7 +41,7 @@ __CHART_LOC__
 __ZERO_TOKENS_NOTE__
 __CHART_TOKENS__
 <h2>Cost</h2>
-<p class="honest-note">Recomputes live as the price panel below changes &mdash; this chart, the "Live cost" table column, and the totals here always reflect the same numbers.</p>
+<p class="honest-note">Recomputes live as the price panel below changes &mdash; this chart, the "Live cost" table column, and the totals here always reflect the same numbers. The live figures reprice <em>all</em> tokens at the one price selected below; the "Recorded cost" column keeps each model at its own price on its own date.</p>
 <div id="chart-cost">
 __CHART_COST__
 </div>
@@ -71,10 +72,16 @@ __CHART_COST__
       <input id="price-cache-read-range" type="range" min="0" max="100" step="0.01">
     </div>
   </label>
-  <label>Cache creation price per million tokens
+  <label>Cache write 5 min price per million tokens
     <div class="field-row">
       <input id="price-cache-creation" type="number" step="0.01">
       <input id="price-cache-creation-range" type="range" min="0" max="100" step="0.01">
+    </div>
+  </label>
+  <label>Cache write 1 h price per million tokens
+    <div class="field-row">
+      <input id="price-cache-creation-1h" type="number" step="0.01" placeholder="none in this entry">
+      <input id="price-cache-creation-1h-range" type="range" min="0" max="100" step="0.01">
     </div>
   </label>
 </div>
@@ -84,6 +91,8 @@ __CHART_COST__
   <p class="honest-note">Where the price above, for the provider/model/date selected, actually comes from. An append-only, multi-source ledger: see <code>engine/prices.json</code>.</p>
   <ul id="price-sources" class="sources-list"></ul>
 </div>
+
+__UNPRICED_SECTION__
 
 <h2>Milestones</h2>
 <table>

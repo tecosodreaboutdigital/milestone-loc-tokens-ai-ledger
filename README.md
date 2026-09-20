@@ -8,7 +8,7 @@
 
 There are tools that count lines of code. There are tools that track LLM token cost. None of the ones this project could find, after a real search, combine a named project milestone with a token cost that stays editable after publication, on a page with no backend. This skill does.
 
-As of the last time this engine ran against this repository (see `logbook/data.json`'s own `generated_at`): **34 milestones, 81.4M tokens, $44.07 recorded cost, zero left unpriced.** These three cards are regenerated from that same run, every run, never hand-edited; click any of them for the live, interactive dashboard behind them:
+As of the last time this engine ran against this repository (see `logbook/data.json`'s own `generated_at`): **34 milestones, 81.4M tokens, $29.38 recorded cost, zero left unpriced.** (That cost was $44.07 until 20 September 2026, when a wrong price in the ledger was found and corrected; see "A wrong price, found and corrected" below.) These three cards are regenerated from the same data, every run, never hand-edited; click any of them for the live, interactive dashboard behind them:
 
 [<img src="logbook/thumb-tokens.svg" width="266" alt="Tokens consumed, with a per-milestone trend line">](https://tecosodreaboutdigital.github.io/milestone-loc-tokens-ai-ledger/logbook/dashboard.html) [<img src="logbook/thumb-cost.svg" width="266" alt="Cost recorded, with a cumulative trend line">](https://tecosodreaboutdigital.github.io/milestone-loc-tokens-ai-ledger/logbook/dashboard.html) [<img src="logbook/thumb-words.svg" width="266" alt="Words published, with a cumulative trend line">](https://tecosodreaboutdigital.github.io/milestone-loc-tokens-ai-ledger/logbook/dashboard.html)
 
@@ -22,11 +22,13 @@ A line-of-code counter tells you how big a project got. A token cost tracker tel
 
 **A milestone table**, one row per commit: words changed, lines changed, the cost recorded at the price in effect that day, a live recalculated cost next to it, and an optional one-line decision note.
 
-**A live price panel**, editable in the published page itself, with zero network calls: pick any provider, model, or historical price already in the ledger — by dropdown, by typing a number, or by dragging a slider, all three kept in sync with each other — and every milestone's cost, the live-cost table column, and the cost chart all recalculate together, instantly, client-side.
+**A live price panel**, editable in the published page itself, with zero network calls: pick any provider, model, or historical price already in the ledger — by dropdown, by typing a number, or by dragging a slider, all kept in sync with each other, for each of five prices (input, output, cache read, cache write 5 min, cache write 1 h) — and every milestone's cost, the live-cost table column, and the cost chart all recalculate together, instantly, client-side. The panel reprices all tokens at the one price selected.
 
 **A sources-consulted panel**, right under the price panel: whichever price is currently selected shows the dated, linked source(s) it actually came from, on the page itself, not only in the ledger file backing it.
 
-**An append-only, multi-source price ledger.** A price entry never gets overwritten, it gets superseded by a new dated entry, each one citing at least one source, ideally two independent ones.
+**An append-only, multi-source price ledger.** A price entry never gets overwritten, it gets superseded by a new dated entry, each one citing at least one source, ideally two independent ones. A price that was recorded *wrong* is fixed the same way, by appending an entry that says what it corrects, and then re-costing the affected milestones with an explicit, audited `--reprice` (see below).
+
+**Several models and both cache TTLs, priced separately.** A transcript can mix models (a main session and its subagents) and can write its prompt cache with a 5-minute or a 1-hour lifetime, at different prices. The engine records both per milestone and prices each model with its own ledger series and each write at its own rate. Anything with no sourced price is listed as unpriced, with the reason, never priced at another model's rate. A project with one cost basis of its own can opt into `"price_mode": "flat"` instead (never inferred, always explicit).
 
 ## Installation
 
@@ -51,12 +53,17 @@ git clone https://github.com/tecosodreaboutdigital/milestone-loc-tokens-ai-ledge
 
 ```
 python engine/generate_metrics.py --repo /path/to/your/project
-python engine/update_prices.py --provider anthropic --model claude-sonnet-5 --currency USD \
-  --effective-date 2026-10-01 --input-price 3.00 --output-price 15.00 \
-  --cache-read-price 0.30 --cache-creation-price 3.75 \
-  --source-name "Anthropic pricing page" --source-url "https://www.anthropic.com/pricing" \
-  --checked-at 2026-10-01
+python engine/update_prices.py --provider <provider> --model <exact-model-id> --currency USD \
+  --effective-date <YYYY-MM-DD> --input-price <US$/MTok> --output-price <US$/MTok> \
+  --cache-read-price <US$/MTok> --cache-creation-price <5-minute write, US$/MTok> \
+  --cache-creation-1h-price <1-hour write, US$/MTok, optional> \
+  --source-name "<a page you read>" --source-url "<its URL>" \
+  --source-name "<a second page you read>" --source-url "<its URL>" \
+  --checked-at <the date you read them>
+python engine/generate_metrics.py --repo /path/to/your/project --reprice   # only after correcting a WRONG price
 ```
+
+The `update_prices.py` line is a template, not a price to copy: every value comes from a page you read on the day you write it. `--reprice` recomputes only the recorded cost of milestones already saved in `data.json`, from their saved tokens, after a wrong price has been corrected with `update_prices.py --corrects <date> --note "<what was wrong>"`. It is not for a normal price change, and deleting `data.json` is not a substitute for it (that also throws away saved tokens whose transcripts may be gone). Both procedures, and what to do about a model with no price yet, are in [SKILL.md](SKILL.md).
 
 A project built by subagents dispatched from a different top-level session (a sibling planning repository, say) has its subagents' transcripts filed under that other project's own path, not this one, invisible to the ordinary lookup above. Name it explicitly instead:
 
@@ -73,9 +80,15 @@ Only subagent transcripts whose own content literally names this project's path 
 
 This repository's own logbook first shipped showing zero token usage for every milestone. The reason: this project was built by subagents dispatched from a sibling planning repository, `harness-medir`, so the Claude Code transcripts covering the actual work were filed under that sibling's own project path, not this one. The engine's exact-match project isolation (see `AGENTS.md`) correctly declined to guess or reach into another project's transcripts, so it reported zero and said why, rather than quietly borrowing numbers that were never really this project's own.
 
-The zero was correct but not the end of the story: a subagent dispatched with the Task tool gets its own transcript file, and every one of the 27 subagents that actually implemented, reviewed, or fixed a task of this project's own build still names this project's own absolute path inside its own transcript, real, checkable evidence, not a same-day coincidence. `--linked-project` (see above) reads exactly those, and only those: never the sibling session's own top-level file, which mixes in a whole day of unrelated `harness-medir` work no filter could safely untangle. Run once against this repository's own history, it recovered real, sourced usage for all 27 of its own milestones at the time: 52,030,106 tokens and $30.77 recorded at the price in effect on 13 September 2026, now committed in `logbook/data.json`, not an estimate for either figure. Every run since has repeated the same flag, per commit added since then; the live dashboard, and the numbers and thumbnails at the top of this README, are that same recovery continuing, not a one-off.
+The zero was correct but not the end of the story: a subagent dispatched with the Task tool gets its own transcript file, and every one of the 27 subagents that actually implemented, reviewed, or fixed a task of this project's own build still names this project's own absolute path inside its own transcript, real, checkable evidence, not a same-day coincidence. `--linked-project` (see above) reads exactly those, and only those: never the sibling session's own top-level file, which mixes in a whole day of unrelated `harness-medir` work no filter could safely untangle. Run once against this repository's own history, it recovered real, sourced usage for all 27 of its own milestones at the time: 52,030,106 tokens, now committed in `logbook/data.json`, not an estimate. The cost first recorded for them, $30.77, used a price that turned out to be wrong; at the corrected price the same tokens cost $20.51 (see below). Every run since has repeated the same flag, per commit added since then; the live dashboard, and the numbers and thumbnails at the top of this README, are that same recovery continuing, not a one-off.
 
 One boundary stays deliberate, not an oversight: the sibling session's own dispatching and coordination overhead is not counted, only the work its subagents actually did. That is almost certainly an undercount of the true total, and it stays that way on purpose, because no defensible line separates that session's genuine coordination of this project from the rest of its own, entirely unrelated work that same day.
+
+### A wrong price, found and corrected
+
+This repository's own ledger recorded `claude-sonnet-5` at US$3 input / US$15 output per million tokens. The price actually charged is US$2 / US$10 (cache read 0.20, 5-minute cache write 2.50, 1-hour cache write 4.00). The probable cause, an inference and not something verified: that entry recorded the increase to $3/$15 that had been scheduled for 1 September 2026 and was cancelled. Anthropic's pricing page now says so in a note. The fix followed the ledger's own discipline: the wrong entry stays in `engine/prices.json` as a record, and a correcting entry (same `effective_date`, with `corrects` and a `note`, three sources read on 19 September 2026) was appended after it. Then `generate_metrics.py --reprice` re-costed all 34 frozen milestones from their frozen tokens: $44.07 became $29.38. Each milestone keeps its previous cost in a `repricings` list in `logbook/data.json`, so the change is auditable.
+
+One limit stays visible. These 34 milestones were recorded before the engine kept the model and the cache TTL per message, so they are priced with the single configured series and all cache writes at the 5-minute rate. In this repository's own two session transcripts, read on 20 September 2026 (239 messages, all `claude-sonnet-5`), every one of the 640,995 cache-write tokens used the 1-hour TTL, priced at $4.00 rather than $2.50. Most of these milestones were built from the sibling project's subagent transcripts, which were not re-read for this correction, so this is evidence and not a measurement of them: the cache-write part of these older milestones is probably understated. Milestones recorded from now on carry the split and are priced accordingly.
 
 ## This skill is also built to be installed by an agent
 
@@ -85,7 +98,9 @@ Every section above assumes a human reader deciding whether to install this. Thi
 
 **Only the Claude Code transcript reader ships complete.** Word and line counts work against any git history regardless of environment; token counts stay at zero until a reader exists for that environment's transcript format.
 
-**The price ledger starts with one real entry and one placeholder.** Keeping it current across every provider and model is ongoing maintenance, not a one-time task.
+**The price ledger ships with three Anthropic series and a placeholder, not the whole market.** `claude-sonnet-5` (with its recorded correction), `claude-opus-5`, `claude-haiku-4-5-20251001`, and a zero-cost `custom / on-premise` placeholder. Their `effective_date` of 2026-09-13 is this ledger's own start, and the sources show the price as read on 19 September 2026, not a dated price history. Any other model id in a transcript is reported unpriced until someone adds a sourced series (or the project opts into `"price_mode": "flat"` in `logbook/config.json`, which prices every token with the one configured series, the way to use `custom / on-premise`); keeping the ledger current is ongoing maintenance, not a one-time task.
+
+**Milestones recorded before the per-model split are priced with one series and all cache writes at the 5-minute rate.** See "A wrong price, found and corrected". A model id is matched exactly, so a variant spelling of a model id is unpriced until it has its own series.
 
 **No team-level aggregation.** This tracks one project's own git history and session transcripts, scoped by full path, never mixed across projects, and never split out by team member.
 
