@@ -2,11 +2,9 @@
 the same-date correction mechanism, update_prices' new flags, and the
 shipped ledger's own corrected content."""
 
-import contextlib
 import json
 import os
 import subprocess
-import shutil
 import sys
 import tempfile
 import unittest
@@ -27,25 +25,12 @@ RIGHT = {"input_price": 2.0, "output_price": 10.0, "cache_read_price": 0.2, "cac
          "cache_creation_1h_price": 4.0}
 
 
-@contextlib.contextmanager
-def quiet_tmpdir():
-    """A temporary directory whose cleanup never raises: on Windows a
-    scanner can briefly hold a just-written file and make a strict
-    rmtree fail with "directory not empty", which is noise, not a test
-    result."""
-    path = tempfile.mkdtemp()
-    try:
-        yield path
-    finally:
-        shutil.rmtree(path, ignore_errors=True)
-
-
 class TestOptionalEntryFields(unittest.TestCase):
     def ledger_path(self, tmpdir):
         return os.path.join(tmpdir, "prices.json")
 
     def test_an_entry_without_the_optional_fields_stays_valid_and_gets_none_of_them(self):
-        with quiet_tmpdir() as tmpdir:
+        with tempfile.TemporaryDirectory() as tmpdir:
             path = self.ledger_path(tmpdir)
             with open(path, "w", encoding="utf-8") as fh:
                 json.dump([], fh)
@@ -55,7 +40,7 @@ class TestOptionalEntryFields(unittest.TestCase):
                 self.assertNotIn(field, entry)
 
     def test_optional_fields_are_recorded_when_given(self):
-        with quiet_tmpdir() as tmpdir:
+        with tempfile.TemporaryDirectory() as tmpdir:
             path = self.ledger_path(tmpdir)
             with open(path, "w", encoding="utf-8") as fh:
                 json.dump([], fh)
@@ -66,7 +51,7 @@ class TestOptionalEntryFields(unittest.TestCase):
             self.assertNotIn("corrects", entry)
 
     def test_a_correcting_entry_for_the_same_date_is_appended_and_wins_price_at(self):
-        with quiet_tmpdir() as tmpdir:
+        with tempfile.TemporaryDirectory() as tmpdir:
             path = self.ledger_path(tmpdir)
             with open(path, "w", encoding="utf-8") as fh:
                 json.dump([], fh)
@@ -88,7 +73,7 @@ class TestOptionalEntryFields(unittest.TestCase):
             self.assertEqual(price_at(series, "2026-12-31")["input_price"], 2.0)
 
     def test_insertion_order_is_kept_for_equal_dates_even_beside_other_dates(self):
-        with quiet_tmpdir() as tmpdir:
+        with tempfile.TemporaryDirectory() as tmpdir:
             path = self.ledger_path(tmpdir)
             with open(path, "w", encoding="utf-8") as fh:
                 json.dump([], fh)
@@ -100,7 +85,7 @@ class TestOptionalEntryFields(unittest.TestCase):
             self.assertEqual(entries[1]["input_price"], 2.0)
 
     def test_corrects_must_match_an_existing_entry_in_the_series(self):
-        with quiet_tmpdir() as tmpdir:
+        with tempfile.TemporaryDirectory() as tmpdir:
             path = self.ledger_path(tmpdir)
             with open(path, "w", encoding="utf-8") as fh:
                 json.dump([], fh)
@@ -114,7 +99,7 @@ class TestOptionalEntryFields(unittest.TestCase):
     def test_a_correction_must_carry_the_date_it_corrects(self):
         # A correcting entry starting on another date would leave the
         # milestones in between on the wrong price.
-        with quiet_tmpdir() as tmpdir:
+        with tempfile.TemporaryDirectory() as tmpdir:
             path = self.ledger_path(tmpdir)
             with open(path, "w", encoding="utf-8") as fh:
                 json.dump([], fh)
@@ -123,7 +108,7 @@ class TestOptionalEntryFields(unittest.TestCase):
                 append_entry(path, "anthropic", "m", "USD", "2026-09-14", RIGHT, SOURCES, corrects="2026-09-13")
 
     def test_still_requires_a_source(self):
-        with quiet_tmpdir() as tmpdir:
+        with tempfile.TemporaryDirectory() as tmpdir:
             path = self.ledger_path(tmpdir)
             with open(path, "w", encoding="utf-8") as fh:
                 json.dump([], fh)
@@ -133,7 +118,7 @@ class TestOptionalEntryFields(unittest.TestCase):
 
 class TestUpdatePricesNewFlags(unittest.TestCase):
     def test_update_passes_the_new_fields_through(self):
-        with quiet_tmpdir() as tmpdir:
+        with tempfile.TemporaryDirectory() as tmpdir:
             path = os.path.join(tmpdir, "prices.json")
             with open(path, "w", encoding="utf-8") as fh:
                 json.dump([], fh)
@@ -149,7 +134,7 @@ class TestUpdatePricesNewFlags(unittest.TestCase):
             self.assertEqual(entries[1]["note"], "wrong first time")
 
     def test_the_cli_accepts_the_new_flags(self):
-        with quiet_tmpdir() as tmpdir:
+        with tempfile.TemporaryDirectory() as tmpdir:
             path = os.path.join(tmpdir, "prices.json")
             with open(path, "w", encoding="utf-8") as fh:
                 json.dump([], fh)
@@ -182,7 +167,7 @@ class TestUpdatePricesNewFlags(unittest.TestCase):
             self.assertEqual(len(entries[1]["sources"]), 2)
 
     def test_the_cli_reports_a_bad_corrects_date_as_an_error_not_a_silent_write(self):
-        with quiet_tmpdir() as tmpdir:
+        with tempfile.TemporaryDirectory() as tmpdir:
             path = os.path.join(tmpdir, "prices.json")
             with open(path, "w", encoding="utf-8") as fh:
                 json.dump([], fh)

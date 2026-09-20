@@ -8,7 +8,6 @@ import json
 import os
 import re
 import subprocess
-import shutil
 import sys
 import tempfile
 import unittest
@@ -47,19 +46,6 @@ RIGHT = {"input_price": 2.0, "output_price": 10.0, "cache_read_price": 0.2, "cac
          "cache_creation_1h_price": 4.0}
 OPUS = {"input_price": 5.0, "output_price": 25.0, "cache_read_price": 0.5, "cache_creation_price": 6.25,
         "cache_creation_1h_price": 10.0}
-
-
-@contextlib.contextmanager
-def quiet_tmpdir():
-    """A temporary directory whose cleanup never raises: on Windows a
-    scanner can briefly hold a just-written file and make a strict
-    rmtree fail with "directory not empty", which is noise, not a test
-    result."""
-    path = tempfile.mkdtemp()
-    try:
-        yield path
-    finally:
-        shutil.rmtree(path, ignore_errors=True)
 
 
 def quiet_main(**kwargs):
@@ -157,7 +143,7 @@ class TestBucketTokensByModel(unittest.TestCase):
 
 class TestFreezeCarriesUnpricedAndAuditTrail(unittest.TestCase):
     def test_a_frozen_milestone_keeps_its_unpriced_list_and_repricings_and_drops_a_fresh_one(self):
-        with quiet_tmpdir() as tmpdir:
+        with tempfile.TemporaryDirectory() as tmpdir:
             path = os.path.join(tmpdir, "data.json")
             frozen = legacy_milestone("aaaaaaa", "2026-09-13", {"input": 5, "output": 0, "cache_read": 0, "cache_creation": 0}, 0.01)
             frozen["unpriced"] = [{"model": "old-model", "tokens": 5, "reason": "old reason"}]
@@ -173,7 +159,7 @@ class TestFreezeCarriesUnpricedAndAuditTrail(unittest.TestCase):
             self.assertEqual(len(fresh["repricings"]), 1)
 
     def test_a_frozen_milestone_with_nothing_unpriced_does_not_inherit_a_fresh_unpriced_list(self):
-        with quiet_tmpdir() as tmpdir:
+        with tempfile.TemporaryDirectory() as tmpdir:
             path = os.path.join(tmpdir, "data.json")
             frozen = legacy_milestone("aaaaaaa", "2026-09-13", {"input": 5, "output": 0, "cache_read": 0, "cache_creation": 0}, 0.01)
             write_json(path, {"generated_at": "x", "milestones": [frozen]})
@@ -281,7 +267,7 @@ class TestRepriceCommand(unittest.TestCase):
         ]
 
     def test_reprice_corrects_frozen_costs_rewrites_the_dashboard_and_needs_no_git_or_transcript(self):
-        with quiet_tmpdir() as tmpdir:
+        with tempfile.TemporaryDirectory() as tmpdir:
             ledger_path = self.make_logbook(tmpdir, self.two_legacy_milestones())
             # No git repository here at all, and reading a transcript or
             # git history is made to fail loudly: reprice must not.
@@ -312,7 +298,7 @@ class TestRepriceCommand(unittest.TestCase):
                 self.assertIn("$12.20", fh.read())
 
     def test_reprice_twice_is_a_no_op_the_second_time(self):
-        with quiet_tmpdir() as tmpdir:
+        with tempfile.TemporaryDirectory() as tmpdir:
             ledger_path = self.make_logbook(tmpdir, self.two_legacy_milestones())
             with patch("engine.generate_metrics.SHIPPED_PRICES", ledger_path):
                 append_entry(ledger_path, "anthropic", "claude-sonnet-5", "USD", "2026-09-13", RIGHT, SOURCES,
@@ -325,7 +311,7 @@ class TestRepriceCommand(unittest.TestCase):
             self.assertEqual(once["last_repriced_at"], twice["last_repriced_at"])
 
     def test_reprice_without_a_data_json_stops_with_a_message_and_writes_nothing(self):
-        with quiet_tmpdir() as tmpdir:
+        with tempfile.TemporaryDirectory() as tmpdir:
             os.makedirs(os.path.join(tmpdir, "logbook"))
             write_json(os.path.join(tmpdir, "logbook", "config.json"), CONFIG)
             with self.assertRaises(SystemExit) as raised:
@@ -334,13 +320,13 @@ class TestRepriceCommand(unittest.TestCase):
             self.assertEqual(sorted(os.listdir(os.path.join(tmpdir, "logbook"))), ["config.json"])
 
     def test_reprice_never_creates_a_logbook_folder(self):
-        with quiet_tmpdir() as tmpdir:
+        with tempfile.TemporaryDirectory() as tmpdir:
             with self.assertRaises(FileNotFoundError):
                 quiet_main(repo_root=tmpdir, reprice=True)
             self.assertEqual(os.listdir(tmpdir), [])
 
     def test_the_cli_flag_works_as_a_direct_script_and_refuses_transcript_flags(self):
-        with quiet_tmpdir() as tmpdir:
+        with tempfile.TemporaryDirectory() as tmpdir:
             self.make_logbook(tmpdir, self.two_legacy_milestones())
             # The shipped ledger prices sonnet-5 at $2/$10 from 2026-09-13.
             ok = subprocess.run(
@@ -362,9 +348,9 @@ class TestEndToEndCorrectionWorkflow(unittest.TestCase):
     whole life of a wrong price: recorded, found wrong, corrected."""
 
     def setUp(self):
-        tmpdir = tempfile.mkdtemp()
-        self.addCleanup(shutil.rmtree, tmpdir, True)
-        self.tmpdir = tmpdir
+        self.tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(self.tmp.cleanup)
+        tmpdir = self.tmpdir = self.tmp.name
         git(tmpdir, "init")
         git(tmpdir, "config", "user.email", "t@example.com")
         git(tmpdir, "config", "user.name", "T")

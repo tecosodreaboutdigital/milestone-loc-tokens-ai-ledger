@@ -1,24 +1,9 @@
-import contextlib
 import json
 import os
-import shutil
 import tempfile
 import unittest
 
 from engine.readers.claude_code import load_usage_events
-
-
-@contextlib.contextmanager
-def quiet_tmpdir():
-    """A temporary directory whose cleanup never raises: on Windows a
-    scanner can briefly hold a just-written file and make a strict
-    rmtree fail with "directory not empty", which is noise, not a test
-    result."""
-    path = tempfile.mkdtemp()
-    try:
-        yield path
-    finally:
-        shutil.rmtree(path, ignore_errors=True)
 
 
 def write_jsonl(path, rows):
@@ -36,7 +21,7 @@ def message_row(ts, message_id, usage, model="claude-sonnet-5", include_model=Tr
 
 class TestModelAndOneHourCacheWrites(unittest.TestCase):
     def load(self, rows):
-        with quiet_tmpdir() as tmpdir:
+        with tempfile.TemporaryDirectory() as tmpdir:
             path = os.path.join(tmpdir, "session.jsonl")
             write_jsonl(path, rows)
             return load_usage_events([path])
