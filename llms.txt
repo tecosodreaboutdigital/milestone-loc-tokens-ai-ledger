@@ -8,7 +8,7 @@ Author: Fernando Teco Sodré. English only, no translations.
 
 - [AGENTS.md](AGENTS.md): operating protocol for an AI agent or assistant installing or running this skill on someone's behalf. Read this before installing it or running the engine.
 - [README.md](README.md): what this skill delivers, the installation matrix, honest limits.
-- [SKILL.md](SKILL.md): the skill itself, the non-negotiable rule, how to run the engine.
+- [SKILL.md](SKILL.md): the skill itself, the non-negotiable rule, how to run the engine. Also: the price ledger's fields, pricing several models and 1-hour cache writes, and correcting a wrong price with `--reprice`.
 
 ## Kit
 

@@ -12,7 +12,7 @@ No number enters the ledger without a source that was actually counted. No price
 
 ## Red flags
 
-"The token count is probably close enough." "I can estimate the price for a model not in the ledger." "This local path in the commit message is harmless, it can stay." None of these three is this skill's practice. All three defeat the reason it exists.
+"The token count is probably close enough." "I can estimate the price for a model not in the ledger." "This local path in the commit message is harmless, it can stay." "The Haiku tokens can be priced at the Sonnet rate for now." "1-hour cache writes are close enough to 5-minute ones." "I'll delete data.json so the costs recompute." None of these is this skill's practice. Each defeats the reason it exists.
 
 ## Installing this skill
 
@@ -22,12 +22,17 @@ This project's own `README.md` carries the installation matrix, verified against
 
 Run `python engine/generate_metrics.py --repo <path>`. Read `SKILL.md` in full first, it is the operating instructions, not this file. Never invent a `notes.json` entry on the user's behalf: a decision note is either something the user actually said, or it stays absent.
 
+A transcript with several models, or with 1-hour cache writes, needs one sourced price series per model id in `engine/prices.json`; a model without one is reported unpriced, and you add the series (read the vendor's pricing page yourself, use `engine/update_prices.py`), you do not borrow another model's price. A price found to be **wrong** is corrected by appending an entry with `--corrects` and then running `generate_metrics.py --reprice`; both procedures are in `SKILL.md` ("Multiple models and cache TTLs", "Correcting a price that was wrong"). `--reprice` is for a wrong price, never for a normal price change.
+
 ## Never
 
 - Never present the price ledger or the installation matrix as live state. Both carry a verification date.
 - Never write a note to `notes.json` that the user did not actually provide.
 - Never claim a transcript reader works for an environment `engine/readers/` does not actually contain a module for.
 - Never let the published `dashboard.html` or `dashboard.js` make a network call.
+- Never edit or delete an entry in `engine/prices.json`. A changed price is a new entry with a later date; a wrong price is a new entry with `--corrects` and the same date.
+- Never price a model's tokens with another model's series, or a 1-hour cache write at the 5-minute rate. Report them unpriced instead.
+- Never run `--reprice` for a normal price change, and never delete `data.json` to unfreeze costs: that also discards frozen tokens whose transcripts may be gone.
 - Never pass `--linked-project` because two projects were active the same day. Open the candidate subagent transcript yourself and confirm it names this project's own path before trusting it; `engine/readers/claude_code.find_linked_subagent_jsonl` already enforces this at the code level, but do not treat that as a reason to skip checking the actual evidence yourself when a user asks you to invoke it.
 
 ## Honest limits
@@ -48,4 +53,4 @@ This file cannot make a tool without a real Claude Code transcript produce a non
 
 ---
 
-Last updated 14 September 2026.
+Last updated 20 September 2026.

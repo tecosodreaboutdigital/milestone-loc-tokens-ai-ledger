@@ -1,7 +1,7 @@
 const assert = require("assert");
 const {
   priceForSelection, calculateCost, buildSeriesOptions,
-  cumulativeCostValues, growthChartSVG,
+  cumulativeCostValues, growthChartSVG, defaultSeriesKey,
 } = require("./dashboard.js");
 
 const pricesBySeries = {
@@ -86,5 +86,91 @@ assert.ok(svg.includes("<svg"), "an empty series should still render a valid, em
 
 svg = growthChartSVG([1, 2], ["M1", "M2"], fmtInt, "cap", "sub");
 assert.ok(svg.includes('xmlns="http://www.w3.org/2000/svg"'), "should declare the SVG namespace, matching engine/svg_chart.py's own output");
+
+// 1-hour cache writes. cache_creation is the total of every write and
+// cache_creation_1h the 1-hour part of it; the 5-minute part is the
+// difference, so nothing is counted twice.
+const priceWith1h = {
+  input_price: 2.0, output_price: 10.0, cache_read_price: 0.2,
+  cache_creation_price: 2.5, cache_creation_1h_price: 4.0,
+};
+assert.strictEqual(
+  calculateCost({ input: 0, output: 0, cache_read: 0, cache_creation: 1000000, cache_creation_1h: 400000 }, priceWith1h),
+  2.5 * 0.6 + 4.0 * 0.4,
+  "600k 5-minute writes at 2.50 plus 400k 1-hour writes at 4.00, not 1M at either rate"
+);
+assert.strictEqual(
+  calculateCost({ input: 0, output: 0, cache_read: 0, cache_creation: 1000000, cache_creation_1h: 1000000 }, priceWith1h),
+  4.0,
+  "all cache writes 1-hour: all at the 1-hour price"
+);
+assert.strictEqual(
+  calculateCost({ input: 0, output: 0, cache_read: 0, cache_creation: 1000000, cache_creation_1h: 5000000 }, priceWith1h),
+  4.0,
+  "a 1-hour figure larger than cache_creation is capped at it, never a second, larger number"
+);
+
+// A milestone frozen before the engine recorded 1-hour writes has no
+// cache_creation_1h at all: it prices exactly as before.
+assert.strictEqual(
+  calculateCost({ input: 1000000, output: 0, cache_read: 0, cache_creation: 1000000 }, priceWith1h),
+  2.0 + 2.5,
+  "no cache_creation_1h field: every cache write is a 5-minute write"
+);
+
+// A price entry with no 1-hour price never prices 1-hour writes at the
+// 5-minute rate: the milestone is unpriceable (null), while one with no
+// 1-hour writes still prices normally under the same entry.
+const priceWithout1h = { input_price: 3.0, output_price: 15.0, cache_read_price: 0.3, cache_creation_price: 3.75 };
+assert.strictEqual(
+  calculateCost({ input: 1000000, output: 0, cache_read: 0, cache_creation: 1000000, cache_creation_1h: 1 }, priceWithout1h),
+  null,
+  "1-hour writes under an entry with no 1-hour price are not priced at the 5-minute rate"
+);
+assert.strictEqual(
+  calculateCost({ input: 1000000, output: 0, cache_read: 0, cache_creation: 1000000, cache_creation_1h: 0 }, priceWithout1h),
+  3.0 + 3.75,
+  "no 1-hour writes: an entry with no 1-hour price still prices"
+);
+assert.strictEqual(
+  calculateCost({ input: 0, output: 0, cache_read: 0, cache_creation: 10, cache_creation_1h: 10 }, { ...priceWithout1h, cache_creation_1h_price: 0 }),
+  0,
+  "an explicit 1-hour price of 0 (a free series) is a price, not a missing one"
+);
+assert.deepStrictEqual(
+  cumulativeCostValues(
+    [
+      { input: 1000000, output: 0, cache_read: 0, cache_creation: 0, cache_creation_1h: 0 },
+      { input: 0, output: 0, cache_read: 0, cache_creation: 100, cache_creation_1h: 100 },
+    ],
+    priceWithout1h
+  ),
+  [3.0, 3.0],
+  "an unpriceable milestone contributes 0 to the running total"
+);
+
+// Same-date tie: the later entry in the list wins, which is how a
+// correcting entry (same effective_date, appended after) takes over.
+const corrected = {
+  "anthropic::claude-sonnet-5": [
+    { effective_date: "2026-09-13", input_price: 3.0, output_price: 15.0, cache_read_price: 0.3, cache_creation_price: 3.75 },
+    { effective_date: "2026-09-13", corrects: "2026-09-13", input_price: 2.0, output_price: 10.0, cache_read_price: 0.2, cache_creation_price: 2.5, cache_creation_1h_price: 4.0 },
+  ],
+};
+assert.strictEqual(
+  priceForSelection(corrected, "anthropic", "claude-sonnet-5", "2026-09-13").input_price,
+  2.0,
+  "a correcting entry with the same effective_date wins the tie"
+);
+
+// The price panel opens on the project's own configured series.
+const seriesOptions = [
+  { value: "anthropic::claude-haiku-4-5-20251001", label: "a" },
+  { value: "anthropic::claude-sonnet-5", label: "b" },
+];
+assert.strictEqual(defaultSeriesKey(seriesOptions, "anthropic::claude-sonnet-5"), "anthropic::claude-sonnet-5");
+assert.strictEqual(defaultSeriesKey(seriesOptions, "anthropic::not-there"), "anthropic::claude-haiku-4-5-20251001", "an unknown preferred series falls back to the first option");
+assert.strictEqual(defaultSeriesKey(seriesOptions, undefined), "anthropic::claude-haiku-4-5-20251001", "no preferred series (an older generated page): first option");
+assert.strictEqual(defaultSeriesKey([], "x"), null);
 
 console.log("all dashboard.js tests passed");

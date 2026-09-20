@@ -5,7 +5,12 @@ effect on that date, scrubs every string field, and writes both
 data.json and a fully rendered dashboard.html. Safe to run from any
 of this skill's supported environments: the output does not depend on
 which one called it, only on the repository's own git history and
-session transcripts."""
+session transcripts.
+
+With --reprice it does something narrower and explicit instead: it
+recomputes only the cost of milestones already frozen in data.json,
+from their already-frozen tokens, against the ledger as it is now (see
+reprice_milestones). It never reads git or a transcript in that mode."""
 
 import argparse
 import html
@@ -27,9 +32,9 @@ if _REPO_ROOT not in sys.path:
     sys.path.insert(0, _REPO_ROOT)
 
 from engine.config import load_config
-from engine.cost import compute_cost
+from engine.cost import MODEL_TOKEN_FIELDS, TOKEN_KINDS, price_milestone, total_tokens
 from engine.git_source import commits, line_count, list_repo_files_at, matches_any, sum_metric, word_count_html
-from engine.prices import find_series, load_ledger, price_at
+from engine.prices import load_ledger
 from engine.readers.claude_code import find_linked_subagent_jsonl, find_session_jsonl, load_usage_events
 from engine.scrub import scrub_text
 from engine.svg_chart import svg_growth_chart, svg_stat_thumbnail
@@ -38,7 +43,14 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 TEMPLATE_DIR = os.path.join(os.path.dirname(HERE), "template")
 EXAMPLE_CONFIG = os.path.join(HERE, "config.example.json")
 SHIPPED_PRICES = os.path.join(HERE, "prices.json")
-EMPTY_TOKENS = {"input": 0, "output": 0, "cache_read": 0, "cache_creation": 0}
+
+
+def empty_tokens():
+    """A fresh milestone token record: the original four counters, the
+    1-hour cache write subset, and the same tokens split by model id."""
+    tokens = {field: 0 for field in MODEL_TOKEN_FIELDS}
+    tokens["by_model"] = {}
+    return tokens
 
 
 def bootstrap_if_missing(repo_root, folder_name):
@@ -63,12 +75,24 @@ def _bucket_tokens_by_commit(rows, events):
     buckets = []
     for row in rows:
         commit_dt = datetime.fromisoformat(row["iso"])
-        bucket = dict(EMPTY_TOKENS)
+        bucket = empty_tokens()
         while ev_idx < len(events):
-            e_dt = datetime.fromisoformat(events[ev_idx]["ts"].replace("Z", "+00:00"))
+            event = events[ev_idx]
+            e_dt = datetime.fromisoformat(event["ts"].replace("Z", "+00:00"))
             if e_dt <= commit_dt:
-                for key in EMPTY_TOKENS:
-                    bucket[key] += events[ev_idx][key]
+                for key in MODEL_TOKEN_FIELDS:
+                    bucket[key] += event.get(key, 0)
+                # Split by model id, but only events that name a model
+                # and actually carry tokens: a row with no model stays
+                # in the totals only (see cost.price_milestone), and a
+                # zero-usage row (a synthetic message) adds no entry.
+                model = event.get("model")
+                if model and any(event.get(key, 0) for key in TOKEN_KINDS):
+                    per_model = bucket["by_model"].setdefault(
+                        scrub_text(model), {field: 0 for field in MODEL_TOKEN_FIELDS}
+                    )
+                    for key in MODEL_TOKEN_FIELDS:
+                        per_model[key] += event.get(key, 0)
                 ev_idx += 1
             else:
                 break
@@ -105,7 +129,6 @@ def build_milestones(repo_root, config, claude_projects_dir, linked_projects=Non
     token_buckets = _bucket_tokens_by_commit(rows, events)
     notes = load_notes(repo_root, config["milestone_folder"])
     price_ledger = load_ledger(SHIPPED_PRICES)
-    price_series = find_series(price_ledger, config["price_provider"], config["price_model"])
     exclude_globs = _effective_exclude_globs(config)
 
     milestones = []
@@ -126,32 +149,39 @@ def build_milestones(repo_root, config, claude_projects_dir, linked_projects=Non
         prev_words = words
         prev_loc = loc
         commit_date = row["iso"][:10]
-        price_entry = price_at(price_series, commit_date)
         # A milestone with no recorded token usage (no transcript covers
         # it) gets no cost_recorded at all, not a misleading $0.00: a
         # price entry existing is not the same as this milestone having
-        # anything to price.
-        has_usage = any(tokens.values())
-        cost = compute_cost(tokens, price_entry) if (price_entry and has_usage) else None
+        # anything to price. Tokens no price applies to are listed in
+        # `unpriced`, with the reason, never priced at another rate.
+        cost_recorded, unpriced = _price(tokens, price_ledger, config, commit_date)
         note = notes.get(row["hash"][:7])
-        milestones.append({
+        milestone = {
             "date": commit_date,
             "commit": row["hash"][:7],
             "subject": scrub_text(row["subject"]),
             "words_delta": words_delta,
             "loc_delta": loc_delta,
             "tokens": tokens,
-            "cost_recorded": (
-                {
-                    "amount": cost, "currency": config["currency"],
-                    "priced_at": price_entry["effective_date"],
-                    "provider": config["price_provider"], "model": config["price_model"],
-                }
-                if cost is not None else None
-            ),
+            "cost_recorded": cost_recorded,
             "note": scrub_text(note) if note else None,
-        })
+        }
+        if unpriced:
+            milestone["unpriced"] = unpriced
+        milestones.append(milestone)
     return milestones
+
+
+def _price(tokens, price_ledger, config, date):
+    cost_recorded, unpriced = price_milestone(
+        tokens, price_ledger, config["price_provider"], config["price_model"], date, config["currency"],
+    )
+    # Model ids come from a transcript, so they pass through the scrub
+    # like every other string that reaches a published file.
+    for item in unpriced:
+        item["model"] = scrub_text(item["model"])
+        item["reason"] = scrub_text(item["reason"])
+    return cost_recorded, unpriced
 
 
 def _freeze_previously_recorded_costs(milestones, data_path):
@@ -189,6 +219,68 @@ def _freeze_previously_recorded_costs(milestones, data_path):
         if previous is not None:
             m["cost_recorded"] = previous["cost_recorded"]
             m["tokens"] = previous["tokens"]
+            # The list of what was left unpriced, and the audit trail of
+            # any --reprice, are part of the frozen cost record: they
+            # travel with it, or a normal run would quietly drop them.
+            m.pop("unpriced", None)
+            if previous.get("unpriced"):
+                m["unpriced"] = previous["unpriced"]
+            if previous.get("repricings"):
+                m["repricings"] = previous["repricings"]
+
+
+def reprice_milestones(milestones, config, price_ledger, repriced_at):
+    """The explicit, audited exception to "a recorded cost never changes".
+
+    For a price that was WRONG, not one that changed: after a `corrects`
+    entry has been appended to the ledger (or a missing series has been
+    added), recomputes each milestone's cost from its own already-frozen
+    tokens against the ledger as it is now. Only cost_recorded and
+    unpriced can change; tokens, words, lines and notes are never
+    touched, and no transcript is read. A milestone whose result differs
+    gets an entry appended to its `repricings` list holding the moment
+    and the cost (and unpriced list) it had before, so the old number is
+    never lost. Running it again with nothing new in the ledger changes
+    nothing.
+
+    A normal price CHANGE (a later effective_date) does not alter
+    anything here: price_at still picks the entry in effect on each
+    milestone's own date, so past milestones keep their price. Returns
+    the number of milestones changed."""
+    changed = 0
+    for m in milestones:
+        new_cost, new_unpriced = _price(m["tokens"], price_ledger, config, m["date"])
+        old_cost = m.get("cost_recorded")
+        old_unpriced = m.get("unpriced") or []
+        if new_cost == old_cost and new_unpriced == old_unpriced:
+            continue
+        record = {"repriced_at": repriced_at, "previous_cost": old_cost}
+        if old_unpriced:
+            record["previous_unpriced"] = old_unpriced
+        m.setdefault("repricings", []).append(record)
+        m["cost_recorded"] = new_cost
+        m.pop("unpriced", None)
+        if new_unpriced:
+            m["unpriced"] = new_unpriced
+        changed += 1
+    return changed
+
+
+def _load_frozen_data(data_path):
+    if not os.path.isfile(data_path):
+        raise SystemExit(
+            "--reprice needs an existing %s: it corrects costs already recorded there, "
+            "from the tokens already recorded there. Run a normal generation first." % data_path
+        )
+    try:
+        with open(data_path, encoding="utf-8") as fh:
+            return json.load(fh)
+    except (OSError, ValueError) as err:
+        raise SystemExit("--reprice could not read %s: %s" % (data_path, err))
+
+
+def _recorded_total(milestones):
+    return sum(m["cost_recorded"]["amount"] for m in milestones if m.get("cost_recorded") is not None)
 
 
 def format_compact_count(n):
@@ -203,24 +295,66 @@ def format_compact_count(n):
     return "{:,}".format(n)
 
 
+def _cost_cell(m):
+    cost = m["cost_recorded"]
+    unpriced = m.get("unpriced") or []
+    text = "-" if cost is None else "$%.4f" % cost["amount"]
+    if not unpriced:
+        return "<td>%s</td>" % text
+    if cost is not None:
+        text += " (partial)"
+    tip = "; ".join(
+        "%s: %s tokens, %s" % (u["model"] or "no model id", "{:,}".format(u["tokens"]), u["reason"])
+        for u in unpriced
+    )
+    return '<td title="Unpriced: %s">%s</td>' % (html.escape(tip, quote=True), html.escape(text))
+
+
 def render_table_rows(milestones):
     # data-milestone-tokens lives on the <tr> itself so dashboard.js can
-    # read a row's token counts without a second lookup.
+    # read a row's token counts without a second lookup. Only the flat
+    # counters go there: the live price panel reprices all tokens at one
+    # price, so the by_model split (which lives in data.json) is not needed.
     rows = []
     for m in milestones:
-        cost_text = "-" if m["cost_recorded"] is None else "$%.4f" % m["cost_recorded"]["amount"]
         subject_text = html.escape(m["subject"])
         note_text = html.escape(m["note"]) if m["note"] else ""
-        tokens_json = json.dumps(m["tokens"])
+        tokens_json = json.dumps({key: m["tokens"].get(key, 0) for key in MODEL_TOKEN_FIELDS})
         rows.append(
             '<tr data-milestone-tokens=\'%s\'><td>%s</td><td>%s</td><td>%s</td><td>%d</td><td>%d</td>'
-            '<td>%s</td><td data-live-cost>-</td><td>%s</td></tr>'
-            % (tokens_json, m["date"], m["commit"], subject_text, m["words_delta"], m["loc_delta"], cost_text, note_text)
+            '%s<td data-live-cost>-</td><td>%s</td></tr>'
+            % (tokens_json, m["date"], m["commit"], subject_text, m["words_delta"], m["loc_delta"], _cost_cell(m), note_text)
         )
     return "\n".join(rows)
 
 
-def render_dashboard_html(template_path, kpi_html, words_svg, loc_svg, tokens_svg, cost_svg, table_rows_html, embedded_js, zero_tokens_note=""):
+def render_unpriced_section(milestones):
+    """What the recorded cost could not price, and why, one line each.
+    Empty when nothing is unpriced, so a fully priced dashboard is
+    unchanged."""
+    lines = []
+    for index, m in enumerate(milestones):
+        for item in m.get("unpriced") or []:
+            lines.append(
+                "<li>M%d <code>%s</code>: <code>%s</code>, %s tokens. %s</li>" % (
+                    index + 1, html.escape(m["commit"]),
+                    html.escape(item["model"] or "no model id"),
+                    "{:,}".format(item["tokens"]), html.escape(item["reason"]),
+                )
+            )
+    if not lines:
+        return ""
+    return (
+        '<div class="price-panel"><h2>Unpriced usage</h2>'
+        '<p class="honest-note">Tokens the recorded cost does not include, because no ledger price '
+        'applies to them. A milestone marked partial shows only what could be priced. To fill a gap, '
+        'add a sourced entry with <code>engine/update_prices.py</code>, then run '
+        '<code>engine/generate_metrics.py --reprice</code>.</p>'
+        '<ul class="sources-list">%s</ul></div>' % "".join(lines)
+    )
+
+
+def render_dashboard_html(template_path, kpi_html, words_svg, loc_svg, tokens_svg, cost_svg, table_rows_html, embedded_js, zero_tokens_note="", unpriced_html=""):
     with open(template_path, encoding="utf-8") as fh:
         doc = fh.read()
     doc = doc.replace("__KPI_ROWS__", kpi_html)
@@ -231,33 +365,64 @@ def render_dashboard_html(template_path, kpi_html, words_svg, loc_svg, tokens_sv
     doc = doc.replace("__TABLE_ROWS__", table_rows_html)
     doc = doc.replace("__EMBEDDED_DATA__", embedded_js)
     doc = doc.replace("__ZERO_TOKENS_NOTE__", zero_tokens_note)
+    doc = doc.replace("__UNPRICED_SECTION__", unpriced_html)
     return doc
 
 
-def main(repo_root=None, claude_projects_dir=None, linked_projects=None):
+def _previous_last_repriced_at(data_path):
+    try:
+        with open(data_path, encoding="utf-8") as fh:
+            return json.load(fh).get("last_repriced_at")
+    except (OSError, ValueError):
+        return None
+
+
+def main(repo_root=None, claude_projects_dir=None, linked_projects=None, reprice=False):
     repo_root = repo_root or os.getcwd()
     claude_projects_dir = claude_projects_dir or os.path.expanduser("~/.claude/projects")
 
-    bootstrap_if_missing(repo_root, "logbook")
+    if not reprice:
+        bootstrap_if_missing(repo_root, "logbook")
+    # --reprice never bootstraps a folder: it only corrects costs that
+    # already exist in a data.json.
     config = load_config(os.path.join(repo_root, "logbook", "config.json"))
     folder = os.path.join(repo_root, config["milestone_folder"])
-    os.makedirs(folder, exist_ok=True)
-
-    milestones = build_milestones(repo_root, config, claude_projects_dir, linked_projects)
-
-    if len(milestones) == 0:
-        print("warning: no commits found in this repository, nothing to report", file=sys.stderr)
-
-    # A milestone's recorded cost, and the tokens it was computed from,
-    # are frozen the moment they are first written, so this must happen
-    # before anything below reads `milestones` (the zero-tokens check,
-    # the table, the charts, and data.json all need the final, frozen
-    # numbers, not the freshly recomputed ones freezing might override).
     data_path = os.path.join(folder, "data.json")
-    _freeze_previously_recorded_costs(milestones, data_path)
+    generated_at = datetime.now(timezone.utc).isoformat()
+    last_repriced_at = _previous_last_repriced_at(data_path)
 
-    total_tokens = sum(sum(m["tokens"].values()) for m in milestones)
-    zero_tokens = total_tokens == 0
+    if reprice:
+        frozen = _load_frozen_data(data_path)
+        milestones = frozen.get("milestones", [])
+        # generated_at keeps saying when the milestones and tokens were
+        # last read from git and transcripts; only the costs are new.
+        generated_at = frozen.get("generated_at", generated_at)
+        before = _recorded_total(milestones)
+        now = datetime.now(timezone.utc).isoformat()
+        changed = reprice_milestones(milestones, config, load_ledger(SHIPPED_PRICES), now)
+        if changed:
+            last_repriced_at = now
+        print(
+            "repriced %d of %d milestones from their frozen tokens; recorded cost %.4f -> %.4f %s"
+            % (changed, len(milestones), before, _recorded_total(milestones), config["currency"])
+        )
+    else:
+        os.makedirs(folder, exist_ok=True)
+        milestones = build_milestones(repo_root, config, claude_projects_dir, linked_projects)
+
+        if len(milestones) == 0:
+            print("warning: no commits found in this repository, nothing to report", file=sys.stderr)
+
+        # A milestone's recorded cost, and the tokens it was computed from,
+        # are frozen the moment they are first written, so this must happen
+        # before anything below reads `milestones` (the zero-tokens check,
+        # the table, the charts, and data.json all need the final, frozen
+        # numbers, not the freshly recomputed ones freezing might override).
+        _freeze_previously_recorded_costs(milestones, data_path)
+
+    os.makedirs(folder, exist_ok=True)
+    all_tokens = sum(total_tokens(m["tokens"]) for m in milestones)
+    zero_tokens = all_tokens == 0
     if zero_tokens:
         print(
             "warning: no LLM session transcripts were found for this project (see AGENTS.md); "
@@ -267,7 +432,7 @@ def main(repo_root=None, claude_projects_dir=None, linked_projects=None):
 
     words_series = [m["words_delta"] for m in milestones] or [0]
     loc_series = [m["loc_delta"] for m in milestones] or [0]
-    tokens_series = [sum(m["tokens"].values()) for m in milestones] or [0]
+    tokens_series = [total_tokens(m["tokens"]) for m in milestones] or [0]
     # A milestone with no recorded cost (no price entry covered it yet)
     # contributes 0 to the running total charted below, the same
     # convention the "Cost recorded" KPI uses: it is a ledger of what
@@ -295,7 +460,9 @@ def main(repo_root=None, claude_projects_dir=None, linked_projects=None):
     cost_svg = svg_growth_chart("c", cost_cumulative, x_labels, lambda v: "$%.2f" % v, "Recorded cost per milestone", "Cumulative recorded cost (USD)")
 
     total_cost = sum(cost_series)
-    unpriced_count = sum(1 for m in milestones if m["cost_recorded"] is None)
+    # A milestone counts as unpriced when nothing about it was priced, or
+    # when only part of it was (its `unpriced` list says what is missing).
+    unpriced_count = sum(1 for m in milestones if m["cost_recorded"] is None or m.get("unpriced"))
     kpi_html = (
         '<div class="kpi"><span class="kpi-n">%d</span><span class="kpi-l">Milestones</span></div>'
         '<div class="kpi"><span class="kpi-n">%d</span><span class="kpi-l">Words published</span></div>'
@@ -318,6 +485,9 @@ def main(repo_root=None, claude_projects_dir=None, linked_projects=None):
     embedded_js = "window.MILESTONE_DATA = %s;" % json.dumps({
         "prices": prices_by_series,
         "today": today,
+        # The series this project's config prices with: the price panel
+        # opens on it instead of on whichever series sorts first.
+        "default_series": "%s::%s" % (config["price_provider"], config["price_model"]),
     })
 
     zero_tokens_note = (
@@ -329,7 +499,7 @@ def main(repo_root=None, claude_projects_dir=None, linked_projects=None):
 
     html_out = render_dashboard_html(
         os.path.join(TEMPLATE_DIR, "dashboard.html"), kpi_html, words_svg, loc_svg, tokens_svg, cost_svg,
-        table_rows_html, embedded_js, zero_tokens_note,
+        table_rows_html, embedded_js, zero_tokens_note, render_unpriced_section(milestones),
     )
     with open(os.path.join(folder, "dashboard.html"), "w", encoding="utf-8") as fh:
         fh.write(html_out)
@@ -348,10 +518,11 @@ def main(repo_root=None, claude_projects_dir=None, linked_projects=None):
             fh.write(svg + "\n")
 
     with open(data_path, "w", encoding="utf-8") as fh:
-        json.dump({
-            "generated_at": datetime.now(timezone.utc).isoformat(),
-            "milestones": milestones,
-        }, fh, indent=2)
+        document = {"generated_at": generated_at}
+        if last_repriced_at:
+            document["last_repriced_at"] = last_repriced_at
+        document["milestones"] = milestones
+        json.dump(document, fh, indent=2)
         fh.write("\n")
 
     print("wrote %d milestones to %s" % (len(milestones), folder))
@@ -371,5 +542,25 @@ if __name__ == "__main__":
             "session. Repeatable."
         ),
     )
+    parser.add_argument(
+        "--reprice", action="store_true",
+        help=(
+            "Correct a price that was WRONG (not one that changed): recompute only the cost of "
+            "milestones already frozen in data.json, from their already-frozen tokens, against "
+            "the current price ledger, and record the old cost of every milestone that changes. "
+            "Use it after appending a `corrects` entry (or adding a missing model series) with "
+            "update_prices.py. Never reads git history or transcripts, never touches tokens. "
+            "Do not use it for a normal price change: a later effective_date already leaves "
+            "past milestones at the price that was true then."
+        ),
+    )
     args = parser.parse_args()
-    main(repo_root=args.repo, claude_projects_dir=args.claude_projects_dir, linked_projects=args.linked_projects)
+    if args.reprice and (args.linked_projects or args.claude_projects_dir):
+        parser.error(
+            "--reprice never reads transcripts, so --linked-project and "
+            "--claude-projects-dir do not apply to it"
+        )
+    main(
+        repo_root=args.repo, claude_projects_dir=args.claude_projects_dir,
+        linked_projects=args.linked_projects, reprice=args.reprice,
+    )

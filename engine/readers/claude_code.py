@@ -105,7 +105,33 @@ def find_linked_subagent_jsonl(claude_projects_dir, linked_project_root, target_
     return matches
 
 
+def _as_count(value):
+    """A token count from a transcript field: a non-negative int, else 0.
+    A bool is an int in Python but never a count."""
+    if isinstance(value, bool) or not isinstance(value, int) or value < 0:
+        return 0
+    return value
+
+
+def _one_hour_cache_writes(usage, cache_creation_total):
+    """The 1-hour share of a message's cache writes. A real transcript
+    carries usage.cache_creation = {"ephemeral_5m_input_tokens": N,
+    "ephemeral_1h_input_tokens": M}; older or partial rows have no such
+    object, and then nothing is known to be 1-hour, so 0. Capped at the
+    message's own cache_creation_input_tokens so the 1-hour figure is
+    always a subset of it, never a second, larger number."""
+    breakdown = usage.get("cache_creation")
+    if not isinstance(breakdown, dict):
+        return 0
+    return min(_as_count(breakdown.get("ephemeral_1h_input_tokens")), cache_creation_total)
+
+
 def load_usage_events(paths):
+    """One event per assistant message: its timestamp, the model id that
+    served it (message.model, None when the row has none), and its token
+    counts, with cache_creation_1h the 1-hour subset of cache_creation.
+    Deduped by message id, keeping the last occurrence (see the module
+    docstring)."""
     by_id = {}
     unkeyed = []
     for path in paths:
@@ -123,12 +149,16 @@ def load_usage_events(paths):
                 if not (isinstance(message, dict) and "usage" in message and timestamp):
                     continue
                 usage = message["usage"]
+                cache_creation = usage.get("cache_creation_input_tokens", 0) or 0
+                model = message.get("model")
                 event = {
                     "ts": timestamp,
+                    "model": model if isinstance(model, str) and model else None,
                     "input": usage.get("input_tokens", 0) or 0,
                     "output": usage.get("output_tokens", 0) or 0,
                     "cache_read": usage.get("cache_read_input_tokens", 0) or 0,
-                    "cache_creation": usage.get("cache_creation_input_tokens", 0) or 0,
+                    "cache_creation": cache_creation,
+                    "cache_creation_1h": _one_hour_cache_writes(usage, _as_count(cache_creation)),
                 }
                 message_id = message.get("id")
                 if message_id:

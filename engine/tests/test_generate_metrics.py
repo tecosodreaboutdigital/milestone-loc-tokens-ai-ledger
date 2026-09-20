@@ -76,7 +76,12 @@ class TestBuildAndGenerate(unittest.TestCase):
             milestones = build_milestones(tmpdir, config, claude_projects_dir="/no/such/dir")
             self.assertEqual(len(milestones), 2)
             self.assertEqual(milestones[0]["words_delta"], 6)
-            self.assertEqual(milestones[0]["tokens"], {"input": 0, "output": 0, "cache_read": 0, "cache_creation": 0})
+            # The four original counters, plus the 1-hour cache write
+            # subset and the per-model split, both empty here.
+            self.assertEqual(milestones[0]["tokens"], {
+                "input": 0, "output": 0, "cache_read": 0, "cache_creation": 0,
+                "cache_creation_1h": 0, "by_model": {},
+            })
             self.assertIsNone(milestones[0]["cost_recorded"])
 
     def test_main_writes_data_json_and_dashboard_html(self):
@@ -682,8 +687,11 @@ class TestCostChartAndKpis(unittest.TestCase):
             main(repo_root=tmpdir, claude_projects_dir=projects_dir)
             with open(os.path.join(tmpdir, "logbook", "dashboard.html"), encoding="utf-8") as fh:
                 html_out = fh.read()
-            # 1,000,000 input tokens at the shipped $3.00/M rate is $3.00.
-            self.assertIn('<span class="kpi-n">$3.00</span><span class="kpi-l">Cost recorded</span>', html_out)
+            # 1,000,000 input tokens at the shipped claude-sonnet-5 rate
+            # of $2.00/M is $2.00. (It was $3.00 while the ledger still
+            # held a wrong entry; see the correcting entry in
+            # engine/prices.json and engine/tests/test_ledger_schema.py.)
+            self.assertIn('<span class="kpi-n">$2.00</span><span class="kpi-l">Cost recorded</span>', html_out)
             self.assertIn('<span class="kpi-n">0</span><span class="kpi-l">Unpriced milestones</span>', html_out)
 
     def test_dashboard_renders_a_cost_chart(self):
@@ -712,6 +720,8 @@ class TestCostChartAndKpis(unittest.TestCase):
             self.assertIn('id="price-output-range"', html_out)
             self.assertIn('id="price-cache-read-range"', html_out)
             self.assertIn('id="price-cache-creation-range"', html_out)
+            self.assertIn('id="price-cache-creation-1h"', html_out)
+            self.assertIn('id="price-cache-creation-1h-range"', html_out)
 
     def test_thumbnail_svgs_are_written_alongside_the_dashboard(self):
         with tempfile.TemporaryDirectory() as tmpdir:
