@@ -100,7 +100,7 @@ def _why_no_one_hour_price(provider, model, effective_date):
     )
 
 
-def price_milestone(tokens, ledger, provider, fallback_model, date, currency):
+def price_milestone(tokens, ledger, provider, fallback_model, date, currency, price_mode="per_model"):
     """Prices one milestone. Returns (cost_recorded, unpriced).
 
     cost_recorded is the dict the data file stores, or None when nothing
@@ -115,11 +115,21 @@ def price_milestone(tokens, ledger, provider, fallback_model, date, currency):
     on `date`). A milestone without by_model (frozen by an older engine,
     or a transcript whose rows name no model) keeps the original
     behaviour: all its tokens priced with the one configured series,
-    `fallback_model`."""
+    `fallback_model`.
+
+    price_mode "flat" is the explicit opt-in to that same single-series
+    behaviour for a milestone that DOES have by_model: every token,
+    whatever model wrote it, is priced with the one configured series
+    (provider / fallback_model), for a project with its own single cost
+    basis. It still splits 5-minute from 1-hour cache writes using that
+    series' cache_creation_1h_price, and reports 1-hour writes as
+    unpriced when the entry has none. "per_model" is the default."""
+    if price_mode not in ("per_model", "flat"):
+        raise ValueError("price_mode must be \"per_model\" or \"flat\", got %r" % (price_mode,))
     if total_tokens(tokens) == 0:
         return None, []
 
-    by_model = tokens.get("by_model") or {}
+    by_model = {} if price_mode == "flat" else (tokens.get("by_model") or {})
     if not by_model:
         series = find_series(ledger, provider, fallback_model)
         entry = price_at(series, date)

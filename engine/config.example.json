@@ -6,5 +6,6 @@
   "transcript_reader": "claude_code",
   "price_provider": "anthropic",
   "price_model": "claude-sonnet-5",
+  "price_mode": "per_model",
   "currency": "USD"
 }

@@ -28,7 +28,7 @@ A line-of-code counter tells you how big a project got. A token cost tracker tel
 
 **An append-only, multi-source price ledger.** A price entry never gets overwritten, it gets superseded by a new dated entry, each one citing at least one source, ideally two independent ones. A price that was recorded *wrong* is fixed the same way, by appending an entry that says what it corrects, and then re-costing the affected milestones with an explicit, audited `--reprice` (see below).
 
-**Several models and both cache TTLs, priced separately.** A transcript can mix models (a main session and its subagents) and can write its prompt cache with a 5-minute or a 1-hour lifetime, at different prices. The engine records both per milestone and prices each model with its own ledger series and each write at its own rate. Anything with no sourced price is listed as unpriced, with the reason, never priced at another model's rate.
+**Several models and both cache TTLs, priced separately.** A transcript can mix models (a main session and its subagents) and can write its prompt cache with a 5-minute or a 1-hour lifetime, at different prices. The engine records both per milestone and prices each model with its own ledger series and each write at its own rate. Anything with no sourced price is listed as unpriced, with the reason, never priced at another model's rate. A project with one cost basis of its own can opt into `"price_mode": "flat"` instead (never inferred, always explicit).
 
 ## Installation
 
@@ -98,7 +98,7 @@ Every section above assumes a human reader deciding whether to install this. Thi
 
 **Only the Claude Code transcript reader ships complete.** Word and line counts work against any git history regardless of environment; token counts stay at zero until a reader exists for that environment's transcript format.
 
-**The price ledger ships with three Anthropic series and a placeholder, not the whole market.** `claude-sonnet-5` (with its recorded correction), `claude-opus-5`, `claude-haiku-4-5-20251001`, and a zero-cost `custom / on-premise` placeholder. Their `effective_date` of 2026-09-13 is this ledger's own start, and the sources show the price as read on 19 September 2026, not a dated price history. Any other model id in a transcript is reported unpriced until someone adds a sourced series; keeping the ledger current is ongoing maintenance, not a one-time task.
+**The price ledger ships with three Anthropic series and a placeholder, not the whole market.** `claude-sonnet-5` (with its recorded correction), `claude-opus-5`, `claude-haiku-4-5-20251001`, and a zero-cost `custom / on-premise` placeholder. Their `effective_date` of 2026-09-13 is this ledger's own start, and the sources show the price as read on 19 September 2026, not a dated price history. Any other model id in a transcript is reported unpriced until someone adds a sourced series (or the project opts into `"price_mode": "flat"` in `logbook/config.json`, which prices every token with the one configured series, the way to use `custom / on-premise`); keeping the ledger current is ongoing maintenance, not a one-time task.
 
 **Milestones recorded before the per-model split are priced with one series and all cache writes at the 5-minute rate.** See "A wrong price, found and corrected". A model id is matched exactly, so a variant spelling of a model id is unpriced until it has its own series.
 

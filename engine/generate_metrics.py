@@ -31,7 +31,7 @@ _REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 if _REPO_ROOT not in sys.path:
     sys.path.insert(0, _REPO_ROOT)
 
-from engine.config import load_config
+from engine.config import load_config, price_mode
 from engine.cost import MODEL_TOKEN_FIELDS, TOKEN_KINDS, price_milestone, total_tokens
 from engine.git_source import commits, line_count, list_repo_files_at, matches_any, sum_metric, word_count_html
 from engine.prices import load_ledger
@@ -173,8 +173,11 @@ def build_milestones(repo_root, config, claude_projects_dir, linked_projects=Non
 
 
 def _price(tokens, price_ledger, config, date):
+    # One place prices a milestone, for a normal run and for --reprice
+    # alike, so both honour the config's price_mode identically.
     cost_recorded, unpriced = price_milestone(
         tokens, price_ledger, config["price_provider"], config["price_model"], date, config["currency"],
+        price_mode(config),
     )
     # Model ids come from a transcript, so they pass through the scrub
     # like every other string that reaches a published file.

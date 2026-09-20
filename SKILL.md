@@ -29,7 +29,7 @@ Every word, line, and token count comes from reading git history and a real sess
 python engine/generate_metrics.py --repo /path/to/your/project
 ```
 
-First run bootstraps `<milestone_folder>/config.json` from `engine/config.example.json` if the folder does not already exist. Edit that file to declare which globs count as content (words) and which count as code (lines), and which price series (`provider`/`model`) prices this project's token usage.
+First run bootstraps `<milestone_folder>/config.json` from `engine/config.example.json` if the folder does not already exist. Edit that file to declare which globs count as content (words) and which count as code (lines), which price series (`provider`/`model`) prices this project's token usage, and, only if you need it, `price_mode` (see "Multiple models and cache TTLs"; the default is `per_model`, and a config without the key behaves that way).
 
 Only the Claude Code transcript reader ships complete. Running this against a project driven from another environment still counts words and lines from git history; token counts stay zero until a reader for that environment's transcript format is contributed, see `engine/readers/`.
 
@@ -97,7 +97,7 @@ The cost prices each model's tokens with **that model's own series** under the c
 
 Milestones frozen by an older version of the engine have no `by_model` and no `cache_creation_1h`. They keep being priced entirely with the one configured series, all cache writes as 5-minute writes, and so the same goes for a milestone whose transcript rows name no model. That is the honest limit of data recorded before the split existed: do not present those milestones' cache-write cost as exact: where the session really wrote its cache with the 1-hour TTL, the recorded figure is lower than what was charged.
 
-A project that prices with a single flat series on purpose (`custom` / `on-premise`, say) should know that the recorded cost now looks each model id up under that provider, so its models are unpriced until a series exists for them there. The live price panel still reprices every token at any one selected series.
+**A project with its own single cost basis** (electricity and hardware amortisation for a local model, say, priced with the shipped `custom` / `on-premise` series) sets `"price_mode": "flat"` in `logbook/config.json`. Under `flat`, every token of a milestone is priced with the one series named by `price_provider` / `price_model`, whatever model wrote it, and nothing is reported unpriced for lack of a per-model series. It still splits 5-minute from 1-hour cache writes with that series' `cache_creation_1h_price`, and a milestone with 1-hour writes under an entry that has no such price still lists those writes as unpriced. `flat` is never inferred from the provider: `custom` needs it set explicitly, and without it (the default `per_model`) each model id is looked up under `price_provider` and a model with no series there is unpriced. The value is validated; anything other than `"per_model"` or `"flat"` stops the run with an error. A normal run and `--reprice` honour it identically, so after switching an existing project to `flat`, run `--reprice` to re-cost milestones already recorded (a normal run leaves them frozen). The live price panel reprices every token at any one selected series, whatever the mode.
 
 ## Correcting a price that was wrong
 
