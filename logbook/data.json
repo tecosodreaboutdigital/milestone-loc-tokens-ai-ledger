@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-14T13:32:47.743609+00:00",
+  "generated_at": "2026-09-20T13:55:08.035204+00:00",
   "last_repriced_at": "2026-09-20T03:16:27.893757+00:00",
   "last_enriched_at": "2026-09-20T12:53:49.683380+00:00",
   "milestones": [
@@ -2207,6 +2207,393 @@
           "reason": "enrich"
         }
       ]
+    },
+    {
+      "date": "2026-09-14",
+      "commit": "8168c98",
+      "subject": "Fix broken README thumbnails: standalone SVGs need an xmlns declaration",
+      "words_delta": 0,
+      "loc_delta": 29,
+      "tokens": {
+        "input": 92,
+        "output": 30078,
+        "cache_read": 10807092,
+        "cache_creation": 47255,
+        "cache_creation_1h": 47255,
+        "by_model": {
+          "claude-sonnet-5": {
+            "input": 92,
+            "output": 30078,
+            "cache_read": 10807092,
+            "cache_creation": 47255,
+            "cache_creation_1h": 47255
+          }
+        }
+      },
+      "cost_recorded": {
+        "amount": 2.6514,
+        "currency": "USD",
+        "priced_at": "2026-09-13",
+        "provider": "anthropic",
+        "model": "claude-sonnet-5",
+        "by_model": {
+          "claude-sonnet-5": {
+            "amount": 2.6514,
+            "priced_at": "2026-09-13"
+          }
+        }
+      },
+      "note": null
+    },
+    {
+      "date": "2026-09-20",
+      "commit": "02d34c4",
+      "subject": "Fix the Sonnet 5 price and price each model and cache TTL on its own",
+      "words_delta": 1493,
+      "loc_delta": 1842,
+      "tokens": {
+        "input": 22,
+        "output": 6303,
+        "cache_read": 2852605,
+        "cache_creation": 9361,
+        "cache_creation_1h": 9361,
+        "by_model": {
+          "claude-sonnet-5": {
+            "input": 22,
+            "output": 6303,
+            "cache_read": 2852605,
+            "cache_creation": 9361,
+            "cache_creation_1h": 9361
+          }
+        }
+      },
+      "cost_recorded": {
+        "amount": 0.671,
+        "currency": "USD",
+        "priced_at": "2026-09-13",
+        "provider": "anthropic",
+        "model": "claude-sonnet-5",
+        "by_model": {
+          "claude-sonnet-5": {
+            "amount": 0.671,
+            "priced_at": "2026-09-13"
+          }
+        }
+      },
+      "note": null
+    },
+    {
+      "date": "2026-09-20",
+      "commit": "1ec8e84",
+      "subject": "Self-run: correct this logbook's own frozen costs with --reprice",
+      "words_delta": 657,
+      "loc_delta": 0,
+      "tokens": {
+        "input": 0,
+        "output": 0,
+        "cache_read": 0,
+        "cache_creation": 0,
+        "cache_creation_1h": 0,
+        "by_model": {}
+      },
+      "cost_recorded": null,
+      "note": null
+    },
+    {
+      "date": "2026-09-20",
+      "commit": "b84b0a8",
+      "subject": "Tests: ignore Windows temp-directory cleanup errors in one place",
+      "words_delta": 0,
+      "loc_delta": 58,
+      "tokens": {
+        "input": 58,
+        "output": 20274,
+        "cache_read": 2148669,
+        "cache_creation": 77315,
+        "cache_creation_1h": 77315,
+        "by_model": {
+          "claude-sonnet-5": {
+            "input": 58,
+            "output": 20274,
+            "cache_read": 2148669,
+            "cache_creation": 77315,
+            "cache_creation_1h": 77315
+          }
+        }
+      },
+      "cost_recorded": {
+        "amount": 0.9418,
+        "currency": "USD",
+        "priced_at": "2026-09-13",
+        "provider": "anthropic",
+        "model": "claude-sonnet-5",
+        "by_model": {
+          "claude-sonnet-5": {
+            "amount": 0.9418,
+            "priced_at": "2026-09-13"
+          }
+        }
+      },
+      "note": null
+    },
+    {
+      "date": "2026-09-20",
+      "commit": "b2749c8",
+      "subject": "Add price_mode: an explicit flat opt-in for projects with their own cost basis",
+      "words_delta": 246,
+      "loc_delta": 384,
+      "tokens": {
+        "input": 2,
+        "output": 1123,
+        "cache_read": 105210,
+        "cache_creation": 1227,
+        "cache_creation_1h": 1227,
+        "by_model": {
+          "claude-sonnet-5": {
+            "input": 2,
+            "output": 1123,
+            "cache_read": 105210,
+            "cache_creation": 1227,
+            "cache_creation_1h": 1227
+          }
+        }
+      },
+      "cost_recorded": {
+        "amount": 0.0372,
+        "currency": "USD",
+        "priced_at": "2026-09-13",
+        "provider": "anthropic",
+        "model": "claude-sonnet-5",
+        "by_model": {
+          "claude-sonnet-5": {
+            "amount": 0.0372,
+            "priced_at": "2026-09-13"
+          }
+        }
+      },
+      "note": null
+    },
+    {
+      "date": "2026-09-20",
+      "commit": "2cda28d",
+      "subject": "Merge pull request #1 from tecosodreaboutdigital/fix/sonnet-5-price-and-cache-ttl-per-model",
+      "words_delta": 0,
+      "loc_delta": 0,
+      "tokens": {
+        "input": 8,
+        "output": 3599,
+        "cache_read": 434786,
+        "cache_creation": 5265,
+        "cache_creation_1h": 5265,
+        "by_model": {
+          "claude-sonnet-5": {
+            "input": 8,
+            "output": 3599,
+            "cache_read": 434786,
+            "cache_creation": 5265,
+            "cache_creation_1h": 5265
+          }
+        }
+      },
+      "cost_recorded": {
+        "amount": 0.144,
+        "currency": "USD",
+        "priced_at": "2026-09-13",
+        "provider": "anthropic",
+        "model": "claude-sonnet-5",
+        "by_model": {
+          "claude-sonnet-5": {
+            "amount": 0.144,
+            "priced_at": "2026-09-13"
+          }
+        }
+      },
+      "note": null
+    },
+    {
+      "date": "2026-09-20",
+      "commit": "8b069c4",
+      "subject": "Add --enrich --dry-run: preview migrating milestones frozen before the per-model split",
+      "words_delta": 0,
+      "loc_delta": 706,
+      "tokens": {
+        "input": 104,
+        "output": 105458,
+        "cache_read": 5818076,
+        "cache_creation": 198224,
+        "cache_creation_1h": 198224,
+        "by_model": {
+          "claude-sonnet-5": {
+            "input": 104,
+            "output": 105458,
+            "cache_read": 5818076,
+            "cache_creation": 198224,
+            "cache_creation_1h": 198224
+          }
+        }
+      },
+      "cost_recorded": {
+        "amount": 3.0113,
+        "currency": "USD",
+        "priced_at": "2026-09-13",
+        "provider": "anthropic",
+        "model": "claude-sonnet-5",
+        "by_model": {
+          "claude-sonnet-5": {
+            "amount": 3.0113,
+            "priced_at": "2026-09-13"
+          }
+        }
+      },
+      "note": null
+    },
+    {
+      "date": "2026-09-20",
+      "commit": "ef0e5cf",
+      "subject": "Add the --enrich write path: audited, one-time, refuses what it cannot prove",
+      "words_delta": 0,
+      "loc_delta": 271,
+      "tokens": {
+        "input": 20,
+        "output": 22346,
+        "cache_read": 2290979,
+        "cache_creation": 45772,
+        "cache_creation_1h": 45772,
+        "by_model": {
+          "claude-sonnet-5": {
+            "input": 20,
+            "output": 22346,
+            "cache_read": 2290979,
+            "cache_creation": 45772,
+            "cache_creation_1h": 45772
+          }
+        }
+      },
+      "cost_recorded": {
+        "amount": 0.8648,
+        "currency": "USD",
+        "priced_at": "2026-09-13",
+        "provider": "anthropic",
+        "model": "claude-sonnet-5",
+        "by_model": {
+          "claude-sonnet-5": {
+            "amount": 0.8648,
+            "priced_at": "2026-09-13"
+          }
+        }
+      },
+      "note": null
+    },
+    {
+      "date": "2026-09-20",
+      "commit": "563f644",
+      "subject": "Document --enrich: the practice, the guard, the audit trail and the deadline",
+      "words_delta": 958,
+      "loc_delta": 0,
+      "tokens": {
+        "input": 6,
+        "output": 7626,
+        "cache_read": 744494,
+        "cache_creation": 8306,
+        "cache_creation_1h": 8306,
+        "by_model": {
+          "claude-sonnet-5": {
+            "input": 6,
+            "output": 7626,
+            "cache_read": 744494,
+            "cache_creation": 8306,
+            "cache_creation_1h": 8306
+          }
+        }
+      },
+      "cost_recorded": {
+        "amount": 0.2584,
+        "currency": "USD",
+        "priced_at": "2026-09-13",
+        "provider": "anthropic",
+        "model": "claude-sonnet-5",
+        "by_model": {
+          "claude-sonnet-5": {
+            "amount": 0.2584,
+            "priced_at": "2026-09-13"
+          }
+        }
+      },
+      "note": null
+    },
+    {
+      "date": "2026-09-20",
+      "commit": "defd6b3",
+      "subject": "Self-run: enrich this logbook's 34 frozen milestones with --enrich",
+      "words_delta": 403,
+      "loc_delta": 0,
+      "tokens": {
+        "input": 10,
+        "output": 9864,
+        "cache_read": 1295603,
+        "cache_creation": 13519,
+        "cache_creation_1h": 13519,
+        "by_model": {
+          "claude-sonnet-5": {
+            "input": 10,
+            "output": 9864,
+            "cache_read": 1295603,
+            "cache_creation": 13519,
+            "cache_creation_1h": 13519
+          }
+        }
+      },
+      "cost_recorded": {
+        "amount": 0.4119,
+        "currency": "USD",
+        "priced_at": "2026-09-13",
+        "provider": "anthropic",
+        "model": "claude-sonnet-5",
+        "by_model": {
+          "claude-sonnet-5": {
+            "amount": 0.4119,
+            "priced_at": "2026-09-13"
+          }
+        }
+      },
+      "note": null
+    },
+    {
+      "date": "2026-09-20",
+      "commit": "16119a0",
+      "subject": "Merge pull request #2 from tecosodreaboutdigital/feat/enrich-migration",
+      "words_delta": 0,
+      "loc_delta": 0,
+      "tokens": {
+        "input": 26,
+        "output": 9607,
+        "cache_read": 2743237,
+        "cache_creation": 15168,
+        "cache_creation_1h": 15168,
+        "by_model": {
+          "claude-sonnet-5": {
+            "input": 26,
+            "output": 9607,
+            "cache_read": 2743237,
+            "cache_creation": 15168,
+            "cache_creation_1h": 15168
+          }
+        }
+      },
+      "cost_recorded": {
+        "amount": 0.7054,
+        "currency": "USD",
+        "priced_at": "2026-09-13",
+        "provider": "anthropic",
+        "model": "claude-sonnet-5",
+        "by_model": {
+          "claude-sonnet-5": {
+            "amount": 0.7054,
+            "priced_at": "2026-09-13"
+          }
+        }
+      },
+      "note": null
     }
   ]
 }
