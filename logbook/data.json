@@ -1,5 +1,6 @@
 {
   "generated_at": "2026-09-14T13:32:47.743609+00:00",
+  "last_repriced_at": "2026-09-20T03:16:27.893757+00:00",
   "milestones": [
     {
       "date": "2026-09-13",
@@ -14,13 +15,25 @@
         "cache_creation": 35467
       },
       "cost_recorded": {
-        "amount": 0.2336,
+        "amount": 0.1557,
         "currency": "USD",
         "priced_at": "2026-09-13",
         "provider": "anthropic",
         "model": "claude-sonnet-5"
       },
-      "note": null
+      "note": null,
+      "repricings": [
+        {
+          "repriced_at": "2026-09-20T03:16:27.893757+00:00",
+          "previous_cost": {
+            "amount": 0.2336,
+            "currency": "USD",
+            "priced_at": "2026-09-13",
+            "provider": "anthropic",
+            "model": "claude-sonnet-5"
+          }
+        }
+      ]
     },
     {
       "date": "2026-09-13",
@@ -35,13 +48,25 @@
         "cache_creation": 74170
       },
       "cost_recorded": {
-        "amount": 0.6694,
+        "amount": 0.4463,
         "currency": "USD",
         "priced_at": "2026-09-13",
         "provider": "anthropic",
         "model": "claude-sonnet-5"
       },
-      "note": null
+      "note": null,
+      "repricings": [
+        {
+          "repriced_at": "2026-09-20T03:16:27.893757+00:00",
+          "previous_cost": {
+            "amount": 0.6694,
+            "currency": "USD",
+            "priced_at": "2026-09-13",
+            "provider": "anthropic",
+            "model": "claude-sonnet-5"
+          }
+        }
+      ]
     },
     {
       "date": "2026-09-13",
@@ -56,13 +81,25 @@
         "cache_creation": 43343
       },
       "cost_recorded": {
-        "amount": 0.5386,
+        "amount": 0.359,
         "currency": "USD",
         "priced_at": "2026-09-13",
         "provider": "anthropic",
         "model": "claude-sonnet-5"
       },
-      "note": null
+      "note": null,
+      "repricings": [
+        {
+          "repriced_at": "2026-09-20T03:16:27.893757+00:00",
+          "previous_cost": {
+            "amount": 0.5386,
+            "currency": "USD",
+            "priced_at": "2026-09-13",
+            "provider": "anthropic",
+            "model": "claude-sonnet-5"
+          }
+        }
+      ]
     },
     {
       "date": "2026-09-13",
@@ -77,13 +114,25 @@
         "cache_creation": 43191
       },
       "cost_recorded": {
-        "amount": 0.517,
+        "amount": 0.3447,
         "currency": "USD",
         "priced_at": "2026-09-13",
         "provider": "anthropic",
         "model": "claude-sonnet-5"
       },
-      "note": null
+      "note": null,
+      "repricings": [
+        {
+          "repriced_at": "2026-09-20T03:16:27.893757+00:00",
+          "previous_cost": {
+            "amount": 0.517,
+            "currency": "USD",
+            "priced_at": "2026-09-13",
+            "provider": "anthropic",
+            "model": "claude-sonnet-5"
+          }
+        }
+      ]
     },
     {
       "date": "2026-09-13",
@@ -98,13 +147,25 @@
         "cache_creation": 47326
       },
       "cost_recorded": {
-        "amount": 0.4978,
+        "amount": 0.3319,
         "currency": "USD",
         "priced_at": "2026-09-13",
         "provider": "anthropic",
         "model": "claude-sonnet-5"
       },
-      "note": null
+      "note": null,
+      "repricings": [
+        {
+          "repriced_at": "2026-09-20T03:16:27.893757+00:00",
+          "previous_cost": {
+            "amount": 0.4978,
+            "currency": "USD",
+            "priced_at": "2026-09-13",
+            "provider": "anthropic",
+            "model": "claude-sonnet-5"
+          }
+        }
+      ]
     },
     {
       "date": "2026-09-13",
@@ -119,13 +180,25 @@
         "cache_creation": 63568
       },
       "cost_recorded": {
-        "amount": 0.7513,
+        "amount": 0.5009,
         "currency": "USD",
         "priced_at": "2026-09-13",
         "provider": "anthropic",
         "model": "claude-sonnet-5"
       },
-      "note": null
+      "note": null,
+      "repricings": [
+        {
+          "repriced_at": "2026-09-20T03:16:27.893757+00:00",
+          "previous_cost": {
+            "amount": 0.7513,
+            "currency": "USD",
+            "priced_at": "2026-09-13",
+            "provider": "anthropic",
+            "model": "claude-sonnet-5"
+          }
+        }
+      ]
     },
     {
       "date": "2026-09-13",
@@ -140,13 +213,25 @@
         "cache_creation": 50124
       },
       "cost_recorded": {
-        "amount": 0.704,
+        "amount": 0.4693,
         "currency": "USD",
         "priced_at": "2026-09-13",
         "provider": "anthropic",
         "model": "claude-sonnet-5"
       },
-      "note": null
+      "note": null,
+      "repricings": [
+        {
+          "repriced_at": "2026-09-20T03:16:27.893757+00:00",
+          "previous_cost": {
+            "amount": 0.704,
+            "currency": "USD",
+            "priced_at": "2026-09-13",
+            "provider": "anthropic",
+            "model": "claude-sonnet-5"
+          }
+        }
+      ]
     },
     {
       "date": "2026-09-13",
@@ -161,13 +246,25 @@
         "cache_creation": 94682
       },
       "cost_recorded": {
-        "amount": 0.8107,
+        "amount": 0.5405,
         "currency": "USD",
         "priced_at": "2026-09-13",
         "provider": "anthropic",
         "model": "claude-sonnet-5"
       },
-      "note": null
+      "note": null,
+      "repricings": [
+        {
+          "repriced_at": "2026-09-20T03:16:27.893757+00:00",
+          "previous_cost": {
+            "amount": 0.8107,
+            "currency": "USD",
+            "priced_at": "2026-09-13",
+            "provider": "anthropic",
+            "model": "claude-sonnet-5"
+          }
+        }
+      ]
     },
     {
       "date": "2026-09-13",
@@ -182,13 +279,25 @@
         "cache_creation": 98056
       },
       "cost_recorded": {
-        "amount": 1.3419,
+        "amount": 0.8946,
         "currency": "USD",
         "priced_at": "2026-09-13",
         "provider": "anthropic",
         "model": "claude-sonnet-5"
       },
-      "note": null
+      "note": null,
+      "repricings": [
+        {
+          "repriced_at": "2026-09-20T03:16:27.893757+00:00",
+          "previous_cost": {
+            "amount": 1.3419,
+            "currency": "USD",
+            "priced_at": "2026-09-13",
+            "provider": "anthropic",
+            "model": "claude-sonnet-5"
+          }
+        }
+      ]
     },
     {
       "date": "2026-09-13",
@@ -203,13 +312,25 @@
         "cache_creation": 73072
       },
       "cost_recorded": {
-        "amount": 0.6068,
+        "amount": 0.4046,
         "currency": "USD",
         "priced_at": "2026-09-13",
         "provider": "anthropic",
         "model": "claude-sonnet-5"
       },
-      "note": null
+      "note": null,
+      "repricings": [
+        {
+          "repriced_at": "2026-09-20T03:16:27.893757+00:00",
+          "previous_cost": {
+            "amount": 0.6068,
+            "currency": "USD",
+            "priced_at": "2026-09-13",
+            "provider": "anthropic",
+            "model": "claude-sonnet-5"
+          }
+        }
+      ]
     },
     {
       "date": "2026-09-13",
@@ -224,13 +345,25 @@
         "cache_creation": 40295
       },
       "cost_recorded": {
-        "amount": 0.3833,
+        "amount": 0.2556,
         "currency": "USD",
         "priced_at": "2026-09-13",
         "provider": "anthropic",
         "model": "claude-sonnet-5"
       },
-      "note": null
+      "note": null,
+      "repricings": [
+        {
+          "repriced_at": "2026-09-20T03:16:27.893757+00:00",
+          "previous_cost": {
+            "amount": 0.3833,
+            "currency": "USD",
+            "priced_at": "2026-09-13",
+            "provider": "anthropic",
+            "model": "claude-sonnet-5"
+          }
+        }
+      ]
     },
     {
       "date": "2026-09-13",
@@ -245,13 +378,25 @@
         "cache_creation": 61157
       },
       "cost_recorded": {
-        "amount": 0.9096,
+        "amount": 0.6064,
         "currency": "USD",
         "priced_at": "2026-09-13",
         "provider": "anthropic",
         "model": "claude-sonnet-5"
       },
-      "note": null
+      "note": null,
+      "repricings": [
+        {
+          "repriced_at": "2026-09-20T03:16:27.893757+00:00",
+          "previous_cost": {
+            "amount": 0.9096,
+            "currency": "USD",
+            "priced_at": "2026-09-13",
+            "provider": "anthropic",
+            "model": "claude-sonnet-5"
+          }
+        }
+      ]
     },
     {
       "date": "2026-09-13",
@@ -266,13 +411,25 @@
         "cache_creation": 98455
       },
       "cost_recorded": {
-        "amount": 1.2678,
+        "amount": 0.8452,
         "currency": "USD",
         "priced_at": "2026-09-13",
         "provider": "anthropic",
         "model": "claude-sonnet-5"
       },
-      "note": null
+      "note": null,
+      "repricings": [
+        {
+          "repriced_at": "2026-09-20T03:16:27.893757+00:00",
+          "previous_cost": {
+            "amount": 1.2678,
+            "currency": "USD",
+            "priced_at": "2026-09-13",
+            "provider": "anthropic",
+            "model": "claude-sonnet-5"
+          }
+        }
+      ]
     },
     {
       "date": "2026-09-13",
@@ -287,13 +444,25 @@
         "cache_creation": 111513
       },
       "cost_recorded": {
-        "amount": 1.7833,
+        "amount": 1.1889,
         "currency": "USD",
         "priced_at": "2026-09-13",
         "provider": "anthropic",
         "model": "claude-sonnet-5"
       },
-      "note": null
+      "note": null,
+      "repricings": [
+        {
+          "repriced_at": "2026-09-20T03:16:27.893757+00:00",
+          "previous_cost": {
+            "amount": 1.7833,
+            "currency": "USD",
+            "priced_at": "2026-09-13",
+            "provider": "anthropic",
+            "model": "claude-sonnet-5"
+          }
+        }
+      ]
     },
     {
       "date": "2026-09-13",
@@ -308,13 +477,25 @@
         "cache_creation": 87504
       },
       "cost_recorded": {
-        "amount": 0.9139,
+        "amount": 0.6093,
         "currency": "USD",
         "priced_at": "2026-09-13",
         "provider": "anthropic",
         "model": "claude-sonnet-5"
       },
-      "note": null
+      "note": null,
+      "repricings": [
+        {
+          "repriced_at": "2026-09-20T03:16:27.893757+00:00",
+          "previous_cost": {
+            "amount": 0.9139,
+            "currency": "USD",
+            "priced_at": "2026-09-13",
+            "provider": "anthropic",
+            "model": "claude-sonnet-5"
+          }
+        }
+      ]
     },
     {
       "date": "2026-09-13",
@@ -329,13 +510,25 @@
         "cache_creation": 58831
       },
       "cost_recorded": {
-        "amount": 0.7819,
+        "amount": 0.5213,
         "currency": "USD",
         "priced_at": "2026-09-13",
         "provider": "anthropic",
         "model": "claude-sonnet-5"
       },
-      "note": null
+      "note": null,
+      "repricings": [
+        {
+          "repriced_at": "2026-09-20T03:16:27.893757+00:00",
+          "previous_cost": {
+            "amount": 0.7819,
+            "currency": "USD",
+            "priced_at": "2026-09-13",
+            "provider": "anthropic",
+            "model": "claude-sonnet-5"
+          }
+        }
+      ]
     },
     {
       "date": "2026-09-13",
@@ -350,13 +543,25 @@
         "cache_creation": 154273
       },
       "cost_recorded": {
-        "amount": 2.3274,
+        "amount": 1.5516,
         "currency": "USD",
         "priced_at": "2026-09-13",
         "provider": "anthropic",
         "model": "claude-sonnet-5"
       },
-      "note": null
+      "note": null,
+      "repricings": [
+        {
+          "repriced_at": "2026-09-20T03:16:27.893757+00:00",
+          "previous_cost": {
+            "amount": 2.3274,
+            "currency": "USD",
+            "priced_at": "2026-09-13",
+            "provider": "anthropic",
+            "model": "claude-sonnet-5"
+          }
+        }
+      ]
     },
     {
       "date": "2026-09-13",
@@ -371,13 +576,25 @@
         "cache_creation": 101613
       },
       "cost_recorded": {
-        "amount": 1.4082,
+        "amount": 0.9388,
         "currency": "USD",
         "priced_at": "2026-09-13",
         "provider": "anthropic",
         "model": "claude-sonnet-5"
       },
-      "note": null
+      "note": null,
+      "repricings": [
+        {
+          "repriced_at": "2026-09-20T03:16:27.893757+00:00",
+          "previous_cost": {
+            "amount": 1.4082,
+            "currency": "USD",
+            "priced_at": "2026-09-13",
+            "provider": "anthropic",
+            "model": "claude-sonnet-5"
+          }
+        }
+      ]
     },
     {
       "date": "2026-09-13",
@@ -392,13 +609,25 @@
         "cache_creation": 171121
       },
       "cost_recorded": {
-        "amount": 2.5321,
+        "amount": 1.6881,
         "currency": "USD",
         "priced_at": "2026-09-13",
         "provider": "anthropic",
         "model": "claude-sonnet-5"
       },
-      "note": null
+      "note": null,
+      "repricings": [
+        {
+          "repriced_at": "2026-09-20T03:16:27.893757+00:00",
+          "previous_cost": {
+            "amount": 2.5321,
+            "currency": "USD",
+            "priced_at": "2026-09-13",
+            "provider": "anthropic",
+            "model": "claude-sonnet-5"
+          }
+        }
+      ]
     },
     {
       "date": "2026-09-13",
@@ -413,13 +642,25 @@
         "cache_creation": 395722
       },
       "cost_recorded": {
-        "amount": 7.1267,
+        "amount": 4.7512,
         "currency": "USD",
         "priced_at": "2026-09-13",
         "provider": "anthropic",
         "model": "claude-sonnet-5"
       },
-      "note": null
+      "note": null,
+      "repricings": [
+        {
+          "repriced_at": "2026-09-20T03:16:27.893757+00:00",
+          "previous_cost": {
+            "amount": 7.1267,
+            "currency": "USD",
+            "priced_at": "2026-09-13",
+            "provider": "anthropic",
+            "model": "claude-sonnet-5"
+          }
+        }
+      ]
     },
     {
       "date": "2026-09-13",
@@ -434,13 +675,25 @@
         "cache_creation": 5405
       },
       "cost_recorded": {
-        "amount": 0.4825,
+        "amount": 0.3217,
         "currency": "USD",
         "priced_at": "2026-09-13",
         "provider": "anthropic",
         "model": "claude-sonnet-5"
       },
-      "note": null
+      "note": null,
+      "repricings": [
+        {
+          "repriced_at": "2026-09-20T03:16:27.893757+00:00",
+          "previous_cost": {
+            "amount": 0.4825,
+            "currency": "USD",
+            "priced_at": "2026-09-13",
+            "provider": "anthropic",
+            "model": "claude-sonnet-5"
+          }
+        }
+      ]
     },
     {
       "date": "2026-09-13",
@@ -455,13 +708,25 @@
         "cache_creation": 9989
       },
       "cost_recorded": {
-        "amount": 0.674,
+        "amount": 0.4493,
         "currency": "USD",
         "priced_at": "2026-09-13",
         "provider": "anthropic",
         "model": "claude-sonnet-5"
       },
-      "note": null
+      "note": null,
+      "repricings": [
+        {
+          "repriced_at": "2026-09-20T03:16:27.893757+00:00",
+          "previous_cost": {
+            "amount": 0.674,
+            "currency": "USD",
+            "priced_at": "2026-09-13",
+            "provider": "anthropic",
+            "model": "claude-sonnet-5"
+          }
+        }
+      ]
     },
     {
       "date": "2026-09-13",
@@ -476,13 +741,25 @@
         "cache_creation": 7704
       },
       "cost_recorded": {
-        "amount": 0.852,
+        "amount": 0.568,
         "currency": "USD",
         "priced_at": "2026-09-13",
         "provider": "anthropic",
         "model": "claude-sonnet-5"
       },
-      "note": null
+      "note": null,
+      "repricings": [
+        {
+          "repriced_at": "2026-09-20T03:16:27.893757+00:00",
+          "previous_cost": {
+            "amount": 0.852,
+            "currency": "USD",
+            "priced_at": "2026-09-13",
+            "provider": "anthropic",
+            "model": "claude-sonnet-5"
+          }
+        }
+      ]
     },
     {
       "date": "2026-09-13",
@@ -497,13 +774,25 @@
         "cache_creation": 4301
       },
       "cost_recorded": {
-        "amount": 0.5671,
+        "amount": 0.3781,
         "currency": "USD",
         "priced_at": "2026-09-13",
         "provider": "anthropic",
         "model": "claude-sonnet-5"
       },
-      "note": null
+      "note": null,
+      "repricings": [
+        {
+          "repriced_at": "2026-09-20T03:16:27.893757+00:00",
+          "previous_cost": {
+            "amount": 0.5671,
+            "currency": "USD",
+            "priced_at": "2026-09-13",
+            "provider": "anthropic",
+            "model": "claude-sonnet-5"
+          }
+        }
+      ]
     },
     {
       "date": "2026-09-13",
@@ -518,13 +807,25 @@
         "cache_creation": 9713
       },
       "cost_recorded": {
-        "amount": 0.6736,
+        "amount": 0.4491,
         "currency": "USD",
         "priced_at": "2026-09-13",
         "provider": "anthropic",
         "model": "claude-sonnet-5"
       },
-      "note": null
+      "note": null,
+      "repricings": [
+        {
+          "repriced_at": "2026-09-20T03:16:27.893757+00:00",
+          "previous_cost": {
+            "amount": 0.6736,
+            "currency": "USD",
+            "priced_at": "2026-09-13",
+            "provider": "anthropic",
+            "model": "claude-sonnet-5"
+          }
+        }
+      ]
     },
     {
       "date": "2026-09-13",
@@ -539,13 +840,25 @@
         "cache_creation": 3554
       },
       "cost_recorded": {
-        "amount": 0.5266,
+        "amount": 0.3511,
         "currency": "USD",
         "priced_at": "2026-09-13",
         "provider": "anthropic",
         "model": "claude-sonnet-5"
       },
-      "note": null
+      "note": null,
+      "repricings": [
+        {
+          "repriced_at": "2026-09-20T03:16:27.893757+00:00",
+          "previous_cost": {
+            "amount": 0.5266,
+            "currency": "USD",
+            "priced_at": "2026-09-13",
+            "provider": "anthropic",
+            "model": "claude-sonnet-5"
+          }
+        }
+      ]
     },
     {
       "date": "2026-09-14",
@@ -560,13 +873,25 @@
         "cache_creation": 19586
       },
       "cost_recorded": {
-        "amount": 0.8899,
+        "amount": 0.5933,
         "currency": "USD",
         "priced_at": "2026-09-13",
         "provider": "anthropic",
         "model": "claude-sonnet-5"
       },
-      "note": null
+      "note": null,
+      "repricings": [
+        {
+          "repriced_at": "2026-09-20T03:16:27.893757+00:00",
+          "previous_cost": {
+            "amount": 0.8899,
+            "currency": "USD",
+            "priced_at": "2026-09-13",
+            "provider": "anthropic",
+            "model": "claude-sonnet-5"
+          }
+        }
+      ]
     },
     {
       "date": "2026-09-14",
@@ -581,13 +906,25 @@
         "cache_creation": 196762
       },
       "cost_recorded": {
-        "amount": 5.6918,
+        "amount": 3.7945,
         "currency": "USD",
         "priced_at": "2026-09-13",
         "provider": "anthropic",
         "model": "claude-sonnet-5"
       },
-      "note": null
+      "note": null,
+      "repricings": [
+        {
+          "repriced_at": "2026-09-20T03:16:27.893757+00:00",
+          "previous_cost": {
+            "amount": 5.6918,
+            "currency": "USD",
+            "priced_at": "2026-09-13",
+            "provider": "anthropic",
+            "model": "claude-sonnet-5"
+          }
+        }
+      ]
     },
     {
       "date": "2026-09-14",
@@ -602,13 +939,25 @@
         "cache_creation": 878
       },
       "cost_recorded": {
-        "amount": 0.0815,
+        "amount": 0.0543,
         "currency": "USD",
         "priced_at": "2026-09-13",
         "provider": "anthropic",
         "model": "claude-sonnet-5"
       },
-      "note": null
+      "note": null,
+      "repricings": [
+        {
+          "repriced_at": "2026-09-20T03:16:27.893757+00:00",
+          "previous_cost": {
+            "amount": 0.0815,
+            "currency": "USD",
+            "priced_at": "2026-09-13",
+            "provider": "anthropic",
+            "model": "claude-sonnet-5"
+          }
+        }
+      ]
     },
     {
       "date": "2026-09-14",
@@ -623,13 +972,25 @@
         "cache_creation": 703
       },
       "cost_recorded": {
-        "amount": 0.0794,
+        "amount": 0.0529,
         "currency": "USD",
         "priced_at": "2026-09-13",
         "provider": "anthropic",
         "model": "claude-sonnet-5"
       },
-      "note": null
+      "note": null,
+      "repricings": [
+        {
+          "repriced_at": "2026-09-20T03:16:27.893757+00:00",
+          "previous_cost": {
+            "amount": 0.0794,
+            "currency": "USD",
+            "priced_at": "2026-09-13",
+            "provider": "anthropic",
+            "model": "claude-sonnet-5"
+          }
+        }
+      ]
     },
     {
       "date": "2026-09-14",
@@ -644,13 +1005,25 @@
         "cache_creation": 4264
       },
       "cost_recorded": {
-        "amount": 0.416,
+        "amount": 0.2774,
         "currency": "USD",
         "priced_at": "2026-09-13",
         "provider": "anthropic",
         "model": "claude-sonnet-5"
       },
-      "note": null
+      "note": null,
+      "repricings": [
+        {
+          "repriced_at": "2026-09-20T03:16:27.893757+00:00",
+          "previous_cost": {
+            "amount": 0.416,
+            "currency": "USD",
+            "priced_at": "2026-09-13",
+            "provider": "anthropic",
+            "model": "claude-sonnet-5"
+          }
+        }
+      ]
     },
     {
       "date": "2026-09-14",
@@ -665,13 +1038,25 @@
         "cache_creation": 373387
       },
       "cost_recorded": {
-        "amount": 6.1807,
+        "amount": 4.1205,
         "currency": "USD",
         "priced_at": "2026-09-13",
         "provider": "anthropic",
         "model": "claude-sonnet-5"
       },
-      "note": null
+      "note": null,
+      "repricings": [
+        {
+          "repriced_at": "2026-09-20T03:16:27.893757+00:00",
+          "previous_cost": {
+            "amount": 6.1807,
+            "currency": "USD",
+            "priced_at": "2026-09-13",
+            "provider": "anthropic",
+            "model": "claude-sonnet-5"
+          }
+        }
+      ]
     },
     {
       "date": "2026-09-14",
@@ -686,13 +1071,25 @@
         "cache_creation": 830
       },
       "cost_recorded": {
-        "amount": 0.0757,
+        "amount": 0.0505,
         "currency": "USD",
         "priced_at": "2026-09-13",
         "provider": "anthropic",
         "model": "claude-sonnet-5"
       },
-      "note": null
+      "note": null,
+      "repricings": [
+        {
+          "repriced_at": "2026-09-20T03:16:27.893757+00:00",
+          "previous_cost": {
+            "amount": 0.0757,
+            "currency": "USD",
+            "priced_at": "2026-09-13",
+            "provider": "anthropic",
+            "model": "claude-sonnet-5"
+          }
+        }
+      ]
     },
     {
       "date": "2026-09-14",
@@ -707,13 +1104,25 @@
         "cache_creation": 7555
       },
       "cost_recorded": {
-        "amount": 0.7734,
+        "amount": 0.5156,
         "currency": "USD",
         "priced_at": "2026-09-13",
         "provider": "anthropic",
         "model": "claude-sonnet-5"
       },
-      "note": null
+      "note": null,
+      "repricings": [
+        {
+          "repriced_at": "2026-09-20T03:16:27.893757+00:00",
+          "previous_cost": {
+            "amount": 0.7734,
+            "currency": "USD",
+            "priced_at": "2026-09-13",
+            "provider": "anthropic",
+            "model": "claude-sonnet-5"
+          }
+        }
+      ]
     }
   ]
 }

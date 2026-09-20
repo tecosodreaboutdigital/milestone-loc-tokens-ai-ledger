@@ -17,16 +17,47 @@ function priceForSelection(pricesBySeries, provider, model, targetDate) {
   return eligible.reduce((a, b) => (a.effective_date > b.effective_date ? a : b));
 }
 
+function hasOneHourPrice(priceEntry) {
+  return typeof priceEntry.cache_creation_1h_price === "number" && isFinite(priceEntry.cache_creation_1h_price);
+}
+
+// Mirrors engine/cost.py's price_tokens. cache_creation is the total of
+// every cache write and cache_creation_1h the 1-hour part of it (absent
+// in milestones frozen by an older engine, then 0): the 5-minute part is
+// the difference, priced at cache_creation_price; the 1-hour part is
+// priced at cache_creation_1h_price when the entry has one. When the
+// entry has none, a milestone that wrote 1-hour cache cannot be priced
+// honestly, so the result is null (shown as "-", 0 in the running
+// total), never the 5-minute rate applied to 1-hour writes.
 function calculateCost(tokens, priceEntry) {
   if (!priceEntry) {
     return null;
   }
-  const amount =
-    (tokens.input / 1000000) * priceEntry.input_price +
-    (tokens.output / 1000000) * priceEntry.output_price +
-    (tokens.cache_read / 1000000) * priceEntry.cache_read_price +
-    (tokens.cache_creation / 1000000) * priceEntry.cache_creation_price;
+  const cacheCreation = tokens.cache_creation || 0;
+  const oneHour = Math.min(tokens.cache_creation_1h || 0, cacheCreation);
+  const fiveMinute = cacheCreation - oneHour;
+  if (oneHour > 0 && !hasOneHourPrice(priceEntry)) {
+    return null;
+  }
+  let amount =
+    ((tokens.input || 0) / 1000000) * priceEntry.input_price +
+    ((tokens.output || 0) / 1000000) * priceEntry.output_price +
+    ((tokens.cache_read || 0) / 1000000) * priceEntry.cache_read_price +
+    (fiveMinute / 1000000) * priceEntry.cache_creation_price;
+  if (oneHour > 0) {
+    amount += (oneHour / 1000000) * priceEntry.cache_creation_1h_price;
+  }
   return Math.round(amount * 10000) / 10000;
+}
+
+// The series the price panel opens on: the one the engine says this
+// project is priced with, when it is among the options, else the first
+// option (the behaviour before the engine embedded a default).
+function defaultSeriesKey(options, preferred) {
+  if (preferred && options.some((option) => option.value === preferred)) {
+    return preferred;
+  }
+  return options.length > 0 ? options[0].value : null;
 }
 
 // Turns the embedded provider/model price series into a stable,
@@ -138,9 +169,17 @@ function savePriceSelection(series, date) {
   }
 }
 
-function renderSources(sourcesEl, sources) {
+function renderSources(sourcesEl, sources, note) {
   sourcesEl.innerHTML = "";
   const list = sources || [];
+  if (note) {
+    // An entry's own note (what a correction fixed, a caveat about its
+    // sources) is shown with its sources, as text, never as markup.
+    const noteLi = document.createElement("li");
+    noteLi.className = "entry-note";
+    noteLi.textContent = "Note: " + note;
+    sourcesEl.appendChild(noteLi);
+  }
   if (list.length === 0) {
     const li = document.createElement("li");
     li.textContent = "No source recorded for this price entry.";
@@ -175,6 +214,7 @@ function wireUpPricePanel() {
   const outputPrice = document.getElementById("price-output");
   const cacheReadPrice = document.getElementById("price-cache-read");
   const cacheCreationPrice = document.getElementById("price-cache-creation");
+  const cacheCreation1hPrice = document.getElementById("price-cache-creation-1h");
   // Every number field is paired with a range slider carrying the
   // same value, either one editable, always kept in sync (see
   // linkNumberAndRange below).
@@ -182,6 +222,7 @@ function wireUpPricePanel() {
   const outputPriceRange = document.getElementById("price-output-range");
   const cacheReadPriceRange = document.getElementById("price-cache-read-range");
   const cacheCreationPriceRange = document.getElementById("price-cache-creation-range");
+  const cacheCreation1hPriceRange = document.getElementById("price-cache-creation-1h-range");
   const sourcesEl = document.getElementById("price-sources");
   const costChartEl = document.getElementById("chart-cost");
   const rows = document.querySelectorAll("[data-milestone-tokens]");
@@ -197,8 +238,9 @@ function wireUpPricePanel() {
   });
 
   dateInput.value = data.today;
-  if (options.length > 0) {
-    select.value = options[0].value;
+  const initialSeries = defaultSeriesKey(options, data.default_series);
+  if (initialSeries) {
+    select.value = initialSeries;
   }
 
   const saved = loadSavedPriceSelection();
@@ -218,12 +260,22 @@ function wireUpPricePanel() {
       cache_read_price: parseFloat(cacheReadPrice.value) || 0,
       cache_creation_price: parseFloat(cacheCreationPrice.value) || 0,
     };
+    // A blank 1-hour field means "this entry has no 1-hour write price",
+    // not zero: it stays undefined, so calculateCost leaves any 1-hour
+    // cache writes unpriced instead of pricing them for free.
+    const oneHourPrice = parseFloat(cacheCreation1hPrice.value);
+    if (!isNaN(oneHourPrice)) {
+      priceEntry.cache_creation_1h_price = oneHourPrice;
+    }
     rows.forEach((row) => {
       const tokens = JSON.parse(row.getAttribute("data-milestone-tokens"));
       const cost = calculateCost(tokens, priceEntry);
       const cell = row.querySelector("[data-live-cost]");
       if (cell) {
         cell.textContent = cost === null ? "-" : "$" + cost.toFixed(4);
+        cell.title = cost === null && (tokens.cache_creation_1h || 0) > 0
+          ? "1-hour cache writes cannot be priced: this price entry has no 1-hour write price"
+          : "";
       }
     });
     if (costChartEl && tokensList.length > 0) {
@@ -248,9 +300,14 @@ function wireUpPricePanel() {
       if (outputPriceRange) outputPriceRange.value = latest.output_price;
       if (cacheReadPriceRange) cacheReadPriceRange.value = latest.cache_read_price;
       if (cacheCreationPriceRange) cacheCreationPriceRange.value = latest.cache_creation_price;
+      // An entry without a 1-hour write price leaves the field blank (and
+      // the slider at 0) rather than copying the 5-minute price into it.
+      const oneHour = hasOneHourPrice(latest) ? latest.cache_creation_1h_price : "";
+      cacheCreation1hPrice.value = oneHour;
+      if (cacheCreation1hPriceRange) cacheCreation1hPriceRange.value = oneHour === "" ? 0 : oneHour;
     }
     if (sourcesEl) {
-      renderSources(sourcesEl, latest ? latest.sources : []);
+      renderSources(sourcesEl, latest ? latest.sources : [], latest ? latest.note : null);
     }
     recalculate();
     savePriceSelection(select.value, targetDate);
@@ -278,13 +335,14 @@ function wireUpPricePanel() {
   linkNumberAndRange(outputPrice, outputPriceRange);
   linkNumberAndRange(cacheReadPrice, cacheReadPriceRange);
   linkNumberAndRange(cacheCreationPrice, cacheCreationPriceRange);
+  linkNumberAndRange(cacheCreation1hPrice, cacheCreation1hPriceRange);
   applySelection();
 }
 
 if (typeof module !== "undefined") {
   module.exports = {
     priceForSelection, calculateCost, buildSeriesOptions,
-    cumulativeCostValues, growthChartSVG,
+    cumulativeCostValues, growthChartSVG, defaultSeriesKey,
   };
 }
 if (typeof document !== "undefined") {
