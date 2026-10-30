@@ -29,7 +29,7 @@ Every word, line, and token count comes from reading git history and a real sess
 python engine/generate_metrics.py --repo /path/to/your/project
 ```
 
-First run bootstraps `<milestone_folder>/config.json` from `engine/config.example.json` if the folder does not already exist. Edit that file to declare which globs count as content (words) and which count as code (lines), which price series (`provider`/`model`) prices this project's token usage, and, only if you need it, `price_mode` (see "Multiple models and cache TTLs"; the default is `per_model`, and a config without the key behaves that way).
+First run bootstraps `<milestone_folder>/config.json` from `engine/config.example.json` if the folder does not already exist. Edit that file to declare which globs count as content (words) and which count as code (lines), which price series (`provider`/`model`) prices this project's token usage, and, only if you need it, `price_mode` (see "Multiple models and cache TTLs"; the default is `per_model`, and a config without the key behaves that way) and `include_nested_sessions` (see "Sessions opened in a worktree or a subfolder of this project"; the default is `false`).
 
 Only the Claude Code transcript reader ships complete. Running this against a project driven from another environment still counts words and lines from git history; token counts stay zero until a reader for that environment's transcript format is contributed, see `engine/readers/`.
 
@@ -47,6 +47,18 @@ python engine/generate_metrics.py --repo /path/to/your/project \
 This never widens project isolation into a guess. It only ever reads a subagent transcript nested under the named other project, and only the ones whose own transcript content literally contains this project's own absolute path, proof the subagent was actually pointed at these files, not a same-day coincidence. It never reads the other project's own top-level session file: that file mixes together a whole session's unrelated work in that other project and cannot be safely scoped to just this project's share of it. Repeat `--linked-project` for more than one other project. See `engine/readers/claude_code.find_linked_subagent_jsonl` for the exact rule.
 
 A milestone's recorded cost and the tokens it was computed from both freeze the first time they are written (see below), so a later run that omits a `--linked-project` flag given on an earlier run still shows the same historical numbers for milestones already priced; only a not-yet-priced milestone depends on the flag being repeated.
+
+### Sessions opened in a worktree or a subfolder of this project
+
+Claude Code files a session under the folder it was opened in. A session opened in a git worktree of this project (`<repo>/.claude/worktrees/<name>`, which is where Claude Code puts the worktrees it creates) or in a subfolder (`<repo>/site/<page>`) lands under its own project folder, never this one's, so the ordinary lookup finds nothing for it and its milestones come out with no tokens and no cost. A project that works that way opts in, in `logbook/config.json`:
+
+```
+"include_nested_sessions": true
+```
+
+The engine then also reads every project folder whose encoded name starts with this project's encoded name plus `-`, and from those files it counts **only the messages whose own `cwd` is inside this repository** (compared path segment by path segment, with Git Bash's `/c/...` and native `C:\...` forms treated as the same folder). The folder name only narrows the search, because the encoding is lossy: a sibling `repo-a-longer-name` shares `repo-a`'s prefix, and its messages are excluded by the `cwd` check, not by the name. A worktree session that `cd`s into an unrelated project contributes nothing from that point on, and a message with no `cwd` is left out, never assumed. The exact project folder is read as before, whole. The key is opt-in and validated: absent means `false`, and anything other than JSON `true` or `false` stops the run. A normal run and `--enrich` honour it identically. See `engine/readers/claude_code.find_nested_project_session_jsonl`.
+
+As with `--linked-project`, a milestone already priced stays frozen: switching the key on fills in only milestones that have no recorded cost yet.
 
 ## Recording a decision alongside a milestone
 

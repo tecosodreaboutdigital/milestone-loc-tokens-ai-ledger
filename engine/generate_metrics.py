@@ -38,12 +38,17 @@ _REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 if _REPO_ROOT not in sys.path:
     sys.path.insert(0, _REPO_ROOT)
 
-from engine.config import load_config, price_mode
+from engine.config import include_nested_sessions, load_config, price_mode
 from engine.cost import MODEL_TOKEN_FIELDS, TOKEN_KINDS, price_milestone, total_tokens
 from engine.enrich import apply_enrichment, format_report, plan_enrichment
 from engine.git_source import commits, line_count, list_repo_files_at, matches_any, sum_metric, word_count_html
 from engine.prices import load_ledger
-from engine.readers.claude_code import find_linked_subagent_jsonl, find_session_jsonl, load_usage_events
+from engine.readers.claude_code import (
+    find_linked_subagent_jsonl,
+    find_nested_project_session_jsonl,
+    find_session_jsonl,
+    load_usage_events,
+)
 from engine.scrub import scrub_text
 from engine.svg_chart import svg_growth_chart, svg_stat_thumbnail
 
@@ -124,7 +129,7 @@ def _effective_exclude_globs(config):
     return exclude_globs
 
 
-def read_token_buckets(repo_root, claude_projects_dir, linked_projects=None):
+def read_token_buckets(repo_root, claude_projects_dir, linked_projects=None, include_nested=False):
     """The git history and, per commit, the tokens this project's
     transcripts recorded up to it. Shared by a normal run and by
     --enrich, so the two can never bucket differently. Returns
@@ -140,12 +145,19 @@ def read_token_buckets(repo_root, claude_projects_dir, linked_projects=None):
     # ever be read.
     for linked_root in (linked_projects or []):
         session_files.extend(find_linked_subagent_jsonl(claude_projects_dir, linked_root, repo_root))
-    events = load_usage_events(session_files)
+    # Opt-in through the config's include_nested_sessions: sessions opened
+    # in a worktree or a subfolder of this repository, each message kept
+    # only when its own cwd is inside the repository.
+    nested_files = find_nested_project_session_jsonl(claude_projects_dir, repo_root) if include_nested else []
+    session_files.extend(nested_files)
+    events = load_usage_events(session_files, scoped_paths=nested_files, scope_root=repo_root)
     return rows, _bucket_tokens_by_commit(rows, events), len(session_files), len(events)
 
 
 def build_milestones(repo_root, config, claude_projects_dir, linked_projects=None):
-    rows, token_buckets, _, _ = read_token_buckets(repo_root, claude_projects_dir, linked_projects)
+    rows, token_buckets, _, _ = read_token_buckets(
+        repo_root, claude_projects_dir, linked_projects, include_nested_sessions(config)
+    )
     notes = load_notes(repo_root, config["milestone_folder"])
     price_ledger = load_ledger(SHIPPED_PRICES)
     exclude_globs = _effective_exclude_globs(config)
@@ -307,7 +319,7 @@ def _plan_enrichment(repo_root, config, data_path, claude_projects_dir, linked_p
     Only reads. Returns (frozen, plan, transcript_files, usage_events)."""
     frozen = _load_frozen_data(data_path, "--enrich")
     rows, token_buckets, transcript_files, usage_events = read_token_buckets(
-        repo_root, claude_projects_dir, linked_projects
+        repo_root, claude_projects_dir, linked_projects, include_nested_sessions(config)
     )
     buckets_by_commit = {row["hash"][:7]: bucket for row, bucket in zip(rows, token_buckets)}
     price_ledger = load_ledger(SHIPPED_PRICES)
