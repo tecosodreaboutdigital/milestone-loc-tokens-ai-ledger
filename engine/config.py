@@ -1,7 +1,10 @@
 """Loads and validates this project's config.json.
 
-`price_mode` is the one optional key, and it is explicit opt-in, never
-inferred from the price provider:
+`price_mode` and `include_nested_sessions` are the optional keys, both
+explicit opt-in. `include_nested_sessions` (default false) also counts
+the sessions opened in worktrees and subfolders of the repository; see
+include_nested_sessions below. `price_mode` is never inferred from the
+price provider:
 
   per_model  (default, and what a config without the key gets) each
              model id in a transcript is priced with its own series
@@ -40,7 +43,23 @@ def load_config(path):
         if key not in data:
             raise ValueError("config is missing required key: %s" % key)
     price_mode(data)
+    include_nested_sessions(data)
     return data
+
+
+def include_nested_sessions(config):
+    """The config's include_nested_sessions, False when the key is absent.
+
+    Opt-in, never inferred: True also reads the sessions Claude Code
+    filed under worktrees and subfolders of this repository (see
+    readers.claude_code.find_nested_project_session_jsonl), counting only
+    the messages whose cwd is inside the repository. Anything but a JSON
+    true or false fails loudly, so "yes" or 1 is never read as a choice
+    the author did not make."""
+    value = config.get("include_nested_sessions", False)
+    if not isinstance(value, bool):
+        raise ValueError("config include_nested_sessions must be true or false, got %r" % (value,))
+    return value
 
 
 def price_mode(config):

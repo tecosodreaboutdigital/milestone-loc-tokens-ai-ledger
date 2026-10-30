@@ -119,6 +119,8 @@ Every section above assumes a human reader deciding whether to install this. Thi
 
 **`--linked-project` only ever widens where the engine looks, on purpose, once, by name.** It still requires a real transcript naming this project's own path; it never counts a linked session's own top-level orchestration overhead (see "This repository logs itself"); and a milestone's tokens stay frozen alongside its recorded cost once both are written, but a not-yet-priced milestone still needs the same `--linked-project` flag repeated on every future run for as long as its transcripts live only under the other project's path.
 
+**Sessions opened in a worktree or a subfolder are counted only by opt-in.** With `"include_nested_sessions": true` in `logbook/config.json`, the engine also reads the sessions Claude Code filed under this project's worktrees and subfolders, keeping only the messages whose own `cwd` is inside the repository. Without it, those sessions' milestones show no tokens, as before. Turning it on never changes a milestone whose cost is already frozen (see `SKILL.md`).
+
 ## Origin
 
 Part of the [Harness series and the MEDIR cycle](https://github.com/tecosodreaboutdigital/harness-medir): Map, Equip, Delegate, Inspect, Reinforce. This skill generalises the diary-of-record engine that project built for itself.

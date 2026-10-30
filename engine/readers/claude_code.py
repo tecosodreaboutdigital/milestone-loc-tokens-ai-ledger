@@ -57,6 +57,66 @@ def find_session_jsonl(claude_projects_dir, repo_root):
     return top_level + find_nested_subagent_jsonl(project_dir)
 
 
+def _normalize_cwd(path):
+    """A cwd as a transcript stores it, made comparable with a local
+    absolute path: Git Bash writes /c/Users/..., a native shell
+    C:\\Users\\... or c:\\Users\\...; all three name the same folder."""
+    if not isinstance(path, str) or not path:
+        return None
+    match = re.match(r"^/([a-zA-Z])(/|$)", path)
+    if match and os.name == "nt":
+        path = match.group(1) + ":" + path[2:]
+    return os.path.normcase(os.path.normpath(path))
+
+
+def path_is_within(cwd, repo_root):
+    """True when cwd is repo_root itself or a folder inside it, compared
+    path segment by path segment: repo-a-longer-name is never inside
+    repo-a."""
+    cwd = _normalize_cwd(cwd)
+    if cwd is None:
+        return False
+    root = os.path.normcase(os.path.normpath(os.path.abspath(repo_root)))
+    return cwd == root or cwd.startswith(root.rstrip(os.sep) + os.sep)
+
+
+def find_nested_project_session_jsonl(claude_projects_dir, repo_root):
+    """Transcripts of sessions opened BELOW repo_root rather than at it:
+    a git worktree under <repo>/.claude/worktrees/<name>, or a session
+    started in a subfolder such as <repo>/site/<page>. Claude Code files
+    each of those under its own project folder, whose encoded name is
+    this repository's encoded name plus "-" and the rest of the path, so
+    find_session_jsonl's exact match never sees them.
+
+    The folder name only narrows the search: the encoding is lossy
+    (repo-a-longer-name encodes with repo-a's prefix too), so it never
+    decides anything. Every file returned here must be read with
+    load_usage_events(..., scoped_paths=..., scope_root=repo_root),
+    which keeps only the messages whose own cwd is inside repo_root.
+    Never the exact project folder (find_session_jsonl reads that one)."""
+    if not os.path.isdir(claude_projects_dir):
+        return []
+    exact = encode_project_path(repo_root)
+    prefix = exact + "-"
+    paths = []
+    for name in sorted(os.listdir(claude_projects_dir)):
+        # The drive letter's case varies between folders of the same
+        # machine (c--Users-... and C--Users-...); nothing else does.
+        folded = name[:1].lower() + name[1:]
+        if folded == exact or not folded.startswith(prefix):
+            continue
+        project_dir = os.path.join(claude_projects_dir, name)
+        if not os.path.isdir(project_dir):
+            continue
+        paths.extend(
+            os.path.join(project_dir, file_name)
+            for file_name in sorted(os.listdir(project_dir))
+            if file_name.endswith(".jsonl")
+        )
+        paths.extend(find_nested_subagent_jsonl(project_dir))
+    return paths
+
+
 def _path_variants(path):
     """Every textual form an absolute path might actually appear in
     inside a JSONL transcript line: both slash styles, both
@@ -126,15 +186,23 @@ def _one_hour_cache_writes(usage, cache_creation_total):
     return min(_as_count(breakdown.get("ephemeral_1h_input_tokens")), cache_creation_total)
 
 
-def load_usage_events(paths):
+def load_usage_events(paths, scoped_paths=(), scope_root=None):
     """One event per assistant message: its timestamp, the model id that
     served it (message.model, None when the row has none), and its token
     counts, with cache_creation_1h the 1-hour subset of cache_creation.
     Deduped by message id, keeping the last occurrence (see the module
-    docstring)."""
+    docstring).
+
+    A path also listed in scoped_paths (see
+    find_nested_project_session_jsonl) contributes only the messages
+    whose own cwd is inside scope_root: a session opened in a worktree
+    can cd into an unrelated project, and that work is not this one's.
+    A message there with no cwd at all is left out, never assumed."""
     by_id = {}
     unkeyed = []
+    scoped = set(scoped_paths)
     for path in paths:
+        only_within = scope_root if path in scoped else None
         with open(path, encoding="utf-8") as fh:
             for line in fh:
                 line = line.strip()
@@ -147,6 +215,8 @@ def load_usage_events(paths):
                 message = row.get("message")
                 timestamp = row.get("timestamp")
                 if not (isinstance(message, dict) and "usage" in message and timestamp):
+                    continue
+                if only_within is not None and not path_is_within(row.get("cwd"), only_within):
                     continue
                 usage = message["usage"]
                 cache_creation = usage.get("cache_creation_input_tokens", 0) or 0
