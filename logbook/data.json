@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-20T13:55:08.035204+00:00",
+  "generated_at": "2026-11-01T23:37:12.552768+00:00",
   "last_repriced_at": "2026-09-20T03:16:27.893757+00:00",
   "last_enriched_at": "2026-09-20T12:53:49.683380+00:00",
   "milestones": [
@@ -2594,6 +2594,841 @@
         }
       },
       "note": null
+    },
+    {
+      "date": "2026-09-20",
+      "commit": "d6cd9c1",
+      "subject": "Self-run: add the 11 milestones since the last logbook update",
+      "words_delta": 36,
+      "loc_delta": 0,
+      "tokens": {
+        "input": 0,
+        "output": 0,
+        "cache_read": 0,
+        "cache_creation": 0,
+        "cache_creation_1h": 0,
+        "by_model": {}
+      },
+      "cost_recorded": null,
+      "note": null
+    },
+    {
+      "date": "2026-09-20",
+      "commit": "b2914b4",
+      "subject": "README: describe the audit trail and the unpriced reporting under \"What it delivers\"",
+      "words_delta": 115,
+      "loc_delta": 0,
+      "tokens": {
+        "input": 0,
+        "output": 0,
+        "cache_read": 0,
+        "cache_creation": 0,
+        "cache_creation_1h": 0,
+        "by_model": {}
+      },
+      "cost_recorded": null,
+      "note": null
+    },
+    {
+      "date": "2026-09-20",
+      "commit": "2b6b07a",
+      "subject": "Merge pull request #3 from tecosodreaboutdigital/chore/logbook-update-2026-09-20",
+      "words_delta": 0,
+      "loc_delta": 0,
+      "tokens": {
+        "input": 0,
+        "output": 0,
+        "cache_read": 0,
+        "cache_creation": 0,
+        "cache_creation_1h": 0,
+        "by_model": {}
+      },
+      "cost_recorded": null,
+      "note": null
+    },
+    {
+      "date": "2026-10-30",
+      "commit": "279fbd9",
+      "subject": "Opt-in include_nested_sessions: count sessions opened in a worktree or subfolder",
+      "words_delta": 406,
+      "loc_delta": 269,
+      "tokens": {
+        "input": 0,
+        "output": 0,
+        "cache_read": 0,
+        "cache_creation": 0,
+        "cache_creation_1h": 0,
+        "by_model": {}
+      },
+      "cost_recorded": null,
+      "note": null
+    },
+    {
+      "date": "2026-10-30",
+      "commit": "e860f71",
+      "subject": "Merge pull request #4 from tecosodreaboutdigital/feat/include-nested-sessions",
+      "words_delta": 0,
+      "loc_delta": 0,
+      "tokens": {
+        "input": 0,
+        "output": 0,
+        "cache_read": 0,
+        "cache_creation": 0,
+        "cache_creation_1h": 0,
+        "by_model": {}
+      },
+      "cost_recorded": null,
+      "note": null
+    },
+    {
+      "date": "2026-11-01",
+      "commit": "55e036d",
+      "subject": "Named milestones, per-day totals and cost at today's price",
+      "words_delta": 562,
+      "loc_delta": 423,
+      "tokens": {
+        "input": 72,
+        "output": 24796,
+        "cache_read": 3711907,
+        "cache_creation": 116019,
+        "cache_creation_1h": 116019,
+        "by_model": {
+          "claude-opus-5-5": {
+            "input": 72,
+            "output": 24796,
+            "cache_read": 3711907,
+            "cache_creation": 116019,
+            "cache_creation_1h": 116019
+          }
+        }
+      },
+      "cost_recorded": {
+        "amount": 2.1667,
+        "currency": "USD",
+        "priced_at": "2026-11-01",
+        "provider": "anthropic",
+        "model": "claude-opus-5-5",
+        "by_model": {
+          "claude-opus-5-5": {
+            "amount": 2.1667,
+            "priced_at": "2026-11-01"
+          }
+        }
+      },
+      "note": null
+    }
+  ],
+  "today": "2026-11-01",
+  "cost_at_today": {
+    "315d2e6": {
+      "amount": 0.0779,
+      "currency": "USD",
+      "priced_at": "2026-09-13",
+      "provider": "anthropic",
+      "model": "claude-haiku-4-5-20251001",
+      "by_model": {
+        "claude-haiku-4-5-20251001": {
+          "amount": 0.0779,
+          "priced_at": "2026-09-13"
+        }
+      }
+    },
+    "4554648": {
+      "amount": 0.3495,
+      "currency": "USD",
+      "priced_at": "2026-09-13",
+      "provider": "anthropic",
+      "model": "multiple",
+      "by_model": {
+        "claude-haiku-4-5-20251001": {
+          "amount": 0.0968,
+          "priced_at": "2026-09-13"
+        },
+        "claude-sonnet-5": {
+          "amount": 0.2527,
+          "priced_at": "2026-09-13"
+        }
+      }
+    },
+    "bf0f42f": {
+      "amount": 0.2587,
+      "currency": "USD",
+      "priced_at": "2026-09-13",
+      "provider": "anthropic",
+      "model": "multiple",
+      "by_model": {
+        "claude-haiku-4-5-20251001": {
+          "amount": 0.1003,
+          "priced_at": "2026-09-13"
+        },
+        "claude-sonnet-5": {
+          "amount": 0.1584,
+          "priced_at": "2026-09-13"
+        }
+      }
+    },
+    "e589de8": {
+      "amount": 0.2844,
+      "currency": "USD",
+      "priced_at": "2026-09-13",
+      "provider": "anthropic",
+      "model": "multiple",
+      "by_model": {
+        "claude-haiku-4-5-20251001": {
+          "amount": 0.0603,
+          "priced_at": "2026-09-13"
+        },
+        "claude-sonnet-5": {
+          "amount": 0.2241,
+          "priced_at": "2026-09-13"
+        }
+      }
+    },
+    "d65f6b0": {
+      "amount": 0.2293,
+      "currency": "USD",
+      "priced_at": "2026-09-13",
+      "provider": "anthropic",
+      "model": "multiple",
+      "by_model": {
+        "claude-haiku-4-5-20251001": {
+          "amount": 0.1026,
+          "priced_at": "2026-09-13"
+        },
+        "claude-sonnet-5": {
+          "amount": 0.1267,
+          "priced_at": "2026-09-13"
+        }
+      }
+    },
+    "2230d83": {
+      "amount": 0.4056,
+      "currency": "USD",
+      "priced_at": "2026-09-13",
+      "provider": "anthropic",
+      "model": "multiple",
+      "by_model": {
+        "claude-haiku-4-5-20251001": {
+          "amount": 0.0953,
+          "priced_at": "2026-09-13"
+        },
+        "claude-sonnet-5": {
+          "amount": 0.3103,
+          "priced_at": "2026-09-13"
+        }
+      }
+    },
+    "b254f1d": {
+      "amount": 0.3475,
+      "currency": "USD",
+      "priced_at": "2026-09-13",
+      "provider": "anthropic",
+      "model": "multiple",
+      "by_model": {
+        "claude-haiku-4-5-20251001": {
+          "amount": 0.1218,
+          "priced_at": "2026-09-13"
+        },
+        "claude-sonnet-5": {
+          "amount": 0.2258,
+          "priced_at": "2026-09-13"
+        }
+      }
+    },
+    "a96e4ba": {
+      "amount": 0.5152,
+      "currency": "USD",
+      "priced_at": "2026-09-13",
+      "provider": "anthropic",
+      "model": "multiple",
+      "by_model": {
+        "claude-haiku-4-5-20251001": {
+          "amount": 0.0253,
+          "priced_at": "2026-09-13"
+        },
+        "claude-sonnet-5": {
+          "amount": 0.4899,
+          "priced_at": "2026-09-13"
+        }
+      }
+    },
+    "2e2e985": {
+      "amount": 0.8946,
+      "currency": "USD",
+      "priced_at": "2026-09-13",
+      "provider": "anthropic",
+      "model": "claude-sonnet-5",
+      "by_model": {
+        "claude-sonnet-5": {
+          "amount": 0.8946,
+          "priced_at": "2026-09-13"
+        }
+      }
+    },
+    "3cb11c5": {
+      "amount": 0.3303,
+      "currency": "USD",
+      "priced_at": "2026-09-13",
+      "provider": "anthropic",
+      "model": "multiple",
+      "by_model": {
+        "claude-haiku-4-5-20251001": {
+          "amount": 0.0743,
+          "priced_at": "2026-09-13"
+        },
+        "claude-sonnet-5": {
+          "amount": 0.256,
+          "priced_at": "2026-09-13"
+        }
+      }
+    },
+    "6a09caa": {
+      "amount": 0.19,
+      "currency": "USD",
+      "priced_at": "2026-09-13",
+      "provider": "anthropic",
+      "model": "multiple",
+      "by_model": {
+        "claude-haiku-4-5-20251001": {
+          "amount": 0.0656,
+          "priced_at": "2026-09-13"
+        },
+        "claude-sonnet-5": {
+          "amount": 0.1244,
+          "priced_at": "2026-09-13"
+        }
+      }
+    },
+    "586ba58": {
+      "amount": 0.4878,
+      "currency": "USD",
+      "priced_at": "2026-09-13",
+      "provider": "anthropic",
+      "model": "multiple",
+      "by_model": {
+        "claude-haiku-4-5-20251001": {
+          "amount": 0.1186,
+          "priced_at": "2026-09-13"
+        },
+        "claude-sonnet-5": {
+          "amount": 0.3691,
+          "priced_at": "2026-09-13"
+        }
+      }
+    },
+    "9ef18db": {
+      "amount": 0.8154,
+      "currency": "USD",
+      "priced_at": "2026-09-13",
+      "provider": "anthropic",
+      "model": "multiple",
+      "by_model": {
+        "claude-haiku-4-5-20251001": {
+          "amount": 0.0297,
+          "priced_at": "2026-09-13"
+        },
+        "claude-sonnet-5": {
+          "amount": 0.7857,
+          "priced_at": "2026-09-13"
+        }
+      }
+    },
+    "0375e29": {
+      "amount": 1.1889,
+      "currency": "USD",
+      "priced_at": "2026-09-13",
+      "provider": "anthropic",
+      "model": "claude-sonnet-5",
+      "by_model": {
+        "claude-sonnet-5": {
+          "amount": 1.1889,
+          "priced_at": "2026-09-13"
+        }
+      }
+    },
+    "4a520e4": {
+      "amount": 0.5278,
+      "currency": "USD",
+      "priced_at": "2026-09-13",
+      "provider": "anthropic",
+      "model": "multiple",
+      "by_model": {
+        "claude-haiku-4-5-20251001": {
+          "amount": 0.0814,
+          "priced_at": "2026-09-13"
+        },
+        "claude-sonnet-5": {
+          "amount": 0.4464,
+          "priced_at": "2026-09-13"
+        }
+      }
+    },
+    "45ad468": {
+      "amount": 0.3712,
+      "currency": "USD",
+      "priced_at": "2026-09-13",
+      "provider": "anthropic",
+      "model": "multiple",
+      "by_model": {
+        "claude-haiku-4-5-20251001": {
+          "amount": 0.1501,
+          "priced_at": "2026-09-13"
+        },
+        "claude-sonnet-5": {
+          "amount": 0.2211,
+          "priced_at": "2026-09-13"
+        }
+      }
+    },
+    "59055e8": {
+      "amount": 1.5126,
+      "currency": "USD",
+      "priced_at": "2026-09-13",
+      "provider": "anthropic",
+      "model": "multiple",
+      "by_model": {
+        "claude-haiku-4-5-20251001": {
+          "amount": 0.039,
+          "priced_at": "2026-09-13"
+        },
+        "claude-sonnet-5": {
+          "amount": 1.4736,
+          "priced_at": "2026-09-13"
+        }
+      }
+    },
+    "de38bd5": {
+      "amount": 0.9388,
+      "currency": "USD",
+      "priced_at": "2026-09-13",
+      "provider": "anthropic",
+      "model": "claude-sonnet-5",
+      "by_model": {
+        "claude-sonnet-5": {
+          "amount": 0.9388,
+          "priced_at": "2026-09-13"
+        }
+      }
+    },
+    "741e5d4": {
+      "amount": 1.6881,
+      "currency": "USD",
+      "priced_at": "2026-09-13",
+      "provider": "anthropic",
+      "model": "claude-sonnet-5",
+      "by_model": {
+        "claude-sonnet-5": {
+          "amount": 1.6881,
+          "priced_at": "2026-09-13"
+        }
+      }
+    },
+    "0d0d5bc": {
+      "amount": 6.9404,
+      "currency": "USD",
+      "priced_at": "2026-09-13",
+      "provider": "anthropic",
+      "model": "multiple",
+      "by_model": {
+        "claude-opus-5": {
+          "amount": 3.6488,
+          "priced_at": "2026-09-13"
+        },
+        "claude-sonnet-5": {
+          "amount": 3.2916,
+          "priced_at": "2026-09-13"
+        }
+      }
+    },
+    "abc8492": {
+      "amount": 0.3217,
+      "currency": "USD",
+      "priced_at": "2026-09-13",
+      "provider": "anthropic",
+      "model": "claude-sonnet-5",
+      "by_model": {
+        "claude-sonnet-5": {
+          "amount": 0.3217,
+          "priced_at": "2026-09-13"
+        }
+      }
+    },
+    "a6849db": {
+      "amount": 0.4493,
+      "currency": "USD",
+      "priced_at": "2026-09-13",
+      "provider": "anthropic",
+      "model": "claude-sonnet-5",
+      "by_model": {
+        "claude-sonnet-5": {
+          "amount": 0.4493,
+          "priced_at": "2026-09-13"
+        }
+      }
+    },
+    "4ab9153": {
+      "amount": 0.568,
+      "currency": "USD",
+      "priced_at": "2026-09-13",
+      "provider": "anthropic",
+      "model": "claude-sonnet-5",
+      "by_model": {
+        "claude-sonnet-5": {
+          "amount": 0.568,
+          "priced_at": "2026-09-13"
+        }
+      }
+    },
+    "5b42974": {
+      "amount": 0.3781,
+      "currency": "USD",
+      "priced_at": "2026-09-13",
+      "provider": "anthropic",
+      "model": "claude-sonnet-5",
+      "by_model": {
+        "claude-sonnet-5": {
+          "amount": 0.3781,
+          "priced_at": "2026-09-13"
+        }
+      }
+    },
+    "be51f0b": {
+      "amount": 0.4491,
+      "currency": "USD",
+      "priced_at": "2026-09-13",
+      "provider": "anthropic",
+      "model": "claude-sonnet-5",
+      "by_model": {
+        "claude-sonnet-5": {
+          "amount": 0.4491,
+          "priced_at": "2026-09-13"
+        }
+      }
+    },
+    "f3f6a30": {
+      "amount": 0.3511,
+      "currency": "USD",
+      "priced_at": "2026-09-13",
+      "provider": "anthropic",
+      "model": "claude-sonnet-5",
+      "by_model": {
+        "claude-sonnet-5": {
+          "amount": 0.3511,
+          "priced_at": "2026-09-13"
+        }
+      }
+    },
+    "a70fd1e": {
+      "amount": 0.5933,
+      "currency": "USD",
+      "priced_at": "2026-09-13",
+      "provider": "anthropic",
+      "model": "claude-sonnet-5",
+      "by_model": {
+        "claude-sonnet-5": {
+          "amount": 0.5933,
+          "priced_at": "2026-09-13"
+        }
+      }
+    },
+    "b76549a": {
+      "amount": 4.0896,
+      "currency": "USD",
+      "priced_at": "2026-09-13",
+      "provider": "anthropic",
+      "model": "claude-sonnet-5",
+      "by_model": {
+        "claude-sonnet-5": {
+          "amount": 4.0896,
+          "priced_at": "2026-09-13"
+        }
+      }
+    },
+    "e4baa67": {
+      "amount": 0.0557,
+      "currency": "USD",
+      "priced_at": "2026-09-13",
+      "provider": "anthropic",
+      "model": "claude-sonnet-5",
+      "by_model": {
+        "claude-sonnet-5": {
+          "amount": 0.0557,
+          "priced_at": "2026-09-13"
+        }
+      }
+    },
+    "3765880": {
+      "amount": 0.054,
+      "currency": "USD",
+      "priced_at": "2026-09-13",
+      "provider": "anthropic",
+      "model": "claude-sonnet-5",
+      "by_model": {
+        "claude-sonnet-5": {
+          "amount": 0.054,
+          "priced_at": "2026-09-13"
+        }
+      }
+    },
+    "32f23da": {
+      "amount": 0.2838,
+      "currency": "USD",
+      "priced_at": "2026-09-13",
+      "provider": "anthropic",
+      "model": "claude-sonnet-5",
+      "by_model": {
+        "claude-sonnet-5": {
+          "amount": 0.2838,
+          "priced_at": "2026-09-13"
+        }
+      }
+    },
+    "b7e5646": {
+      "amount": 4.6806,
+      "currency": "USD",
+      "priced_at": "2026-09-13",
+      "provider": "anthropic",
+      "model": "claude-sonnet-5",
+      "by_model": {
+        "claude-sonnet-5": {
+          "amount": 4.6806,
+          "priced_at": "2026-09-13"
+        }
+      }
+    },
+    "e4aa925": {
+      "amount": 0.0517,
+      "currency": "USD",
+      "priced_at": "2026-09-13",
+      "provider": "anthropic",
+      "model": "claude-sonnet-5",
+      "by_model": {
+        "claude-sonnet-5": {
+          "amount": 0.0517,
+          "priced_at": "2026-09-13"
+        }
+      }
+    },
+    "8f9d65d": {
+      "amount": 0.5269,
+      "currency": "USD",
+      "priced_at": "2026-09-13",
+      "provider": "anthropic",
+      "model": "claude-sonnet-5",
+      "by_model": {
+        "claude-sonnet-5": {
+          "amount": 0.5269,
+          "priced_at": "2026-09-13"
+        }
+      }
+    },
+    "8168c98": {
+      "amount": 2.6514,
+      "currency": "USD",
+      "priced_at": "2026-09-13",
+      "provider": "anthropic",
+      "model": "claude-sonnet-5",
+      "by_model": {
+        "claude-sonnet-5": {
+          "amount": 2.6514,
+          "priced_at": "2026-09-13"
+        }
+      }
+    },
+    "02d34c4": {
+      "amount": 0.671,
+      "currency": "USD",
+      "priced_at": "2026-09-13",
+      "provider": "anthropic",
+      "model": "claude-sonnet-5",
+      "by_model": {
+        "claude-sonnet-5": {
+          "amount": 0.671,
+          "priced_at": "2026-09-13"
+        }
+      }
+    },
+    "1ec8e84": null,
+    "b84b0a8": {
+      "amount": 0.9418,
+      "currency": "USD",
+      "priced_at": "2026-09-13",
+      "provider": "anthropic",
+      "model": "claude-sonnet-5",
+      "by_model": {
+        "claude-sonnet-5": {
+          "amount": 0.9418,
+          "priced_at": "2026-09-13"
+        }
+      }
+    },
+    "b2749c8": {
+      "amount": 0.0372,
+      "currency": "USD",
+      "priced_at": "2026-09-13",
+      "provider": "anthropic",
+      "model": "claude-sonnet-5",
+      "by_model": {
+        "claude-sonnet-5": {
+          "amount": 0.0372,
+          "priced_at": "2026-09-13"
+        }
+      }
+    },
+    "2cda28d": {
+      "amount": 0.144,
+      "currency": "USD",
+      "priced_at": "2026-09-13",
+      "provider": "anthropic",
+      "model": "claude-sonnet-5",
+      "by_model": {
+        "claude-sonnet-5": {
+          "amount": 0.144,
+          "priced_at": "2026-09-13"
+        }
+      }
+    },
+    "8b069c4": {
+      "amount": 3.0113,
+      "currency": "USD",
+      "priced_at": "2026-09-13",
+      "provider": "anthropic",
+      "model": "claude-sonnet-5",
+      "by_model": {
+        "claude-sonnet-5": {
+          "amount": 3.0113,
+          "priced_at": "2026-09-13"
+        }
+      }
+    },
+    "ef0e5cf": {
+      "amount": 0.8648,
+      "currency": "USD",
+      "priced_at": "2026-09-13",
+      "provider": "anthropic",
+      "model": "claude-sonnet-5",
+      "by_model": {
+        "claude-sonnet-5": {
+          "amount": 0.8648,
+          "priced_at": "2026-09-13"
+        }
+      }
+    },
+    "563f644": {
+      "amount": 0.2584,
+      "currency": "USD",
+      "priced_at": "2026-09-13",
+      "provider": "anthropic",
+      "model": "claude-sonnet-5",
+      "by_model": {
+        "claude-sonnet-5": {
+          "amount": 0.2584,
+          "priced_at": "2026-09-13"
+        }
+      }
+    },
+    "defd6b3": {
+      "amount": 0.4119,
+      "currency": "USD",
+      "priced_at": "2026-09-13",
+      "provider": "anthropic",
+      "model": "claude-sonnet-5",
+      "by_model": {
+        "claude-sonnet-5": {
+          "amount": 0.4119,
+          "priced_at": "2026-09-13"
+        }
+      }
+    },
+    "16119a0": {
+      "amount": 0.7054,
+      "currency": "USD",
+      "priced_at": "2026-09-13",
+      "provider": "anthropic",
+      "model": "claude-sonnet-5",
+      "by_model": {
+        "claude-sonnet-5": {
+          "amount": 0.7054,
+          "priced_at": "2026-09-13"
+        }
+      }
+    },
+    "d6cd9c1": null,
+    "b2914b4": null,
+    "2b6b07a": null,
+    "279fbd9": null,
+    "e860f71": null,
+    "55e036d": {
+      "amount": 2.1667,
+      "currency": "USD",
+      "priced_at": "2026-11-01",
+      "provider": "anthropic",
+      "model": "claude-opus-5-5",
+      "by_model": {
+        "claude-opus-5-5": {
+          "amount": 2.1667,
+          "priced_at": "2026-11-01"
+        }
+      }
+    }
+  },
+  "unpriced_at_today": [],
+  "named_milestones": [],
+  "days": [
+    {
+      "date": "2026-09-13",
+      "commits": 26,
+      "words_delta": 2316,
+      "loc_delta": 2097,
+      "tokens": 49888545,
+      "cost_recorded": 20.8713,
+      "cost_at_today": 20.8713,
+      "partial": false,
+      "partial_at_today": false
+    },
+    {
+      "date": "2026-09-14",
+      "commits": 9,
+      "words_delta": 1030,
+      "loc_delta": 803,
+      "tokens": 42412285,
+      "cost_recorded": 12.987,
+      "cost_at_today": 12.987,
+      "partial": false,
+      "partial_at_today": false
+    },
+    {
+      "date": "2026-09-20",
+      "commits": 13,
+      "words_delta": 3908,
+      "loc_delta": 3261,
+      "tokens": 18994272,
+      "cost_recorded": 7.0458,
+      "cost_at_today": 7.0458,
+      "partial": false,
+      "partial_at_today": false
+    },
+    {
+      "date": "2026-10-30",
+      "commits": 2,
+      "words_delta": 406,
+      "loc_delta": 269,
+      "tokens": 0,
+      "cost_recorded": null,
+      "cost_at_today": null,
+      "partial": false,
+      "partial_at_today": false
+    },
+    {
+      "date": "2026-11-01",
+      "commits": 1,
+      "words_delta": 562,
+      "loc_delta": 423,
+      "tokens": 3852794,
+      "cost_recorded": 2.1667,
+      "cost_at_today": 2.1667,
+      "partial": false,
+      "partial_at_today": false
     }
   ]
 }
