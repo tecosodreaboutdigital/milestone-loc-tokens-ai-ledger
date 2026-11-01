@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-11-01T23:37:12.552768+00:00",
+  "generated_at": "2026-11-01T23:49:43.909296+00:00",
   "last_repriced_at": "2026-09-20T03:16:27.893757+00:00",
   "last_enriched_at": "2026-09-20T12:53:49.683380+00:00",
   "milestones": [
@@ -2716,6 +2716,43 @@
         }
       },
       "note": null
+    },
+    {
+      "date": "2026-11-01",
+      "commit": "66e7ccd",
+      "subject": "Self-run: 51 milestones, with named-milestone, per-day and today's-price tables",
+      "words_delta": 57,
+      "loc_delta": 0,
+      "tokens": {
+        "input": 22,
+        "output": 5370,
+        "cache_read": 1524001,
+        "cache_creation": 13600,
+        "cache_creation_1h": 13600,
+        "by_model": {
+          "claude-opus-5-5": {
+            "input": 22,
+            "output": 5370,
+            "cache_read": 1524001,
+            "cache_creation": 13600,
+            "cache_creation_1h": 13600
+          }
+        }
+      },
+      "cost_recorded": {
+        "amount": 0.5211,
+        "currency": "USD",
+        "priced_at": "2026-11-01",
+        "provider": "anthropic",
+        "model": "claude-opus-5-5",
+        "by_model": {
+          "claude-opus-5-5": {
+            "amount": 0.5211,
+            "priced_at": "2026-11-01"
+          }
+        }
+      },
+      "note": null
     }
   ],
   "today": "2026-11-01",
@@ -3370,6 +3407,19 @@
           "priced_at": "2026-11-01"
         }
       }
+    },
+    "66e7ccd": {
+      "amount": 0.5211,
+      "currency": "USD",
+      "priced_at": "2026-11-01",
+      "provider": "anthropic",
+      "model": "claude-opus-5-5",
+      "by_model": {
+        "claude-opus-5-5": {
+          "amount": 0.5211,
+          "priced_at": "2026-11-01"
+        }
+      }
     }
   },
   "unpriced_at_today": [],
@@ -3421,12 +3471,12 @@
     },
     {
       "date": "2026-11-01",
-      "commits": 1,
-      "words_delta": 562,
+      "commits": 2,
+      "words_delta": 619,
       "loc_delta": 423,
-      "tokens": 3852794,
-      "cost_recorded": 2.1667,
-      "cost_at_today": 2.1667,
+      "tokens": 5395787,
+      "cost_recorded": 2.6878,
+      "cost_at_today": 2.6878,
       "partial": false,
       "partial_at_today": false
     }
