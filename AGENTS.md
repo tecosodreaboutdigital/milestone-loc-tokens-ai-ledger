@@ -28,6 +28,7 @@ A transcript with several models, or with 1-hour cache writes, needs one sourced
 
 - Never present the price ledger or the installation matrix as live state. Both carry a verification date.
 - Never write a note to `notes.json` that the user did not actually provide.
+- Never invent a named milestone for a user: `milestones` in `config.json` names what the user calls a milestone, with the commit they say it ends at.
 - Never claim a transcript reader works for an environment `engine/readers/` does not actually contain a module for.
 - Never let the published `dashboard.html` or `dashboard.js` make a network call.
 - Never edit or delete an entry in `engine/prices.json`. A changed price is a new entry with a later date; a wrong price is a new entry with `--corrects` and the same date.
@@ -55,4 +56,4 @@ This file cannot make a tool without a real Claude Code transcript produce a non
 
 ---
 
-Last updated 20 September 2026.
+Last updated 1 November 2026.
