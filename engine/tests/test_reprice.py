@@ -422,7 +422,7 @@ class TestEndToEndCorrectionWorkflow(unittest.TestCase):
         self.assertIn("<h2>Unpriced usage</h2>", page)
         self.assertIn("claude-opus-5", page)
         self.assertIn("(partial)", page)
-        self.assertIn('<span class="kpi-n">1</span><span class="kpi-l">Unpriced milestones</span>', page)
+        self.assertIn('<span class="kpi-n">1</span><span class="kpi-l">Unpriced commits</span>', page)
         self.assertIn('"default_series": "anthropic::claude-sonnet-5"', page)
         # The live price panel receives the flat counters only, 1-hour
         # writes included.
@@ -481,7 +481,7 @@ class TestUnpricedRendering(unittest.TestCase):
         section = render_unpriced_section([m])
         self.assertNotIn("<b>evil</b>", section)
         self.assertIn("&lt;b&gt;evil&lt;/b&gt;", section)
-        self.assertIn("M1", section)
+        self.assertIn("C1", section)
         self.assertIn("--reprice", section)
 
     def test_a_milestone_with_nothing_priced_shows_a_dash_and_its_reason(self):

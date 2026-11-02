@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-11-01T23:49:43.909296+00:00",
+  "generated_at": "2026-11-02T00:18:59.747591+00:00",
   "last_repriced_at": "2026-09-20T03:16:27.893757+00:00",
   "last_enriched_at": "2026-09-20T12:53:49.683380+00:00",
   "milestones": [
@@ -2753,9 +2753,120 @@
         }
       },
       "note": null
+    },
+    {
+      "date": "2026-11-01",
+      "commit": "bc0a8ae",
+      "subject": "Self-run: opt this logbook into include_nested_sessions, 52 milestones",
+      "words_delta": 24,
+      "loc_delta": 0,
+      "tokens": {
+        "input": 24,
+        "output": 9763,
+        "cache_read": 1831034,
+        "cache_creation": 16354,
+        "cache_creation_1h": 16354,
+        "by_model": {
+          "claude-opus-5-5": {
+            "input": 24,
+            "output": 9763,
+            "cache_read": 1831034,
+            "cache_creation": 16354,
+            "cache_creation_1h": 16354
+          }
+        }
+      },
+      "cost_recorded": {
+        "amount": 0.6924,
+        "currency": "USD",
+        "priced_at": "2026-11-01",
+        "provider": "anthropic",
+        "model": "claude-opus-5-5",
+        "by_model": {
+          "claude-opus-5-5": {
+            "amount": 0.6924,
+            "priced_at": "2026-11-01"
+          }
+        }
+      },
+      "note": null
+    },
+    {
+      "date": "2026-11-01",
+      "commit": "0935d1c",
+      "subject": "Merge pull request #5 from tecosodreaboutdigital/feat/named-milestones-days-today-price",
+      "words_delta": 0,
+      "loc_delta": 0,
+      "tokens": {
+        "input": 10,
+        "output": 2250,
+        "cache_read": 709798,
+        "cache_creation": 3530,
+        "cache_creation_1h": 3530,
+        "by_model": {
+          "claude-opus-5-5": {
+            "input": 10,
+            "output": 2250,
+            "cache_read": 709798,
+            "cache_creation": 3530,
+            "cache_creation_1h": 3530
+          }
+        }
+      },
+      "cost_recorded": {
+        "amount": 0.2152,
+        "currency": "USD",
+        "priced_at": "2026-11-01",
+        "provider": "anthropic",
+        "model": "claude-opus-5-5",
+        "by_model": {
+          "claude-opus-5-5": {
+            "amount": 0.2152,
+            "priced_at": "2026-11-01"
+          }
+        }
+      },
+      "note": null
+    },
+    {
+      "date": "2026-11-01",
+      "commit": "46877e6",
+      "subject": "Charts per commit, day or milestone; live cost in every table; day_timezone",
+      "words_delta": 238,
+      "loc_delta": 502,
+      "tokens": {
+        "input": 66,
+        "output": 45376,
+        "cache_read": 7066894,
+        "cache_creation": 88503,
+        "cache_creation_1h": 88503,
+        "by_model": {
+          "claude-opus-5-5": {
+            "input": 66,
+            "output": 45376,
+            "cache_read": 7066894,
+            "cache_creation": 88503,
+            "cache_creation_1h": 88503
+          }
+        }
+      },
+      "cost_recorded": {
+        "amount": 3.0292,
+        "currency": "USD",
+        "priced_at": "2026-11-01",
+        "provider": "anthropic",
+        "model": "claude-opus-5-5",
+        "by_model": {
+          "claude-opus-5-5": {
+            "amount": 3.0292,
+            "priced_at": "2026-11-01"
+          }
+        }
+      },
+      "note": null
     }
   ],
-  "today": "2026-11-01",
+  "today": "2026-11-02",
   "cost_at_today": {
     "315d2e6": {
       "amount": 0.0779,
@@ -3420,6 +3531,45 @@
           "priced_at": "2026-11-01"
         }
       }
+    },
+    "bc0a8ae": {
+      "amount": 0.6924,
+      "currency": "USD",
+      "priced_at": "2026-11-01",
+      "provider": "anthropic",
+      "model": "claude-opus-5-5",
+      "by_model": {
+        "claude-opus-5-5": {
+          "amount": 0.6924,
+          "priced_at": "2026-11-01"
+        }
+      }
+    },
+    "0935d1c": {
+      "amount": 0.2152,
+      "currency": "USD",
+      "priced_at": "2026-11-01",
+      "provider": "anthropic",
+      "model": "claude-opus-5-5",
+      "by_model": {
+        "claude-opus-5-5": {
+          "amount": 0.2152,
+          "priced_at": "2026-11-01"
+        }
+      }
+    },
+    "46877e6": {
+      "amount": 3.0292,
+      "currency": "USD",
+      "priced_at": "2026-11-01",
+      "provider": "anthropic",
+      "model": "claude-opus-5-5",
+      "by_model": {
+        "claude-opus-5-5": {
+          "amount": 3.0292,
+          "priced_at": "2026-11-01"
+        }
+      }
     }
   },
   "unpriced_at_today": [],
@@ -3471,12 +3621,12 @@
     },
     {
       "date": "2026-11-01",
-      "commits": 2,
-      "words_delta": 619,
-      "loc_delta": 423,
-      "tokens": 5395787,
-      "cost_recorded": 2.6878,
-      "cost_at_today": 2.6878,
+      "commits": 5,
+      "words_delta": 881,
+      "loc_delta": 925,
+      "tokens": 15169389,
+      "cost_recorded": 6.6246,
+      "cost_at_today": 6.6246,
       "partial": false,
       "partial_at_today": false
     }

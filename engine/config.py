@@ -1,7 +1,8 @@
 """Loads and validates this project's config.json.
 
-`price_mode` and `include_nested_sessions` are the optional keys, both
-explicit opt-in. `include_nested_sessions` (default false) also counts
+`price_mode` and `include_nested_sessions` are the optional keys that
+change what is counted and priced, both explicit opt-in; `milestones`
+and `day_timezone` only change how the dashboard groups it. `include_nested_sessions` (default false) also counts
 the sessions opened in worktrees and subfolders of the repository; see
 include_nested_sessions below. `price_mode` is never inferred from the
 price provider:
@@ -18,6 +19,9 @@ price provider:
 
 import json
 import os
+import re
+import zoneinfo
+from datetime import timedelta, timezone
 
 PRICE_MODES = ("per_model", "flat")
 DEFAULT_PRICE_MODE = "per_model"
@@ -45,7 +49,45 @@ def load_config(path):
     price_mode(data)
     include_nested_sessions(data)
     named_milestones(data)
+    day_timezone(data)
     return data
+
+
+_OFFSET = re.compile(r"^([+-])(\d{2}):(\d{2})$")
+
+
+def day_timezone(config):
+    """The config's optional `day_timezone`: the zone the "By day" table
+    and the per-day charts read each commit's timestamp in, as a tzinfo,
+    or None when the key is absent (each commit's own offset, the date
+    recorded with it). Accepts "UTC", a fixed offset such as "-03:00", or
+    an IANA name such as "America/Sao_Paulo" where the system has a time
+    zone database (Windows has none without the tzdata package, so the
+    name fails there and an offset is the portable choice; an offset never
+    follows daylight saving). Only the grouping uses it: a commit's own
+    `date`, the one its recorded cost was priced at, never changes."""
+    value = config.get("day_timezone")
+    if value is None:
+        return None
+    if not isinstance(value, str) or not value.strip():
+        raise ValueError("config day_timezone must be \"UTC\", an offset like \"-03:00\", or an IANA name, got %r" % (value,))
+    if value == "UTC":
+        return timezone.utc
+    match = _OFFSET.match(value)
+    if match:
+        sign, hours, minutes = match.groups()
+        offset = timedelta(hours=int(hours), minutes=int(minutes))
+        if offset >= timedelta(hours=24):
+            raise ValueError("config day_timezone offset out of range: %r" % (value,))
+        return timezone(-offset if sign == "-" else offset)
+    try:
+        return zoneinfo.ZoneInfo(value)
+    except (zoneinfo.ZoneInfoNotFoundError, ValueError):
+        raise ValueError(
+            "config day_timezone %r is not a time zone this system knows; use \"UTC\" or a fixed "
+            "offset such as \"-03:00\" (a Windows Python has no IANA names without the tzdata package)"
+            % (value,)
+        ) from None
 
 
 def named_milestones(config):
