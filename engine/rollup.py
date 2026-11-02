@@ -46,11 +46,13 @@ def _totals(commits):
     }
 
 
-def group_by_day(milestones):
-    """One row per commit date, in commit order."""
+def group_by_day(milestones, day_of=None):
+    """One row per commit date, in commit order. `day_of(m)` gives the
+    date a commit counts under (see config.day_timezone); by default it
+    is the commit's own recorded `date`."""
     days = {}
     for m in milestones:
-        days.setdefault(m["date"], []).append(m)
+        days.setdefault(day_of(m) if day_of else m["date"], []).append(m)
     return [{"date": date, **_totals(commits)} for date, commits in days.items()]
 
 

@@ -2,6 +2,7 @@ const assert = require("assert");
 const {
   priceForSelection, calculateCost, buildSeriesOptions,
   cumulativeCostValues, growthChartSVG, defaultSeriesKey,
+  groupedCumulativeCost, groupLiveCosts, groupCostText,
 } = require("./dashboard.js");
 
 const pricesBySeries = {
@@ -172,5 +173,51 @@ assert.strictEqual(defaultSeriesKey(seriesOptions, "anthropic::claude-sonnet-5")
 assert.strictEqual(defaultSeriesKey(seriesOptions, "anthropic::not-there"), "anthropic::claude-haiku-4-5-20251001", "an unknown preferred series falls back to the first option");
 assert.strictEqual(defaultSeriesKey(seriesOptions, undefined), "anthropic::claude-haiku-4-5-20251001", "no preferred series (an older generated page): first option");
 assert.strictEqual(defaultSeriesKey([], "x"), null);
+
+// Grains: the cost chart and the day / milestone "Live cost" cells sum
+// each commit's live cost into its group (index[i] is commit i's group).
+const grainTokens = [
+  { input: 1000000, output: 0, cache_read: 0, cache_creation: 0 },
+  { input: 0, output: 0, cache_read: 0, cache_creation: 10, cache_creation_1h: 10 },
+  { input: 0, output: 1000000, cache_read: 0, cache_creation: 0 },
+  { input: 0, output: 0, cache_read: 0, cache_creation: 0 },
+];
+const grainCosts = grainTokens.map((t) => calculateCost(t, priceWithout1h)); // [3, null, 15, 0]
+assert.deepStrictEqual(
+  groupedCumulativeCost(grainCosts, [0, 0, 1, 1], 2),
+  [3.0, 18.0],
+  "each group sums its commits; an unpriceable commit counts 0, as in cumulativeCostValues"
+);
+assert.deepStrictEqual(
+  groupedCumulativeCost(grainCosts, [0, 1, 2, 3], 4),
+  cumulativeCostValues(grainTokens, priceWithout1h),
+  "at the commit grain it is exactly the per-commit running total"
+);
+assert.deepStrictEqual(
+  groupLiveCosts(grainTokens, grainCosts, [0, 0, 1, 2], 3),
+  [{ amount: 3.0, partial: true }, { amount: 15.0, partial: false }, { amount: 0, partial: false }],
+  "a group with a commit the live price cannot cover is partial"
+);
+assert.deepStrictEqual(
+  groupLiveCosts([grainTokens[1]], [null], [0], 1),
+  [{ amount: null, partial: true }],
+  "a group where nothing could be priced has no amount"
+);
+assert.strictEqual(groupCostText({ amount: 3, partial: true }), "$3.0000 (partial)");
+assert.strictEqual(groupCostText({ amount: null, partial: true }), "unpriced");
+assert.strictEqual(groupCostText({ amount: null, partial: false }), "-");
+
+// A named milestone's label is config text: escaped in the chart.
+svg = growthChartSVG([1, 2], ["<b>x</b>", "In progress"], fmtInt, "cap", "sub", 260, 96);
+assert.ok(!svg.includes("<b>x</b>") && svg.includes("&lt;b&gt;x&lt;/b&gt;"), "x labels are escaped");
+// A wider label leaves room for fewer of them: 24 points at 34px each
+// get fewer x labels than at the default 26px.
+const many = Array.from({ length: 24 }, (_, i) => i);
+const labelsOf = (s) => (s.match(/y="220"/g) || []).length;
+assert.ok(
+  labelsOf(growthChartSVG(many, many.map(String), fmtInt, "c", "s", 260, 34)) <
+  labelsOf(growthChartSVG(many, many.map(String), fmtInt, "c", "s")),
+  "xLabelPx thins the x labels"
+);
 
 console.log("all dashboard.js tests passed");

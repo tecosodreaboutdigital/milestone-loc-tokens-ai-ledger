@@ -26,6 +26,9 @@ th,td{text-align:left;padding:6px 8px;border-bottom:1px solid #e2e0d8;font-size:
 svg text{font-family:Arial,sans-serif}
 .svg-sub{font-size:10px;fill:#8a887f}
 .svg-cap{font-size:9px;fill:#8a887f}
+.grain-switch{font-size:13px;margin:8px 0}
+.grain-switch button{font:inherit;padding:3px 10px;margin-left:4px;border:1px solid #e2e0d8;border-radius:4px;background:#faf9f6;color:#1b1b19;cursor:pointer}
+.grain-switch button[aria-pressed=true]{background:#1b1b19;color:#faf9f6;border-color:#1b1b19}
 .honest-note{font-size:13px;color:#8a887f;border-left:3px solid #e2e0d8;padding-left:10px}
 footer{margin-top:32px;font-size:12px;color:#8a887f}
 </style>
@@ -33,6 +36,7 @@ footer{margin-top:32px;font-size:12px;color:#8a887f}
 <body>
 <h1>Milestone ledger</h1>
 <div class="kpi-row">__KPI_ROWS__</div>
+<div class="grain-switch" id="grain-switch" role="group" aria-label="Chart grain" hidden>Per__GRAIN_BUTTONS__</div>
 <h2>Words</h2>
 __CHART_WORDS__
 <h2>Lines</h2>
@@ -41,7 +45,7 @@ __CHART_LOC__
 __ZERO_TOKENS_NOTE__
 __CHART_TOKENS__
 <h2>Cost</h2>
-<p class="honest-note">Recomputes live as the price panel below changes &mdash; this chart, the "Live cost" table column, and the totals here always reflect the same numbers. The live figures reprice <em>all</em> tokens at the one price selected below; the "Recorded cost" column keeps each model at its own price on its own date.</p>
+<p class="honest-note">Recomputes live as the price panel below changes &mdash; this chart and the "Live cost" columns of the commit, day and milestone tables always reflect the same numbers. The live figures reprice <em>all</em> tokens at the one price selected below; the "Recorded cost" column keeps each model at its own price on its own date.</p>
 <div id="chart-cost">
 __CHART_COST__
 </div>
@@ -94,18 +98,10 @@ __CHART_COST__
 
 __UNPRICED_SECTION__
 
-<h2>Named milestones</h2>
-<p class="honest-note">Ranges of commits declared under <code>milestones</code> in <code>config.json</code>. "Recorded" is each commit's cost frozen at the price on its own date; "at today's price" reprices the same tokens at the ledger entry in effect on __TODAY__.</p>
-<table>
-<thead><tr><th>Milestone</th><th>Commits</th><th>Dates</th><th>Count</th><th>Words</th><th>Lines</th><th>Tokens</th><th>Recorded cost</th><th>At today's price</th></tr></thead>
-<tbody>
-__NAMED_MILESTONE_ROWS__
-</tbody>
-</table>
-
+__NAMED_MILESTONES_SECTION__
 <h2>By day</h2>
 <table>
-<thead><tr><th>Date</th><th>Commits</th><th>Words</th><th>Lines</th><th>Tokens</th><th>Recorded cost</th><th>At today's price</th></tr></thead>
+<thead><tr><th>Date</th><th>Commits</th><th>Words</th><th>Lines</th><th>Tokens</th><th>Recorded cost</th><th>At today's price</th><th>Live cost</th></tr></thead>
 <tbody>
 __DAY_ROWS__
 </tbody>

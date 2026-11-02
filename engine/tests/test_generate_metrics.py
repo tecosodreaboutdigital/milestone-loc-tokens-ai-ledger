@@ -185,8 +185,8 @@ class TestBuildAndGenerate(unittest.TestCase):
             with open(os.path.join(tmpdir, "logbook", "dashboard.html"), encoding="utf-8") as fh:
                 html_out = fh.read()
             self.assertNotIn("__CHART_LOC__", html_out)
-            self.assertIn('aria-label="Words per milestone"', html_out)
-            self.assertIn('aria-label="Lines per milestone"', html_out)
+            self.assertIn('aria-label="Words per commit"', html_out)
+            self.assertIn('aria-label="Lines per commit"', html_out)
             self.assertIn("<h2>Words</h2>", html_out)
             self.assertIn("<h2>Lines</h2>", html_out)
 
@@ -712,7 +712,7 @@ class TestCostChartAndKpis(unittest.TestCase):
             # held a wrong entry; see the correcting entry in
             # engine/prices.json and engine/tests/test_ledger_schema.py.)
             self.assertIn('<span class="kpi-n">$2.00</span><span class="kpi-l">Cost recorded</span>', html_out)
-            self.assertIn('<span class="kpi-n">0</span><span class="kpi-l">Unpriced milestones</span>', html_out)
+            self.assertIn('<span class="kpi-n">0</span><span class="kpi-l">Unpriced commits</span>', html_out)
 
     def test_dashboard_renders_a_cost_chart(self):
         with tempfile.TemporaryDirectory() as tmpdir:
@@ -723,7 +723,7 @@ class TestCostChartAndKpis(unittest.TestCase):
             with open(os.path.join(tmpdir, "logbook", "dashboard.html"), encoding="utf-8") as fh:
                 html_out = fh.read()
             self.assertNotIn("__CHART_COST__", html_out)
-            self.assertIn('aria-label="Recorded cost per milestone"', html_out)
+            self.assertIn('aria-label="Recorded cost per commit"', html_out)
             self.assertIn('id="chart-cost"', html_out)
             self.assertIn("<h2>Cost</h2>", html_out)
 

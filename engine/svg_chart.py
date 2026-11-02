@@ -5,7 +5,9 @@ milestone charts there, including the label-thinning logic that
 avoids overlapping numbers once a series has many points."""
 
 
-def svg_growth_chart(marker_prefix, values, x_labels, y_fmt, caption, subcaption, viewbox_h=260):
+def svg_growth_chart(marker_prefix, values, x_labels, y_fmt, caption, subcaption, viewbox_h=260, x_label_px=26):
+    # x_label_px is the room one x label needs: 26 fits "C12", a date or
+    # a milestone name needs more, so fewer of them are drawn.
     width, height = 700, viewbox_h
     left, right, top, bottom = 78, 652, 34, height - 66
     n = len(values)
@@ -36,7 +38,7 @@ def svg_growth_chart(marker_prefix, values, x_labels, y_fmt, caption, subcaption
     labelled = {i for i in labelled if i == n - 1 or (n - 1 - i) >= max(2, step // 2)}
     labelled.add(n - 1)
 
-    x_max_labels = max(2, int((right - left) / 26))
+    x_max_labels = max(2, int((right - left) / x_label_px))
     x_step = max(1, round((n - 1) / (x_max_labels - 1))) if n > 1 else 1
     x_labelled = set(range(0, n, x_step))
     x_labelled.add(0)

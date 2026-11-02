@@ -18,11 +18,11 @@ A line-of-code counter tells you how big a project got. A token cost tracker tel
 
 ## What it delivers
 
-**Four growth charts**, words, lines, tokens, and cost, over the project's own milestones. The cost chart is the only one that recalculates live, in the browser, the moment the price panel below it changes, never a network call.
+**Four growth charts**, words, lines, tokens, and cost, read per commit, per day, or per named milestone with a switch above them. The cost chart is the only one that recalculates live, in the browser, the moment the price panel below it changes, never a network call.
 
 **A commit table**, one row per commit: words changed, lines changed, tokens, the cost recorded at the price in effect that day, the same tokens at today's price, a live recalculated cost next to them, and an optional one-line decision note.
 
-**Per commit, per named milestone, per day, and in today's dollars.** Name ranges of commits as milestones in `config.json`; the dashboard totals words, lines, tokens and cost for each one and for each day, and shows every figure both at the price recorded on its own date and at today's price, without ever changing what was recorded.
+**Per commit, per named milestone, per day, and in today's dollars.** Name ranges of commits as milestones in `config.json`; the dashboard totals words, lines, tokens and cost for each one and for each day, and shows every figure at the price recorded on its own date, at today's price, and live at the price panel's, without ever changing what was recorded. A team across time zones can set the zone its days are counted in (`day_timezone`).
 
 **A live price panel**, editable in the published page itself, with zero network calls: pick any provider, model, or historical price already in the ledger — by dropdown, by typing a number, or by dragging a slider, all kept in sync with each other, for each of five prices (input, output, cache read, cache write 5 min, cache write 1 h) — and every milestone's cost, the live-cost table column, and the cost chart all recalculate together, instantly, client-side. The panel reprices all tokens at the one price selected.
 
@@ -32,7 +32,7 @@ A line-of-code counter tells you how big a project got. A token cost tracker tel
 
 **Several models and both cache TTLs, priced separately.** A transcript can mix models (a main session and its subagents) and can write its prompt cache with a 5-minute or a 1-hour lifetime, at different prices. The engine records both per milestone and prices each model with its own ledger series and each write at its own rate. Anything with no sourced price is listed as unpriced, with the reason, never priced at another model's rate. A project with one cost basis of its own can opt into `"price_mode": "flat"` instead (never inferred, always explicit). Milestones recorded before that split existed can be migrated once with `--enrich`, which re-derives it from the transcripts and refuses any milestone it cannot prove (see below).
 
-**A past that is never silently rewritten, and gaps that are never guessed.** A milestone's recorded cost freezes together with the tokens it was computed from. It changes only through two explicit, audited commands: `--reprice` (a price that was recorded wrong) and `--enrich` (a milestone recorded before the model and cache-TTL split, migrated only where the transcripts prove it). Each keeps the cost the milestone had before in its `repricings` list in `logbook/data.json`. Whatever no ledger price covers, a model with no series for instance, is never priced at another model's rate: a milestone only partly priced is marked "(partial)", the dashboard lists every gap under "Unpriced usage", and the "Unpriced milestones" counter includes it.
+**A past that is never silently rewritten, and gaps that are never guessed.** A milestone's recorded cost freezes together with the tokens it was computed from. It changes only through two explicit, audited commands: `--reprice` (a price that was recorded wrong) and `--enrich` (a milestone recorded before the model and cache-TTL split, migrated only where the transcripts prove it). Each keeps the cost the milestone had before in its `repricings` list in `logbook/data.json`. Whatever no ledger price covers, a model with no series for instance, is never priced at another model's rate: a milestone only partly priced is marked "(partial)", the dashboard lists every gap under "Unpriced usage", and the "Unpriced commits" counter includes it.
 
 ## Installation
 

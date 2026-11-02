@@ -38,7 +38,7 @@ _REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 if _REPO_ROOT not in sys.path:
     sys.path.insert(0, _REPO_ROOT)
 
-from engine.config import include_nested_sessions, load_config, named_milestones, price_mode
+from engine.config import day_timezone, include_nested_sessions, load_config, named_milestones, price_mode
 from engine.cost import MODEL_TOKEN_FIELDS, TOKEN_KINDS, price_milestone, total_tokens
 from engine.enrich import apply_enrichment, format_report, plan_enrichment
 from engine.git_source import commits, line_count, list_repo_files_at, matches_any, sum_metric, word_count_html
@@ -59,6 +59,10 @@ EXAMPLE_CONFIG = os.path.join(HERE, "config.example.json")
 SHIPPED_PRICES = os.path.join(HERE, "prices.json")
 # The exit code of --enrich when it refused at least one milestone.
 EXIT_SOME_REFUSED = 3
+# The grains the charts can be read at, with the room one x label needs
+# at each: "C12", "10-30", a milestone name cut to MILESTONE_LABEL_CHARS.
+GRAIN_LABEL_PX = {"commit": 26, "day": 34, "milestone": 96}
+MILESTONE_LABEL_CHARS = 14
 
 
 def empty_tokens():
@@ -411,23 +415,125 @@ def _group_cost_cell(amount, partial):
 
 
 def _group_cells(g):
-    return "<td>%d</td><td>%d</td><td>%d</td><td>%d</td>%s%s" % (
+    # The live cost of a group is filled in by dashboard.js from its
+    # commits' rows (data-group-grain / data-group-index say which group
+    # this is), never from a data-milestone-tokens of its own: that
+    # attribute marks the commit rows the cost chart sums.
+    return "<td>%d</td><td>%d</td><td>%d</td><td>%d</td>%s%s<td data-live-cost>-</td>" % (
         g["commits"], g["words_delta"], g["loc_delta"], g["tokens"],
         _group_cost_cell(g["cost_recorded"], g["partial"]), _group_cost_cell(g["cost_at_today"], g["partial_at_today"]),
     )
 
 
 def render_day_rows(days):
-    return "\n".join("<tr><td>%s</td>%s</tr>" % (d["date"], _group_cells(d)) for d in days)
+    return "\n".join(
+        '<tr data-group-grain="day" data-group-index="%d"><td>%s</td>%s</tr>' % (i, d["date"], _group_cells(d))
+        for i, d in enumerate(days)
+    )
 
 
 def render_named_rows(groups):
     rows = []
-    for g in groups:
+    for i, g in enumerate(groups):
         dates = g["first_date"] if g["first_date"] == g["last_date"] else "%s to %s" % (g["first_date"], g["last_date"])
-        rows.append("<tr><td>%s</td><td>%s..%s</td><td>%s</td>%s</tr>" % (
-            html.escape(g["name"]), g["from"], g["until"], dates, _group_cells(g)))
+        rows.append('<tr data-group-grain="milestone" data-group-index="%d"><td>%s</td><td>%s..%s</td><td>%s</td>%s</tr>' % (
+            i, html.escape(g["name"]), g["from"], g["until"], dates, _group_cells(g)))
     return "\n".join(rows)
+
+
+def render_named_section(groups, today):
+    """The "Named milestones" table, or nothing when the config names
+    none: an empty table with only its header says nothing."""
+    if not groups:
+        return ""
+    return (
+        '<h2>Named milestones</h2>\n'
+        '<p class="honest-note">Ranges of commits declared under <code>milestones</code> in <code>config.json</code>. '
+        '"Recorded" is each commit\'s cost frozen at the price on its own date; "at today\'s price" reprices the '
+        'same tokens at the ledger entry in effect on %s; "live" uses the price panel above.</p>\n'
+        '<table>\n'
+        '<thead><tr><th>Milestone</th><th>Commits</th><th>Dates</th><th>Count</th><th>Words</th><th>Lines</th>'
+        '<th>Tokens</th><th>Recorded cost</th><th>At today\'s price</th><th>Live cost</th></tr></thead>\n'
+        '<tbody>\n%s\n</tbody>\n</table>\n' % (today, render_named_rows(groups))
+    )
+
+
+def _day_of(tz, commit_times):
+    """The date a commit counts under in the "By day" table: its author
+    timestamp read in the config's day_timezone, or, without one, the
+    date recorded with the commit (in its own author's offset)."""
+    if tz is None:
+        return None
+
+    def day_of(m):
+        iso = commit_times.get(m["commit"])
+        # No known timestamp (a data.json written before day_timezone was
+        # set, read by --reprice): the commit keeps its own recorded date.
+        return datetime.fromisoformat(iso).astimezone(tz).date().isoformat() if iso else m["date"]
+
+    return day_of
+
+
+def _milestone_label(name):
+    return name if len(name) <= MILESTONE_LABEL_CHARS else name[:MILESTONE_LABEL_CHARS - 1] + "…"
+
+
+def build_grains(milestones, days, named, day_of=None):
+    """{grain: {"labels", "index", "label_px"}}: for each grain the charts
+    can be read at, one x label per group and the group of each commit,
+    in commit order. "milestone" is present only when the config names
+    milestones; named milestones cover every commit, the last ones as
+    "In progress"."""
+    position = {d["date"]: i for i, d in enumerate(days)}
+    grains = {
+        "commit": {"labels": ["C%d" % (i + 1) for i in range(len(milestones))],
+                   "index": list(range(len(milestones)))},
+        "day": {"labels": [d["date"][5:] for d in days],
+                "index": [position[day_of(m) if day_of else m["date"]] for m in milestones]},
+    }
+    if named:
+        grains["milestone"] = {"labels": [_milestone_label(g["name"]) for g in named],
+                               "index": [i for i, g in enumerate(named) for _ in range(g["commits"])]}
+    for grain, value in grains.items():
+        value["label_px"] = GRAIN_LABEL_PX[grain]
+    return grains
+
+
+def _by_group(values, index, count):
+    sums = [0] * count
+    for value, i in zip(values, index):
+        sums[i] += value
+    return sums
+
+
+def render_grain_charts(chart_id, grains, values, cumulative, y_fmt, caption, subcaption):
+    """One chart per grain, the per-commit one shown and the others
+    hidden until the grain switch (dashboard.js) picks one. Each group's
+    point sums its commits; a cumulative chart then runs the sums."""
+    parts = []
+    for grain, g in grains.items():
+        series = _by_group(values, g["index"], len(g["labels"]))
+        if cumulative:
+            series = list(itertools.accumulate(series))
+        svg = svg_growth_chart(
+            chart_id, series or [0], [html.escape(label) for label in g["labels"]] or ["C1"], y_fmt,
+            caption % grain, subcaption, x_label_px=g["label_px"],
+        )
+        parts.append('<div class="grain-chart" data-grain="%s"%s>\n%s\n</div>' % (
+            grain, "" if grain == "commit" else " hidden", svg))
+    return "\n".join(parts)
+
+
+def render_grain_buttons(grains):
+    """The buttons of the per commit / per day / per milestone switch
+    above the charts. The switch is hidden in the template: only
+    dashboard.js can act on it, so without scripts the per-commit charts
+    show and the switch does not."""
+    return "".join(
+        ' <button type="button" data-grain-choice="%s" aria-pressed="%s">%s</button>'
+        % (grain, "true" if grain == "commit" else "false", grain)
+        for grain in grains
+    )
 
 
 def render_table_rows(milestones):
@@ -458,7 +564,7 @@ def render_unpriced_section(milestones):
     for index, m in enumerate(milestones):
         for item in m.get("unpriced") or []:
             lines.append(
-                "<li>M%d <code>%s</code>: <code>%s</code>, %s tokens. %s</li>" % (
+                "<li>C%d <code>%s</code>: <code>%s</code>, %s tokens. %s</li>" % (
                     index + 1, html.escape(m["commit"]),
                     html.escape(item["model"] or "no model id"),
                     "{:,}".format(item["tokens"]), html.escape(item["reason"]),
@@ -469,14 +575,14 @@ def render_unpriced_section(milestones):
     return (
         '<div class="price-panel"><h2>Unpriced usage</h2>'
         '<p class="honest-note">Tokens the recorded cost does not include, because no ledger price '
-        'applies to them. A milestone marked partial shows only what could be priced. To fill a gap, '
+        'applies to them. A commit marked partial shows only what could be priced. To fill a gap, '
         'add a sourced entry with <code>engine/update_prices.py</code>, then run '
         '<code>engine/generate_metrics.py --reprice</code>.</p>'
         '<ul class="sources-list">%s</ul></div>' % "".join(lines)
     )
 
 
-def render_dashboard_html(template_path, kpi_html, words_svg, loc_svg, tokens_svg, cost_svg, table_rows_html, embedded_js, zero_tokens_note="", unpriced_html="", named_rows_html="", day_rows_html="", today=""):
+def render_dashboard_html(template_path, kpi_html, words_svg, loc_svg, tokens_svg, cost_svg, table_rows_html, embedded_js, zero_tokens_note="", unpriced_html="", named_section_html="", day_rows_html="", grain_buttons_html=""):
     with open(template_path, encoding="utf-8") as fh:
         doc = fh.read()
     doc = doc.replace("__KPI_ROWS__", kpi_html)
@@ -488,9 +594,9 @@ def render_dashboard_html(template_path, kpi_html, words_svg, loc_svg, tokens_sv
     doc = doc.replace("__EMBEDDED_DATA__", embedded_js)
     doc = doc.replace("__ZERO_TOKENS_NOTE__", zero_tokens_note)
     doc = doc.replace("__UNPRICED_SECTION__", unpriced_html)
-    doc = doc.replace("__NAMED_MILESTONE_ROWS__", named_rows_html)
+    doc = doc.replace("__NAMED_MILESTONES_SECTION__", named_section_html)
     doc = doc.replace("__DAY_ROWS__", day_rows_html)
-    doc = doc.replace("__TODAY__", today)
+    doc = doc.replace("__GRAIN_BUTTONS__", grain_buttons_html)
     return doc
 
 
@@ -522,6 +628,9 @@ def main(repo_root=None, claude_projects_dir=None, linked_projects=None, reprice
     generated_at = datetime.now(timezone.utc).isoformat()
     last_repriced_at = _previous_marker(data_path, "last_repriced_at")
     last_enriched_at = _previous_marker(data_path, "last_enriched_at")
+    # Author timestamps, for day_timezone only. --reprice and --enrich
+    # never read git history, so they keep the previous run's.
+    commit_times = _previous_marker(data_path, "commit_times") or {}
     exit_code = 0
 
     if enrich:
@@ -562,6 +671,7 @@ def main(repo_root=None, claude_projects_dir=None, linked_projects=None, reprice
     else:
         os.makedirs(folder, exist_ok=True)
         milestones = build_milestones(repo_root, config, claude_projects_dir, linked_projects)
+        commit_times = {row["hash"][:7]: row["iso"] for row in commits(repo_root)}
 
         if len(milestones) == 0:
             print("warning: no commits found in this repository, nothing to report", file=sys.stderr)
@@ -583,12 +693,15 @@ def main(repo_root=None, claude_projects_dir=None, linked_projects=None, reprice
         {**m, "cost_at_today": cost_at_today[m["commit"]], "unpriced_at_today": m["commit"] in unpriced_at_today}
         for m in milestones
     ]
-    days = group_by_day(with_today)
+    tz = day_timezone(config)
+    day_of = _day_of(tz, commit_times)
+    days = group_by_day(with_today, day_of)
     # A milestone's name is free text that reaches a published file, so it
     # passes through the scrub like a subject or a note.
     named = group_by_named_milestone(
         with_today, [{**entry, "name": scrub_text(entry["name"])} for entry in named_milestones(config)]
     )
+    grains = build_grains(milestones, days, named, day_of)
     total_cost_today = sum(_amount(c) or 0.0 for c in cost_at_today.values())
     all_tokens = sum(total_tokens(m["tokens"]) for m in milestones)
     zero_tokens = all_tokens == 0
@@ -610,11 +723,11 @@ def main(repo_root=None, claude_projects_dir=None, linked_projects=None, reprice
         (m["cost_recorded"]["amount"] if m["cost_recorded"] is not None else 0.0)
         for m in milestones
     ] or [0.0]
-    x_labels = ["M%d" % (i + 1) for i in range(len(milestones))] or ["M1"]
+    x_labels = grains["commit"]["labels"] or ["C1"]
 
     # The charts show cumulative growth over time, the point of a
     # growth chart, even though words_delta/loc_delta are now genuine
-    # per-milestone deltas: accumulate them back into running totals
+    # per-commit deltas: accumulate them back into running totals
     # for charting only. tokens_series is already a genuine per-commit
     # bucket (see _bucket_tokens_by_commit), so its chart is unchanged.
     # cost_series accumulates too: a ledger's own running balance is
@@ -623,22 +736,27 @@ def main(repo_root=None, claude_projects_dir=None, linked_projects=None, reprice
     loc_cumulative = list(itertools.accumulate(loc_series))
     cost_cumulative = list(itertools.accumulate(cost_series))
 
-    words_svg = svg_growth_chart("w", words_cumulative, x_labels, lambda v: str(int(v)), "Words per milestone", "Words published")
-    loc_svg = svg_growth_chart("l", loc_cumulative, x_labels, lambda v: str(int(v)), "Lines per milestone", "Lines of code")
-    tokens_svg = svg_growth_chart("t", tokens_series, x_labels, lambda v: str(int(v)), "Tokens per milestone", "LLM tokens consumed")
-    cost_svg = svg_growth_chart("c", cost_cumulative, x_labels, lambda v: "$%.2f" % v, "Recorded cost per milestone", "Cumulative recorded cost (USD)")
+    # Words, lines and tokens are drawn once per grain (commit, day,
+    # named milestone); the cost chart is redrawn by dashboard.js at the
+    # live price for whichever grain is picked, so only its per-commit
+    # recorded version is written here, for a page read without scripts.
+    as_int = lambda v: str(int(v))
+    words_svg = render_grain_charts("w", grains, words_series, True, as_int, "Words per %s", "Words published")
+    loc_svg = render_grain_charts("l", grains, loc_series, True, as_int, "Lines per %s", "Lines of code")
+    tokens_svg = render_grain_charts("t", grains, tokens_series, False, as_int, "Tokens per %s", "LLM tokens consumed")
+    cost_svg = svg_growth_chart("c", cost_cumulative, x_labels, lambda v: "$%.2f" % v, "Recorded cost per commit", "Cumulative recorded cost (USD)")
 
     total_cost = sum(cost_series)
     # A milestone counts as unpriced when nothing about it was priced, or
     # when only part of it was (its `unpriced` list says what is missing).
     unpriced_count = sum(1 for m in milestones if m["cost_recorded"] is None or m.get("unpriced"))
     kpi_html = (
-        '<div class="kpi"><span class="kpi-n">%d</span><span class="kpi-l">Milestones</span></div>'
+        '<div class="kpi"><span class="kpi-n">%d</span><span class="kpi-l">Commits</span></div>'
         '<div class="kpi"><span class="kpi-n">%d</span><span class="kpi-l">Words published</span></div>'
         '<div class="kpi"><span class="kpi-n">%d</span><span class="kpi-l">Tokens consumed</span></div>'
         '<div class="kpi"><span class="kpi-n">$%.2f</span><span class="kpi-l">Cost recorded</span></div>'
         '<div class="kpi"><span class="kpi-n">$%.2f</span><span class="kpi-l">At today\'s price (%s)</span></div>'
-        '<div class="kpi"><span class="kpi-n">%d</span><span class="kpi-l">Unpriced milestones</span></div>'
+        '<div class="kpi"><span class="kpi-n">%d</span><span class="kpi-l">Unpriced commits</span></div>'
         % (len(milestones), sum(words_series), sum(tokens_series), total_cost, total_cost_today, today, unpriced_count)
     )
     table_rows_html = render_table_rows(with_today)
@@ -650,13 +768,16 @@ def main(repo_root=None, claude_projects_dir=None, linked_projects=None, reprice
     prices_by_series = {
         "%s::%s" % (s["provider"], s["model"]): s["entries"] for s in price_ledger
     }
+    # "</" cannot appear inside the <script> this lands in: a named
+    # milestone's label is text from config.json.
     embedded_js = "window.MILESTONE_DATA = %s;" % json.dumps({
         "prices": prices_by_series,
         "today": today,
         # The series this project's config prices with: the price panel
         # opens on it instead of on whichever series sorts first.
         "default_series": "%s::%s" % (config["price_provider"], config["price_model"]),
-    })
+        "grains": grains,
+    }).replace("</", "<\\/")
 
     zero_tokens_note = (
         '<p class="honest-note">No LLM session transcripts were found for this project '
@@ -668,7 +789,7 @@ def main(repo_root=None, claude_projects_dir=None, linked_projects=None, reprice
     html_out = render_dashboard_html(
         os.path.join(TEMPLATE_DIR, "dashboard.html"), kpi_html, words_svg, loc_svg, tokens_svg, cost_svg,
         table_rows_html, embedded_js, zero_tokens_note, render_unpriced_section(milestones),
-        render_named_rows(named), render_day_rows(days), today,
+        render_named_section(named, today), render_day_rows(days), render_grain_buttons(grains),
     )
     with open(os.path.join(folder, "dashboard.html"), "w", encoding="utf-8") as fh:
         fh.write(html_out)
@@ -699,6 +820,9 @@ def main(repo_root=None, claude_projects_dir=None, linked_projects=None, reprice
         document["unpriced_at_today"] = unpriced_at_today
         document["named_milestones"] = named
         document["days"] = days
+        if tz is not None:
+            document["day_timezone"] = config["day_timezone"]
+            document["commit_times"] = commit_times
         json.dump(document, fh, indent=2)
         fh.write("\n")
 
