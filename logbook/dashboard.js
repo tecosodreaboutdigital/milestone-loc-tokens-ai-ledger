@@ -6,6 +6,7 @@
 // not own.
 
 const PRICE_SELECTION_STORAGE_KEY = "milestone-ledger-price-selection";
+const GRAIN_STORAGE_KEY = "milestone-ledger-grain";
 
 function priceForSelection(pricesBySeries, provider, model, targetDate) {
   const key = provider + "::" + model;
@@ -82,12 +83,63 @@ function cumulativeCostValues(tokensList, priceEntry) {
   });
 }
 
+function tokenTotal(tokens) {
+  return (tokens.input || 0) + (tokens.output || 0) + (tokens.cache_read || 0) + (tokens.cache_creation || 0);
+}
+
+// The running total at a coarser grain (a day, a named milestone): each
+// group's point sums its commits' live costs, an unpriceable commit
+// counting 0 as in cumulativeCostValues, so every grain ends on the same
+// total. index[i] is commit i's group, from MILESTONE_DATA.grains.
+function groupedCumulativeCost(costs, index, count) {
+  const sums = new Array(count).fill(0);
+  costs.forEach((cost, i) => {
+    sums[index[i]] += cost || 0;
+  });
+  let running = 0;
+  return sums.map((sum) => (running += sum));
+}
+
+// A group's live cost, the same rules as the engine's group cells:
+// partial when one of its commits has tokens the live price cannot cover
+// (1-hour writes under an entry with no 1-hour price), amount null when
+// none of them could be priced.
+function groupLiveCosts(tokensList, costs, index, count) {
+  const groups = Array.from({ length: count }, () => ({ amount: 0, priced: false, partial: false }));
+  tokensList.forEach((tokens, i) => {
+    const group = groups[index[i]];
+    if (costs[i] !== null) {
+      group.amount += costs[i];
+      group.priced = true;
+    } else if (tokenTotal(tokens) > 0) {
+      group.partial = true;
+    }
+  });
+  return groups.map((group) => ({
+    amount: group.priced ? Math.round(group.amount * 10000) / 10000 : null,
+    partial: group.partial,
+  }));
+}
+
+function groupCostText(group) {
+  if (group.amount === null) {
+    return group.partial ? "unpriced" : "-";
+  }
+  return "$" + group.amount.toFixed(4) + (group.partial ? " (partial)" : "");
+}
+
 // A line-and-label growth chart as a self-contained SVG string,
 // ported unchanged in behaviour from engine/svg_chart.py's
 // svg_growth_chart, including its label-thinning logic, so the
 // client-redrawn Cost chart never looks different in kind from the
 // server-rendered Words/Lines/Tokens charts sitting right above it.
-function growthChartSVG(values, xLabels, yFmt, caption, subcaption, viewboxH) {
+function escapeXml(text) {
+  return String(text).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+}
+
+// xLabelPx mirrors svg_growth_chart's x_label_px. Labels are escaped
+// here: a named milestone's label is text from config.json.
+function growthChartSVG(values, xLabels, yFmt, caption, subcaption, viewboxH, xLabelPx) {
   const width = 700;
   const height = viewboxH || 260;
   const left = 78, right = 652, top = 34, bottom = height - 66;
@@ -122,7 +174,7 @@ function growthChartSVG(values, xLabels, yFmt, caption, subcaption, viewboxH) {
   );
   labelled.add(n - 1);
 
-  const xMaxLabels = Math.max(2, Math.floor((right - left) / 26));
+  const xMaxLabels = Math.max(2, Math.floor((right - left) / (xLabelPx || 26)));
   const xStep = n > 1 ? Math.max(1, Math.round((n - 1) / (xMaxLabels - 1))) : 1;
   const xLabelled = new Set();
   for (let i = 0; i < n; i += xStep) xLabelled.add(i);
@@ -137,7 +189,7 @@ function growthChartSVG(values, xLabels, yFmt, caption, subcaption, viewboxH) {
       parts.push('<text class="svg-sub" x="' + x.toFixed(1) + '" y="' + labelY.toFixed(1) + '" text-anchor="middle">' + yFmt(v) + "</text>");
     }
     if (xLabelled.has(i)) {
-      parts.push('<text class="svg-sub" x="' + x.toFixed(1) + '" y="' + (height - 40) + '" text-anchor="middle">' + xLabels[i] + "</text>");
+      parts.push('<text class="svg-sub" x="' + x.toFixed(1) + '" y="' + (height - 40) + '" text-anchor="middle">' + escapeXml(xLabels[i]) + "</text>");
     }
   }
 
@@ -166,6 +218,24 @@ function savePriceSelection(series, date) {
     );
   } catch (err) {
     // Same as above: saving is best-effort only.
+  }
+}
+
+// The grain picked last (commit, day, milestone), best-effort like the
+// price selection above.
+function loadSavedGrain() {
+  try {
+    return window.localStorage.getItem(GRAIN_STORAGE_KEY);
+  } catch (err) {
+    return null;
+  }
+}
+
+function saveGrain(grain) {
+  try {
+    window.localStorage.setItem(GRAIN_STORAGE_KEY, grain);
+  } catch (err) {
+    // Saving is best-effort only.
   }
 }
 
@@ -225,9 +295,17 @@ function wireUpPricePanel() {
   const cacheCreation1hPriceRange = document.getElementById("price-cache-creation-1h-range");
   const sourcesEl = document.getElementById("price-sources");
   const costChartEl = document.getElementById("chart-cost");
+  // Commit rows only: day and milestone rows carry data-group-grain
+  // instead, so the chart and the totals never count a commit twice.
   const rows = document.querySelectorAll("[data-milestone-tokens]");
   const tokensList = Array.from(rows).map((row) => JSON.parse(row.getAttribute("data-milestone-tokens")));
-  const xLabels = tokensList.map((_, i) => "M" + (i + 1));
+  const groupRows = document.querySelectorAll("[data-group-grain]");
+  const grains = data.grains || {
+    commit: { labels: tokensList.map((_, i) => "C" + (i + 1)), index: tokensList.map((_, i) => i), label_px: 26 },
+  };
+  const savedGrain = loadSavedGrain();
+  let grain = savedGrain && grains[savedGrain] ? savedGrain : "commit";
+  const grainSwitch = document.getElementById("grain-switch");
 
   const options = buildSeriesOptions(data.prices);
   options.forEach((option) => {
@@ -267,24 +345,62 @@ function wireUpPricePanel() {
     if (!isNaN(oneHourPrice)) {
       priceEntry.cache_creation_1h_price = oneHourPrice;
     }
-    rows.forEach((row) => {
-      const tokens = JSON.parse(row.getAttribute("data-milestone-tokens"));
-      const cost = calculateCost(tokens, priceEntry);
+    const costs = tokensList.map((tokens) => calculateCost(tokens, priceEntry));
+    rows.forEach((row, i) => {
       const cell = row.querySelector("[data-live-cost]");
       if (cell) {
-        cell.textContent = cost === null ? "-" : "$" + cost.toFixed(4);
-        cell.title = cost === null && (tokens.cache_creation_1h || 0) > 0
+        cell.textContent = costs[i] === null ? "-" : "$" + costs[i].toFixed(4);
+        cell.title = costs[i] === null && (tokensList[i].cache_creation_1h || 0) > 0
           ? "1-hour cache writes cannot be priced: this price entry has no 1-hour write price"
           : "";
       }
     });
+    const liveByGrain = {};
+    groupRows.forEach((row) => {
+      const rowGrain = row.getAttribute("data-group-grain");
+      const g = grains[rowGrain];
+      if (!g) {
+        return;
+      }
+      if (!liveByGrain[rowGrain]) {
+        liveByGrain[rowGrain] = groupLiveCosts(tokensList, costs, g.index, g.labels.length);
+      }
+      const group = liveByGrain[rowGrain][parseInt(row.getAttribute("data-group-index"), 10)];
+      const cell = row.querySelector("[data-live-cost]");
+      if (cell && group) {
+        cell.textContent = groupCostText(group);
+      }
+    });
     if (costChartEl && tokensList.length > 0) {
-      const costCumulative = cumulativeCostValues(tokensList, priceEntry);
+      const g = grains[grain];
       costChartEl.innerHTML = growthChartSVG(
-        costCumulative, xLabels, (v) => "$" + v.toFixed(2),
-        "Recorded cost per milestone", "Cumulative recorded cost (USD)", 260
+        groupedCumulativeCost(costs, g.index, g.labels.length), g.labels, (v) => "$" + v.toFixed(2),
+        "Live cost per " + grain, "Cumulative live cost (USD)", 260, g.label_px
       );
     }
+  }
+
+  // Shows the words, lines and tokens charts drawn for the picked grain,
+  // and redraws the cost chart at it.
+  function applyGrain(picked) {
+    grain = picked;
+    document.querySelectorAll(".grain-chart").forEach((el) => {
+      el.hidden = el.getAttribute("data-grain") !== grain;
+    });
+    if (grainSwitch) {
+      grainSwitch.querySelectorAll("[data-grain-choice]").forEach((button) => {
+        button.setAttribute("aria-pressed", String(button.getAttribute("data-grain-choice") === grain));
+      });
+    }
+    saveGrain(grain);
+    recalculate();
+  }
+
+  if (grainSwitch) {
+    grainSwitch.hidden = false;
+    grainSwitch.querySelectorAll("[data-grain-choice]").forEach((button) => {
+      button.addEventListener("click", () => applyGrain(button.getAttribute("data-grain-choice")));
+    });
   }
 
   function applySelection() {
@@ -337,12 +453,16 @@ function wireUpPricePanel() {
   linkNumberAndRange(cacheCreationPrice, cacheCreationPriceRange);
   linkNumberAndRange(cacheCreation1hPrice, cacheCreation1hPriceRange);
   applySelection();
+  if (grain !== "commit") {
+    applyGrain(grain);
+  }
 }
 
 if (typeof module !== "undefined") {
   module.exports = {
     priceForSelection, calculateCost, buildSeriesOptions,
     cumulativeCostValues, growthChartSVG, defaultSeriesKey,
+    groupedCumulativeCost, groupLiveCosts, groupCostText, escapeXml,
   };
 }
 if (typeof document !== "undefined") {
