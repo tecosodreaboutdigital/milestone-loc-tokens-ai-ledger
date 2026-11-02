@@ -138,5 +138,33 @@
         ]
       }
     ]
+  },
+  {
+    "provider": "anthropic",
+    "model": "claude-opus-5-5",
+    "currency": "USD",
+    "entries": [
+      {
+        "effective_date": "2026-11-01",
+        "input_price": 4.0,
+        "output_price": 20.0,
+        "cache_read_price": 0.2,
+        "cache_creation_price": 5.0,
+        "cache_creation_1h_price": 8.0,
+        "note": "Both sources show only the current price, no dated history; effective_date is the date read. Cache hits are 0.05x base input on Opus 5.5 (official footnote 2). Standard speed only: fast mode is priced separately (US$8 / US$40 per MTok on the same page) and is not in this series.",
+        "sources": [
+          {
+            "name": "Anthropic, Pricing (platform.claude.com)",
+            "url": "https://platform.claude.com/docs/en/about-claude/pricing",
+            "checked_at": "2026-11-01"
+          },
+          {
+            "name": "LiteLLM model_prices_and_context_window.json, key claude-opus-5-5",
+            "url": "https://github.com/BerriAI/litellm/blob/main/model_prices_and_context_window.json",
+            "checked_at": "2026-11-01"
+          }
+        ]
+      }
+    ]
   }
 ]

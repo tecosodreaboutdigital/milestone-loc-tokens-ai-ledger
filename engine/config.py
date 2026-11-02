@@ -44,7 +44,24 @@ def load_config(path):
             raise ValueError("config is missing required key: %s" % key)
     price_mode(data)
     include_nested_sessions(data)
+    named_milestones(data)
     return data
+
+
+def named_milestones(config):
+    """The config's optional `milestones`: a list of {"name", "until"},
+    in history order, where `until` is the short hash of the last commit
+    the milestone covers (see engine.rollup). Absent means none. A
+    malformed entry fails loudly instead of being skipped."""
+    value = config.get("milestones", [])
+    if not isinstance(value, list):
+        raise ValueError("config milestones must be a list of {\"name\", \"until\"}, got %r" % (value,))
+    for entry in value:
+        if not (isinstance(entry, dict)
+                and isinstance(entry.get("name"), str) and entry["name"].strip()
+                and isinstance(entry.get("until"), str) and entry["until"].strip()):
+            raise ValueError("config milestones entry needs a non-empty name and until, got %r" % (entry,))
+    return value
 
 
 def include_nested_sessions(config):

@@ -38,11 +38,12 @@ _REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 if _REPO_ROOT not in sys.path:
     sys.path.insert(0, _REPO_ROOT)
 
-from engine.config import include_nested_sessions, load_config, price_mode
+from engine.config import include_nested_sessions, load_config, named_milestones, price_mode
 from engine.cost import MODEL_TOKEN_FIELDS, TOKEN_KINDS, price_milestone, total_tokens
 from engine.enrich import apply_enrichment, format_report, plan_enrichment
 from engine.git_source import commits, line_count, list_repo_files_at, matches_any, sum_metric, word_count_html
 from engine.prices import load_ledger
+from engine.rollup import group_by_day, group_by_named_milestone
 from engine.readers.claude_code import (
     find_linked_subagent_jsonl,
     find_nested_project_session_jsonl,
@@ -218,6 +219,26 @@ def _price(tokens, price_ledger, config, date):
     return cost_recorded, unpriced
 
 
+def price_at_today(milestones, config, price_ledger, today):
+    """({short hash: cost}, [short hash]): each commit's frozen tokens
+    priced at the ledger entry in effect on the day of the run, so the
+    whole history can be read in today's dollars, plus the commits with
+    usage no price covers today. That second list is its own: a model
+    unpriced on a commit's date may be priced today, so the commit's own
+    `unpriced` does not say whether its today cost is partial.
+    Recomputed every run and kept outside the milestone records, which
+    stay exactly as frozen (cost_recorded is the price that was true on
+    the commit's own date, and --enrich promises a refused milestone
+    stays byte for byte what it was)."""
+    costs, unpriced = {}, []
+    for m in milestones:
+        cost, missing = _price(m["tokens"], price_ledger, config, today)
+        costs[m["commit"]] = cost
+        if missing:
+            unpriced.append(m["commit"])
+    return costs, unpriced
+
+
 def _freeze_previously_recorded_costs(milestones, data_path):
     # SKILL.md and the global constraints both promise that a
     # milestone's cost_recorded, once written, is never recalculated.
@@ -346,6 +367,10 @@ def _enrich_dry_run(repo_root, config, data_path, claude_projects_dir, linked_pr
     return _enrich_exit_code(plan)
 
 
+def _amount(cost):
+    return None if cost is None else cost["amount"]
+
+
 def _recorded_total(milestones):
     return sum(m["cost_recorded"]["amount"] for m in milestones if m.get("cost_recorded") is not None)
 
@@ -377,6 +402,34 @@ def _cost_cell(m):
     return '<td title="Unpriced: %s">%s</td>' % (html.escape(tip, quote=True), html.escape(text))
 
 
+def _group_cost_cell(amount, partial):
+    # "-" only when there was nothing to price: tokens no price covers
+    # say so instead of looking like a commit without usage.
+    if amount is None:
+        return "<td>%s</td>" % ("unpriced" if partial else "-")
+    return "<td>$%.4f%s</td>" % (amount, " (partial)" if partial else "")
+
+
+def _group_cells(g):
+    return "<td>%d</td><td>%d</td><td>%d</td><td>%d</td>%s%s" % (
+        g["commits"], g["words_delta"], g["loc_delta"], g["tokens"],
+        _group_cost_cell(g["cost_recorded"], g["partial"]), _group_cost_cell(g["cost_at_today"], g["partial_at_today"]),
+    )
+
+
+def render_day_rows(days):
+    return "\n".join("<tr><td>%s</td>%s</tr>" % (d["date"], _group_cells(d)) for d in days)
+
+
+def render_named_rows(groups):
+    rows = []
+    for g in groups:
+        dates = g["first_date"] if g["first_date"] == g["last_date"] else "%s to %s" % (g["first_date"], g["last_date"])
+        rows.append("<tr><td>%s</td><td>%s..%s</td><td>%s</td>%s</tr>" % (
+            html.escape(g["name"]), g["from"], g["until"], dates, _group_cells(g)))
+    return "\n".join(rows)
+
+
 def render_table_rows(milestones):
     # data-milestone-tokens lives on the <tr> itself so dashboard.js can
     # read a row's token counts without a second lookup. Only the flat
@@ -388,9 +441,11 @@ def render_table_rows(milestones):
         note_text = html.escape(m["note"]) if m["note"] else ""
         tokens_json = json.dumps({key: m["tokens"].get(key, 0) for key in MODEL_TOKEN_FIELDS})
         rows.append(
-            '<tr data-milestone-tokens=\'%s\'><td>%s</td><td>%s</td><td>%s</td><td>%d</td><td>%d</td>'
-            '%s<td data-live-cost>-</td><td>%s</td></tr>'
-            % (tokens_json, m["date"], m["commit"], subject_text, m["words_delta"], m["loc_delta"], _cost_cell(m), note_text)
+            '<tr data-milestone-tokens=\'%s\'><td>%s</td><td>%s</td><td>%s</td><td>%d</td><td>%d</td><td>%d</td>'
+            '%s%s<td data-live-cost>-</td><td>%s</td></tr>'
+            % (tokens_json, m["date"], m["commit"], subject_text, m["words_delta"], m["loc_delta"],
+               total_tokens(m["tokens"]), _cost_cell(m),
+               _group_cost_cell(_amount(m.get("cost_at_today")), bool(m.get("unpriced_at_today"))), note_text)
         )
     return "\n".join(rows)
 
@@ -421,7 +476,7 @@ def render_unpriced_section(milestones):
     )
 
 
-def render_dashboard_html(template_path, kpi_html, words_svg, loc_svg, tokens_svg, cost_svg, table_rows_html, embedded_js, zero_tokens_note="", unpriced_html=""):
+def render_dashboard_html(template_path, kpi_html, words_svg, loc_svg, tokens_svg, cost_svg, table_rows_html, embedded_js, zero_tokens_note="", unpriced_html="", named_rows_html="", day_rows_html="", today=""):
     with open(template_path, encoding="utf-8") as fh:
         doc = fh.read()
     doc = doc.replace("__KPI_ROWS__", kpi_html)
@@ -433,6 +488,9 @@ def render_dashboard_html(template_path, kpi_html, words_svg, loc_svg, tokens_sv
     doc = doc.replace("__EMBEDDED_DATA__", embedded_js)
     doc = doc.replace("__ZERO_TOKENS_NOTE__", zero_tokens_note)
     doc = doc.replace("__UNPRICED_SECTION__", unpriced_html)
+    doc = doc.replace("__NAMED_MILESTONE_ROWS__", named_rows_html)
+    doc = doc.replace("__DAY_ROWS__", day_rows_html)
+    doc = doc.replace("__TODAY__", today)
     return doc
 
 
@@ -516,6 +574,22 @@ def main(repo_root=None, claude_projects_dir=None, linked_projects=None, reprice
         _freeze_previously_recorded_costs(milestones, data_path)
 
     os.makedirs(folder, exist_ok=True)
+    today = datetime.now(timezone.utc).date().isoformat()
+    price_ledger = load_ledger(SHIPPED_PRICES)
+    cost_at_today, unpriced_at_today = price_at_today(milestones, config, price_ledger, today)
+    # A view for the rollups and the tables only; data.json keeps the
+    # milestone records as frozen and the today costs as their own map.
+    with_today = [
+        {**m, "cost_at_today": cost_at_today[m["commit"]], "unpriced_at_today": m["commit"] in unpriced_at_today}
+        for m in milestones
+    ]
+    days = group_by_day(with_today)
+    # A milestone's name is free text that reaches a published file, so it
+    # passes through the scrub like a subject or a note.
+    named = group_by_named_milestone(
+        with_today, [{**entry, "name": scrub_text(entry["name"])} for entry in named_milestones(config)]
+    )
+    total_cost_today = sum(_amount(c) or 0.0 for c in cost_at_today.values())
     all_tokens = sum(total_tokens(m["tokens"]) for m in milestones)
     zero_tokens = all_tokens == 0
     if zero_tokens:
@@ -563,20 +637,19 @@ def main(repo_root=None, claude_projects_dir=None, linked_projects=None, reprice
         '<div class="kpi"><span class="kpi-n">%d</span><span class="kpi-l">Words published</span></div>'
         '<div class="kpi"><span class="kpi-n">%d</span><span class="kpi-l">Tokens consumed</span></div>'
         '<div class="kpi"><span class="kpi-n">$%.2f</span><span class="kpi-l">Cost recorded</span></div>'
+        '<div class="kpi"><span class="kpi-n">$%.2f</span><span class="kpi-l">At today\'s price (%s)</span></div>'
         '<div class="kpi"><span class="kpi-n">%d</span><span class="kpi-l">Unpriced milestones</span></div>'
-        % (len(milestones), sum(words_series), sum(tokens_series), total_cost, unpriced_count)
+        % (len(milestones), sum(words_series), sum(tokens_series), total_cost, total_cost_today, today, unpriced_count)
     )
-    table_rows_html = render_table_rows(milestones)
+    table_rows_html = render_table_rows(with_today)
 
     words_thumb = svg_stat_thumbnail(format_compact_count(sum(words_series)), "Words published", words_cumulative)
     tokens_thumb = svg_stat_thumbnail(format_compact_count(sum(tokens_series)), "Tokens consumed", tokens_series)
     cost_thumb = svg_stat_thumbnail("$%.2f" % total_cost, "Cost recorded", cost_cumulative)
 
-    price_ledger = load_ledger(SHIPPED_PRICES)
     prices_by_series = {
         "%s::%s" % (s["provider"], s["model"]): s["entries"] for s in price_ledger
     }
-    today = datetime.now(timezone.utc).date().isoformat()
     embedded_js = "window.MILESTONE_DATA = %s;" % json.dumps({
         "prices": prices_by_series,
         "today": today,
@@ -595,6 +668,7 @@ def main(repo_root=None, claude_projects_dir=None, linked_projects=None, reprice
     html_out = render_dashboard_html(
         os.path.join(TEMPLATE_DIR, "dashboard.html"), kpi_html, words_svg, loc_svg, tokens_svg, cost_svg,
         table_rows_html, embedded_js, zero_tokens_note, render_unpriced_section(milestones),
+        render_named_rows(named), render_day_rows(days), today,
     )
     with open(os.path.join(folder, "dashboard.html"), "w", encoding="utf-8") as fh:
         fh.write(html_out)
@@ -619,6 +693,12 @@ def main(repo_root=None, claude_projects_dir=None, linked_projects=None, reprice
         if last_enriched_at:
             document["last_enriched_at"] = last_enriched_at
         document["milestones"] = milestones
+        # Derived on every run from the commits above, never frozen.
+        document["today"] = today
+        document["cost_at_today"] = cost_at_today
+        document["unpriced_at_today"] = unpriced_at_today
+        document["named_milestones"] = named
+        document["days"] = days
         json.dump(document, fh, indent=2)
         fh.write("\n")
 

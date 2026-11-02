@@ -97,6 +97,26 @@ class TestBuildAndGenerate(unittest.TestCase):
                 data = json.load(fh)
             self.assertEqual(len(data["milestones"]), 2)
 
+    def test_a_named_milestones_name_is_scrubbed_before_it_is_published(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            self.make_repo(tmpdir)
+            self.write_config(tmpdir)
+            first = subprocess.run(["git", "rev-list", "--max-parents=0", "HEAD"], cwd=tmpdir,
+                                   check=True, capture_output=True, text=True).stdout.strip()
+            config_path = os.path.join(tmpdir, "logbook", "config.json")
+            with open(config_path, encoding="utf-8") as fh:
+                config = json.load(fh)
+            config["milestones"] = [{"name": "Draft in /home/alice/notes", "until": first}]
+            with open(config_path, "w", encoding="utf-8") as fh:
+                json.dump(config, fh)
+            with patch("engine.scrub.Path.home", return_value="/home/alice"):
+                main(repo_root=tmpdir, claude_projects_dir="/no/such/dir")
+            with open(os.path.join(tmpdir, "logbook", "data.json"), encoding="utf-8") as fh:
+                data = json.load(fh)
+            self.assertEqual([g["name"] for g in data["named_milestones"]], ["Draft in ~/notes", "In progress"])
+            with open(os.path.join(tmpdir, "logbook", "dashboard.html"), encoding="utf-8") as fh:
+                self.assertNotIn("/home/alice", fh.read())
+
     def test_running_main_twice_with_no_new_commit_is_idempotent(self):
         with tempfile.TemporaryDirectory() as tmpdir:
             self.make_repo(tmpdir)

@@ -17,7 +17,7 @@ Every word, line, and token count comes from reading git history and a real sess
 
 ## What it delivers
 
-**A self-hosted dashboard** (`<milestone_folder>/dashboard.html`), regenerated on every run: four growth charts (words, lines, tokens, cost), a milestone table, a sources-consulted panel, and a live price panel — dropdown, then a number field and a slider for each of five prices (input, output, cache read, cache write 5 min, cache write 1 h), kept in sync — that recomputes cost, the cost chart, and every milestone's live-cost cell against any provider, model, or historical price already in the ledger, entirely client-side, with no network call from the published page ever. The panel reprices all tokens at the one price selected; a 1-hour cache write is priced at the 1-hour field, and when the selected entry has none, a milestone with 1-hour writes shows "-" rather than borrowing the 5-minute rate.
+**A self-hosted dashboard** (`<milestone_folder>/dashboard.html`), regenerated on every run: four growth charts (words, lines, tokens, cost), tables per named milestone, per day and per commit (see "Named milestones, days, and today's price"), a sources-consulted panel, and a live price panel — dropdown, then a number field and a slider for each of five prices (input, output, cache read, cache write 5 min, cache write 1 h), kept in sync — that recomputes cost, the cost chart, and every milestone's live-cost cell against any provider, model, or historical price already in the ledger, entirely client-side, with no network call from the published page ever. The panel reprices all tokens at the one price selected; a 1-hour cache write is priced at the 1-hour field, and when the selected entry has none, a milestone with 1-hour writes shows "-" rather than borrowing the 5-minute rate.
 
 **A frozen historical cost per milestone.** Computed once, at the price in effect on that milestone's date, and never recalculated when the ledger later gains a newer entry. The past stays recorded at the moment it happened. Each model's tokens are priced with that model's own ledger series, and 5-minute and 1-hour cache writes at their own prices (see "Multiple models and cache TTLs"); whatever no ledger price covers is listed as unpriced, never guessed.
 
@@ -67,6 +67,23 @@ Add a line to `<milestone_folder>/notes.json`, keyed by the commit's short hash:
 ```json
 {"a1b2c3d": "Chose to ship without a team-aggregation feature, out of scope for v1."}
 ```
+
+## Named milestones, days, and today's price
+
+A commit is the unit the engine records. To read the work at a coarser grain, name ranges of commits in `<milestone_folder>/config.json`:
+
+```json
+"milestones": [
+  {"name": "S1 part 1: base, reference and model", "until": "76b178e"},
+  {"name": "S1 part 2: native engine", "until": "a1b2c3d"}
+]
+```
+
+Each named milestone covers the commits after the previous one's `until` up to and including its own, in history order. Commits after the last one are shown as "In progress". An `until` that is not a commit of this history, or one that comes before the previous milestone, stops the run: a milestone is never silently dropped or reordered. A name is free text that reaches the published dashboard, so it passes through the scrub like a commit subject. The key is optional; without it the "Named milestones" table is empty.
+
+The dashboard also totals every commit date in a "By day" table, and shows each commit, day and named milestone twice: the **recorded cost**, frozen at the price in effect on each commit's own date, and the **cost at today's price**, the same frozen tokens priced at the ledger entry in effect on the day of the run. The second is recomputed on every run, is stored in `data.json` as its own map (`cost_at_today`), and never touches a milestone's frozen record. Both follow the same rules as the recorded cost: per model, per cache TTL, `price_mode` honoured, and whatever no price covers is reported, never guessed. Each cost has its own gaps: a model with no price on a commit's date may be priced today, so a group is marked "(partial)" in each column only for what that column's price leaves uncovered, and a group with usage nothing prices shows "unpriced", not "-".
+
+`data.json` gains five top-level keys, all derived on every run: `today`, `cost_at_today`, `unpriced_at_today` (the commits with usage no price covers today), `named_milestones`, `days`.
 
 ## Updating the price ledger
 
@@ -160,6 +177,7 @@ A milestone's `tokens` gained fields over time: `cache_creation_1h` and `by_mode
 - Never estimate a word, line, or token count. Read it from git history or a real transcript, or leave it at zero.
 - Never let a local file path, username, or hostname reach a published file.
 - Never recalculate a milestone's recorded cost after the fact, even when the ledger gains a newer price. The two exceptions are `--reprice`, the explicit, audited correction of a price that was **wrong** (see "Correcting a price that was wrong"), never a route for a normal price change, and `--enrich`, the one-time migration of a milestone frozen before the token schema gained the per-model and per-TTL split, only where the transcripts prove it (see "Enriching milestones recorded before a schema change").
+- Never write the cost at today's price into a milestone's frozen record, or let it replace `cost_recorded`. It is a reading of the past at today's price, not a correction of it.
 - Never overwrite an existing price ledger entry. Append a new one; a wrong price is corrected by appending an entry with `--corrects`.
 - Never delete `data.json` to unfreeze costs: it also discards the frozen tokens, which may not be regenerable.
 - Never run `--enrich` for real before reading its `--dry-run` report, never assume a cache TTL or a model for a milestone it refused, and never edit a frozen counter to make one pass.

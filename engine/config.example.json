@@ -7,5 +7,6 @@
   "price_provider": "anthropic",
   "price_model": "claude-sonnet-5",
   "price_mode": "per_model",
-  "currency": "USD"
+  "currency": "USD",
+  "milestones": []
 }

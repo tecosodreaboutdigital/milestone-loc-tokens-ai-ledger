@@ -94,9 +94,26 @@ __CHART_COST__
 
 __UNPRICED_SECTION__
 
-<h2>Milestones</h2>
+<h2>Named milestones</h2>
+<p class="honest-note">Ranges of commits declared under <code>milestones</code> in <code>config.json</code>. "Recorded" is each commit's cost frozen at the price on its own date; "at today's price" reprices the same tokens at the ledger entry in effect on __TODAY__.</p>
 <table>
-<thead><tr><th>Date</th><th>Commit</th><th>Subject</th><th>Words</th><th>Lines</th><th>Recorded cost</th><th>Live cost</th><th>Note</th></tr></thead>
+<thead><tr><th>Milestone</th><th>Commits</th><th>Dates</th><th>Count</th><th>Words</th><th>Lines</th><th>Tokens</th><th>Recorded cost</th><th>At today's price</th></tr></thead>
+<tbody>
+__NAMED_MILESTONE_ROWS__
+</tbody>
+</table>
+
+<h2>By day</h2>
+<table>
+<thead><tr><th>Date</th><th>Commits</th><th>Words</th><th>Lines</th><th>Tokens</th><th>Recorded cost</th><th>At today's price</th></tr></thead>
+<tbody>
+__DAY_ROWS__
+</tbody>
+</table>
+
+<h2>Commits</h2>
+<table>
+<thead><tr><th>Date</th><th>Commit</th><th>Subject</th><th>Words</th><th>Lines</th><th>Tokens</th><th>Recorded cost</th><th>At today's price</th><th>Live cost</th><th>Note</th></tr></thead>
 <tbody>
 __TABLE_ROWS__
 </tbody>
