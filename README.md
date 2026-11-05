@@ -53,6 +53,8 @@ git clone https://github.com/tecosodreaboutdigital/milestone-loc-tokens-ai-ledge
 
 **Dependencies:** Python 3 standard library only, to run the engine. Node's built-in `assert` module only, to run the dashboard's own tests. Nothing to `pip install` or `npm install`.
 
+**Speed on a long history.** Words and lines are read through one `git cat-file --batch` kept open for the whole run, and a file left unchanged across commits is measured once, by its blob id. On a 217-commit project of about 500,000 words (Windows, 5 November 2026), that part takes about 30 seconds and gives the same totals, commit by commit, as the earlier engine, which opened one `git show` per file per commit: timed on six of those commits, about 21 seconds each, over an hour for the whole history. What remains of a run is mostly reading the session transcripts.
+
 ## Usage
 
 ```
