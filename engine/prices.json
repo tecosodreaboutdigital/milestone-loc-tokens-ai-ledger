@@ -166,5 +166,66 @@
         ]
       }
     ]
+  },
+  {
+    "provider": "anthropic",
+    "model": "claude-sonnet-5-5",
+    "currency": "USD",
+    "entries": [
+      {
+        "effective_date": "2026-09-28",
+        "input_price": 2.0,
+        "output_price": 10.0,
+        "cache_read_price": 0.1,
+        "cache_creation_price": 2.5,
+        "cache_creation_1h_price": 4.0,
+        "note": "Effective date is the launch date on Anthropic's announcement (Sep 28, 2026), which states the launch price: input 2, output 10, cache reads 0.10, cache writes 2.50 per MTok. The announcement gives no 1-hour cache write price; 4.0 comes from the pricing page and LiteLLM, read on 2026-11-05, and is assumed to have applied since launch. Cache hits are 0.05x base input on Sonnet 5.5 (pricing page, footnote 2). Standard rate only: batch (50% off) and the 1.1x US data-residency multiplier are not in this series.",
+        "sources": [
+          {
+            "name": "Anthropic, Pricing (platform.claude.com)",
+            "url": "https://platform.claude.com/docs/en/about-claude/pricing",
+            "checked_at": "2026-11-05"
+          },
+          {
+            "name": "Anthropic, Introducing Claude Sonnet 5.5",
+            "url": "https://www.anthropic.com/claude-sonnet-5-5",
+            "checked_at": "2026-11-05"
+          },
+          {
+            "name": "LiteLLM model_prices_and_context_window.json, key claude-sonnet-5-5",
+            "url": "https://github.com/BerriAI/litellm/blob/main/model_prices_and_context_window.json",
+            "checked_at": "2026-11-05"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "provider": "anthropic",
+    "model": "claude-fable-5-1",
+    "currency": "USD",
+    "entries": [
+      {
+        "effective_date": "2026-09-01",
+        "input_price": 10.0,
+        "output_price": 50.0,
+        "cache_read_price": 0.25,
+        "cache_creation_price": 12.5,
+        "cache_creation_1h_price": 20.0,
+        "note": "Both sources show only the current price, no dated history, and no Anthropic page read on 2026-11-05 gives a launch date. Effective date 2026-09-01 is the launch date reported by press coverage (e.g. https://news.smol.ai/issues/26-09-01-claude-mythos-51/), which also reports the same list price at launch; that is not verified on an Anthropic page. Cache hits are 0.025x base input on Fable 5.1 (pricing page, footnote 1). Standard rate only: batch (50% off) and the 1.1x US data-residency multiplier are not in this series.",
+        "sources": [
+          {
+            "name": "Anthropic, Pricing (platform.claude.com)",
+            "url": "https://platform.claude.com/docs/en/about-claude/pricing",
+            "checked_at": "2026-11-05"
+          },
+          {
+            "name": "LiteLLM model_prices_and_context_window.json, key claude-fable-5-1",
+            "url": "https://github.com/BerriAI/litellm/blob/main/model_prices_and_context_window.json",
+            "checked_at": "2026-11-05"
+          }
+        ]
+      }
+    ]
   }
 ]
