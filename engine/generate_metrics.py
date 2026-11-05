@@ -41,7 +41,7 @@ if _REPO_ROOT not in sys.path:
 from engine.config import day_timezone, include_nested_sessions, load_config, named_milestones, price_mode
 from engine.cost import MODEL_TOKEN_FIELDS, TOKEN_KINDS, price_milestone, total_tokens
 from engine.enrich import apply_enrichment, format_report, plan_enrichment
-from engine.git_source import commits, line_count, list_repo_files_at, matches_any, sum_metric, word_count_html
+from engine.git_source import batch_reads, commits, line_count, list_repo_files_at, matches_any, sum_metric, word_count_html
 from engine.prices import load_ledger
 from engine.rollup import group_by_day, group_by_named_milestone
 from engine.readers.claude_code import (
@@ -167,19 +167,27 @@ def build_milestones(repo_root, config, claude_projects_dir, linked_projects=Non
     price_ledger = load_ledger(SHIPPED_PRICES)
     exclude_globs = _effective_exclude_globs(config)
 
+    # sum_metric measures the current cumulative total content matching a
+    # glob AT each commit, not what changed since the last one. One
+    # `git cat-file --batch` stays open for every commit (batch_reads), and
+    # a file unchanged across commits is measured once.
+    totals = []
+    with batch_reads(repo_root):
+        for row in rows:
+            files_at_commit = list_repo_files_at(repo_root, row["hash"])
+            files_at_commit = {path for path in files_at_commit if not matches_any(path, exclude_globs)}
+            totals.append((
+                sum_metric(repo_root, row["hash"], files_at_commit, config["content_globs"], word_count_html),
+                sum_metric(repo_root, row["hash"], files_at_commit, config["code_globs"], line_count),
+            ))
+
     milestones = []
     prev_words = 0
     prev_loc = 0
-    for row, tokens in zip(rows, token_buckets):
-        files_at_commit = list_repo_files_at(repo_root, row["hash"])
-        files_at_commit = {path for path in files_at_commit if not matches_any(path, exclude_globs)}
-        # sum_metric measures the current cumulative total content
-        # matching a glob AT this commit, not what changed since the
-        # last one. Track the running total across commits so we can
-        # store a genuine per-milestone delta below, not a repeated
-        # cumulative number mislabeled as one.
-        words = sum_metric(repo_root, row["hash"], files_at_commit, config["content_globs"], word_count_html)
-        loc = sum_metric(repo_root, row["hash"], files_at_commit, config["code_globs"], line_count)
+    for row, tokens, (words, loc) in zip(rows, token_buckets, totals):
+        # Track the running total across commits so we can store a genuine
+        # per-milestone delta below, not a repeated cumulative number
+        # mislabeled as one.
         words_delta = words - prev_words
         loc_delta = loc - prev_loc
         prev_words = words
