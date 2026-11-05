@@ -145,6 +145,22 @@
     "currency": "USD",
     "entries": [
       {
+        "effective_date": "2026-10-08",
+        "input_price": 4.0,
+        "output_price": 20.0,
+        "cache_read_price": 0.2,
+        "cache_creation_price": 5.0,
+        "cache_creation_1h_price": 8.0,
+        "note": "Same prices as the 2026-11-01 entry, applied from 2026-10-08, the first day this project's transcripts record claude-opus-5-5, by decision of the project owner (Teco) on 2026-11-05. The sources show only the current price, no dated history; this entry does not claim the price was read on 2026-10-08.",
+        "sources": [
+          {
+            "name": "Anthropic, Pricing (platform.claude.com)",
+            "url": "https://platform.claude.com/docs/en/about-claude/pricing",
+            "checked_at": "2026-11-01"
+          }
+        ]
+      },
+      {
         "effective_date": "2026-11-01",
         "input_price": 4.0,
         "output_price": 20.0,
@@ -222,6 +238,29 @@
           {
             "name": "LiteLLM model_prices_and_context_window.json, key claude-fable-5-1",
             "url": "https://github.com/BerriAI/litellm/blob/main/model_prices_and_context_window.json",
+            "checked_at": "2026-11-05"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "provider": "anthropic",
+    "model": "claude-haiku-5-5",
+    "currency": "USD",
+    "entries": [
+      {
+        "effective_date": "2026-11-05",
+        "input_price": 0.1,
+        "output_price": 0.5,
+        "cache_read_price": 0.01,
+        "cache_creation_price": 0.125,
+        "cache_creation_1h_price": 0.2,
+        "note": "Tier for prompts up to 100,000 tokens (the page also lists a higher tier above 100,000: 0.50 input, 2.50 output, 0.625 / 1.00 cache writes, 0.05 cache hits). This project's Haiku 5.5 usage is short subagent fetches, well under 100,000 tokens per request. The page shows no effective date; effective_date is the date read.",
+        "sources": [
+          {
+            "name": "Anthropic, Pricing (platform.claude.com)",
+            "url": "https://platform.claude.com/docs/en/about-claude/pricing",
             "checked_at": "2026-11-05"
           }
         ]
